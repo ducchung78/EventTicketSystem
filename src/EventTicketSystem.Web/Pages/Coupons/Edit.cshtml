@@ -1,0 +1,124 @@
+@page "{id:int}"
+@model EventTicketSystem.Web.Pages.Coupons.EditCouponModel
+@{
+    ViewData["Title"] = "Sửa Mã Giảm Giá";
+    var isAmount = Model.DiscountType == "amount";
+}
+
+<div class="container-xl px-3 px-md-4 py-4" style="max-width:680px;">
+    <div class="mb-4">
+        <a href="/Coupons" class="text-muted small">← Quay lại danh sách</a>
+        <h3 class="fw-bold mt-2 mb-0" style="color:#ede0ff;">Sửa Mã Giảm Giá — <code>@Model.Coupon.Code</code></h3>
+    </div>
+
+    <div class="form-card">
+        @if (!ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                @foreach (var e in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <div>@e.ErrorMessage</div>
+                }
+            </div>
+        }
+
+        <form method="post">
+            <input type="hidden" asp-for="Coupon.Id" />
+            <input type="hidden" asp-for="Coupon.UsedCount" />
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Mã giảm giá</label>
+                <input asp-for="Coupon.Code" class="form-control text-uppercase" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Mô tả</label>
+                <input asp-for="Coupon.Description" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Loại giảm giá</label>
+                <div class="d-flex gap-3">
+                    <label class="d-flex align-items-center gap-2 cursor-pointer">
+                        <input type="radio" name="DiscountType" value="percent"
+                               @(!isAmount ? "checked" : "") id="typePercent"
+                               onchange="toggleDiscountType()" />
+                        <span>Theo phần trăm (%)</span>
+                    </label>
+                    <label class="d-flex align-items-center gap-2 cursor-pointer">
+                        <input type="radio" name="DiscountType" value="amount"
+                               @(isAmount ? "checked" : "") id="typeAmount"
+                               onchange="toggleDiscountType()" />
+                        <span>Theo số tiền cố định (đ)</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-6" id="percentGroup" style="@(isAmount ? "display:none;" : "")">
+                    <label class="form-label fw-semibold">Phần trăm giảm (%)</label>
+                    <input asp-for="Coupon.DiscountPercent" type="number" class="form-control"
+                           min="1" max="100" step="0.01" />
+                </div>
+                <div class="col-6" id="amountGroup" style="@(!isAmount ? "display:none;" : "")">
+                    <label class="form-label fw-semibold">Số tiền giảm (đ)</label>
+                    <input asp-for="Coupon.DiscountAmount" type="number" class="form-control"
+                           min="1000" step="1000" />
+                </div>
+                <div class="col-6">
+                    <label class="form-label fw-semibold">Đơn hàng tối thiểu (đ)</label>
+                    <input asp-for="Coupon.MinOrderValue" type="number" class="form-control" min="0" step="1000" />
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-6">
+                    <label class="form-label fw-semibold">Số lần dùng tối đa</label>
+                    <input asp-for="Coupon.MaxUses" type="number" class="form-control" min="0" />
+                    <div class="form-text">Đã dùng: @Model.Coupon.UsedCount lần</div>
+                </div>
+                <div class="col-6">
+                    <label class="form-label fw-semibold">Ngày hết hạn</label>
+                    <input asp-for="Coupon.ExpiryDate" type="date" class="form-control" />
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <div class="form-check">
+                    <input asp-for="Coupon.IsActive" class="form-check-input" type="checkbox" />
+                    <label asp-for="Coupon.IsActive" class="form-check-label">Đang hoạt động</label>
+                </div>
+            </div>
+
+            <div class="d-flex gap-3">
+                <button type="submit" class="btn-submit">Lưu thay đổi</button>
+                <a href="/Coupons" class="btn-cancel">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.form-card { background: rgba(15,9,40,.75); border: 1px solid rgba(124,77,255,.18); border-radius: 16px; padding: 28px; }
+.form-control { background: rgba(255,255,255,.05); border: 1px solid rgba(124,77,255,.25); color: #ede0ff; border-radius: 8px; }
+.form-control:focus { background: rgba(255,255,255,.08); border-color: #7c4dff; color: #ede0ff; box-shadow: 0 0 0 3px rgba(124,77,255,.15); }
+.form-control::placeholder { color: rgba(210,195,255,.3); }
+.form-label { color: rgba(210,195,255,.8); font-size: .88rem; }
+.form-text { color: rgba(210,195,255,.4); font-size: .76rem; }
+.form-check-input { background-color: rgba(255,255,255,.1); border-color: rgba(124,77,255,.4); }
+.form-check-input:checked { background-color: #7c4dff; border-color: #7c4dff; }
+.form-check-label { color: rgba(210,195,255,.8); font-size: .88rem; }
+.btn-submit { padding: 11px 28px; border-radius: 50px; border: none; background: linear-gradient(90deg,#7c4dff,#448aff); color: #fff; font-weight: 700; cursor: pointer; box-shadow: 0 3px 16px rgba(124,77,255,.4); }
+.btn-cancel { padding: 11px 22px; border-radius: 50px; border: 1px solid rgba(124,77,255,.3); color: rgba(210,195,255,.7); text-decoration: none; display: inline-flex; align-items: center; }
+.cursor-pointer { cursor: pointer; }
+</style>
+
+@section Scripts {
+<script>
+function toggleDiscountType() {
+    const isAmount = document.getElementById('typeAmount').checked;
+    document.getElementById('percentGroup').style.display = isAmount ? 'none' : '';
+    document.getElementById('amountGroup').style.display  = isAmount ? '' : 'none';
+}
+</script>
+}

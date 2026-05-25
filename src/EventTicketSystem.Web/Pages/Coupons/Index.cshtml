@@ -1,0 +1,144 @@
+@page
+@model EventTicketSystem.Web.Pages.Coupons.CouponsIndexModel
+@{
+    ViewData["Title"] = "Quản Lý Mã Giảm Giá";
+}
+
+<div class="container-xl px-3 px-md-4 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1" style="color:#ede0ff;">🎫 Mã Giảm Giá</h3>
+            <p class="text-muted small mb-0">Quản lý tất cả mã khuyến mãi của hệ thống</p>
+        </div>
+        <a href="/Coupons/Create" class="btn-action-primary">+ Tạo mã mới</a>
+    </div>
+
+    @if (TempData["Success"] is string ok)
+    {
+        <div class="alert alert-success alert-dismissible" role="alert">
+            @ok <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="table-card">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Mã</th>
+                    <th>Mô tả</th>
+                    <th>Giảm giá</th>
+                    <th>Đơn tối thiểu</th>
+                    <th>Đã dùng / Tổng</th>
+                    <th>Hết hạn</th>
+                    <th>Trạng thái</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model.Coupons)
+                {
+                    var expired = c.ExpiryDate.HasValue && DateTime.UtcNow > c.ExpiryDate.Value;
+                    var exhausted = c.MaxUses > 0 && c.UsedCount >= c.MaxUses;
+                    <tr class="@(!c.IsActive || expired || exhausted ? "row-inactive" : "")">
+                        <td>
+                            <code class="coupon-code">@c.Code</code>
+                        </td>
+                        <td class="text-muted small">@(c.Description ?? "—")</td>
+                        <td class="fw-semibold" style="color:#ffd740;">
+                            @if (c.DiscountPercent > 0)
+                            {
+                                <span>@c.DiscountPercent.ToString("0.##")%</span>
+                            }
+                            else
+                            {
+                                <span>@c.DiscountAmount.ToString("N0")đ</span>
+                            }
+                        </td>
+                        <td class="text-muted small">@(c.MinOrderValue > 0 ? c.MinOrderValue.ToString("N0") + "đ" : "—")</td>
+                        <td>
+                            <span style="color:#69f0ae;">@c.UsedCount</span>
+                            <span class="text-muted">/ @(c.MaxUses == 0 ? "∞" : c.MaxUses.ToString())</span>
+                        </td>
+                        <td class="small @(expired ? "text-danger" : "text-muted")">
+                            @(c.ExpiryDate.HasValue ? c.ExpiryDate.Value.ToLocalTime().ToString("dd/MM/yyyy") : "—")
+                            @if (expired) { <span class="badge bg-danger ms-1">Hết hạn</span> }
+                        </td>
+                        <td>
+                            <form method="post" asp-page-handler="Toggle" asp-route-id="@c.Id" class="d-inline">
+                                @if (c.IsActive && !expired && !exhausted)
+                                {
+                                    <button type="submit" class="badge-status badge-active">Đang hoạt động</button>
+                                }
+                                else
+                                {
+                                    <button type="submit" class="badge-status badge-inactive">Tắt</button>
+                                }
+                            </form>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-2 justify-content-end">
+                                <a href="/Coupons/Edit/@c.Id" class="btn-tbl btn-tbl-edit">Sửa</a>
+                                <form method="post" asp-page-handler="Delete" asp-route-id="@c.Id"
+                                      onsubmit="return confirm('Xóa mã @c.Code?')">
+                                    <button type="submit" class="btn-tbl btn-tbl-del">Xóa</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Coupons.Any())
+                {
+                    <tr><td colspan="8" class="text-center text-muted py-4">Chưa có mã giảm giá nào.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+.btn-action-primary {
+    display: inline-flex; align-items: center; padding: 10px 22px;
+    border-radius: 50px; background: linear-gradient(90deg,#7c4dff,#448aff);
+    color: #fff; font-weight: 700; font-size: .88rem; text-decoration: none;
+    box-shadow: 0 3px 16px rgba(124,77,255,.4); transition: opacity .15s;
+}
+.btn-action-primary:hover { opacity: .85; color: #fff; }
+
+.table-card {
+    background: rgba(15,9,40,.75);
+    border: 1px solid rgba(124,77,255,.18);
+    border-radius: 14px; overflow: hidden;
+}
+.table-card .table { color: rgba(210,195,255,.85); margin-bottom: 0; }
+.table-card thead th {
+    background: rgba(124,77,255,.1);
+    color: rgba(210,195,255,.5); font-size: .75rem;
+    text-transform: uppercase; letter-spacing: .05em;
+    border-color: rgba(124,77,255,.15); padding: 12px 16px;
+}
+.table-card tbody td { border-color: rgba(124,77,255,.08); padding: 12px 16px; vertical-align: middle; }
+.table-card tbody tr:hover { background: rgba(124,77,255,.05); }
+.row-inactive { opacity: .5; }
+
+.coupon-code {
+    background: rgba(124,77,255,.15); color: #c2a6ff;
+    padding: 3px 10px; border-radius: 6px; font-size: .85rem; letter-spacing: .04em;
+}
+.badge-status {
+    border: none; border-radius: 50px; padding: 4px 12px;
+    font-size: .72rem; font-weight: 700; cursor: pointer; transition: opacity .15s;
+}
+.badge-active { background: rgba(0,200,83,.15); color: #00c853; }
+.badge-active:hover { opacity: .75; }
+.badge-inactive { background: rgba(255,255,255,.08); color: rgba(210,195,255,.4); }
+.badge-inactive:hover { opacity: .75; }
+
+.btn-tbl {
+    border: none; border-radius: 6px; padding: 5px 14px;
+    font-size: .75rem; font-weight: 600; cursor: pointer; white-space: nowrap;
+}
+.btn-tbl-edit { background: rgba(68,138,255,.15); color: #448aff; }
+.btn-tbl-edit:hover { background: rgba(68,138,255,.3); }
+.btn-tbl-del { background: rgba(229,57,53,.15); color: #ef5350; }
+.btn-tbl-del:hover { background: rgba(229,57,53,.3); }
+</style>

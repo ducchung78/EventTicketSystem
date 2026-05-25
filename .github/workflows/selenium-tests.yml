@@ -1,0 +1,112 @@
+name: Selenium Tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  selenium-test:
+    runs-on: ubuntu-latest
+
+    # SQL Server chạy như service container
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: TestPassword@123
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'TestPassword@123' -Q 'SELECT 1' -No"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    # Override connection string từ appsettings.json sang SQL Server Docker
+    env:
+      ConnectionStrings__EventTicketSystemDb: "Server=localhost,1433;Database=EventTicketSystemDb;User Id=sa;Password=TestPassword@123;TrustServerCertificate=True"
+      ASPNETCORE_URLS: "http://localhost:5134"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Setup Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Node dependencies
+        run: npm install
+
+      - name: Restore .NET packages
+        run: dotnet restore src/EventTicketSystem.Web/
+
+      - name: Build .NET app
+        run: dotnet build src/EventTicketSystem.Web/ --no-restore --configuration Release
+
+      # Cài EF Core CLI để chạy migration (bỏ qua nếu app tự migrate khi start)
+      - name: Install EF Core tools
+        run: dotnet tool install --global dotnet-ef
+        continue-on-error: true
+
+      - name: Run database migrations
+        run: dotnet ef database update --project src/EventTicketSystem.Web/
+        continue-on-error: true
+
+      # Khởi động app ở background
+      - name: Start app in background
+        run: |
+          dotnet run --project src/EventTicketSystem.Web/ --no-build --configuration Release &
+          echo "App process started"
+
+      # Chờ đến khi app sẵn sàng (tối đa 90 giây)
+      - name: Wait for app to be ready
+        run: |
+          echo "Waiting for app to start..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:5134 > /dev/null 2>&1; then
+              echo "App is ready after $((i * 3))s"
+              exit 0
+            fi
+            echo "  Attempt $i/30, retrying in 3s..."
+            sleep 3
+          done
+          echo "ERROR: App did not start within 90 seconds"
+          exit 1
+
+      - name: Create test-results directory
+        run: mkdir -p test-results
+
+      # Chạy Selenium tests - continue-on-error để bước Jira vẫn chạy khi có test fail
+      - name: Run Selenium tests
+        run: npm test
+        continue-on-error: true
+
+      # Tạo Jira issue cho các test bị fail
+      - name: Create Jira issues for failed tests
+        if: always()
+        run: node scripts/create-jira-issues.js
+        env:
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_PROJECT_KEY: ${{ secrets.JIRA_PROJECT_KEY }}
+        continue-on-error: true
+
+      # Lưu kết quả test để xem sau
+      - name: Upload test results artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-test-results
+          path: test-results/
+          if-no-files-found: ignore

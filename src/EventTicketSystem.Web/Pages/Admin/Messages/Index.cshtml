@@ -1,0 +1,228 @@
+@page
+@model EventTicketSystem.Web.Pages.Admin.Messages.MessagesIndexModel
+@{
+    ViewData["Title"] = "Hòm Thư Admin";
+}
+
+<style>
+    .mb-wrap { padding: 2rem 0 3rem; }
+
+    .mb-header {
+        display: flex; align-items: center; justify-content: space-between;
+        flex-wrap: wrap; gap: 12px; margin-bottom: 1.5rem;
+    }
+    .mb-title { font-size: 1.45rem; font-weight: 800; color: #ede0ff; }
+    .mb-unread-badge {
+        display: inline-block;
+        background: #e53935; color: #fff;
+        font-size: .72rem; font-weight: 700;
+        padding: 2px 9px; border-radius: 50px; margin-left: 8px; vertical-align: middle;
+    }
+
+    .mb-stat-row {
+        display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 1.5rem;
+    }
+    .mb-stat {
+        background: rgba(20,10,52,.75); border: 1px solid rgba(124,77,255,.22);
+        border-radius: 12px; padding: 14px 20px; min-width: 130px; text-align: center;
+    }
+    .mb-stat-num { font-size: 1.8rem; font-weight: 800; color: #ede0ff; line-height: 1; }
+    .mb-stat-lbl { font-size: .72rem; color: rgba(210,195,255,.45); text-transform: uppercase; letter-spacing: .05em; margin-top: 4px; }
+
+    /* ── Table ── */
+    .mb-table-wrap {
+        background: rgba(20,10,52,.82);
+        border: 1px solid rgba(124,77,255,.22);
+        border-radius: 14px; overflow: hidden;
+    }
+    table.mb-table { width: 100%; border-collapse: collapse; }
+    table.mb-table thead th {
+        padding: 12px 16px; font-size: .72rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: .06em;
+        color: rgba(124,77,255,.75); border-bottom: 1px solid rgba(124,77,255,.2);
+        white-space: nowrap;
+    }
+    table.mb-table tbody tr {
+        border-bottom: 1px solid rgba(124,77,255,.08);
+        transition: background .15s; cursor: pointer;
+    }
+    table.mb-table tbody tr:last-child { border-bottom: none; }
+    table.mb-table tbody tr:hover { background: rgba(124,77,255,.06); }
+    table.mb-table tbody tr.unread { border-left: 3px solid #00c853; }
+    table.mb-table tbody tr.read   { border-left: 3px solid transparent; }
+    table.mb-table td {
+        padding: 13px 16px; font-size: .85rem;
+        color: rgba(210,195,255,.75); vertical-align: middle;
+    }
+    table.mb-table td.td-name { font-weight: 600; color: #ede0ff; }
+    table.mb-table td.td-subject { color: rgba(210,195,255,.85); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .badge-new  { background: rgba(0,200,83,.15); color: #69f0ae; border: 1px solid rgba(0,200,83,.25); border-radius: 50px; padding: 3px 10px; font-size: .72rem; font-weight: 700; white-space: nowrap; }
+    .badge-read { background: rgba(255,255,255,.04); color: rgba(210,195,255,.35); border: 1px solid rgba(255,255,255,.07); border-radius: 50px; padding: 3px 10px; font-size: .72rem; white-space: nowrap; }
+
+    /* ── Expanded detail row ── */
+    .mb-detail-row td {
+        padding: 0 !important;
+        cursor: default;
+    }
+    .mb-detail-inner {
+        display: none; padding: 16px 20px 20px;
+        background: rgba(10,4,30,.55);
+        border-top: 1px solid rgba(124,77,255,.12);
+    }
+    .mb-detail-inner.open { display: block; }
+    .mb-detail-msg {
+        white-space: pre-wrap; line-height: 1.7;
+        color: rgba(210,195,255,.8); font-size: .88rem;
+        background: rgba(0,0,0,.2); border-radius: 10px;
+        padding: 14px 16px; margin-bottom: 12px;
+    }
+    .mb-detail-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-reply {
+        padding: 7px 18px; border-radius: 8px; font-size: .8rem; font-weight: 600;
+        background: rgba(0,200,83,.12); border: 1px solid rgba(0,200,83,.3);
+        color: #69f0ae; text-decoration: none; transition: background .15s;
+    }
+    .btn-reply:hover { background: rgba(0,200,83,.22); color: #69f0ae; }
+    .btn-del {
+        padding: 7px 16px; border-radius: 8px; font-size: .8rem; font-weight: 600;
+        background: rgba(229,57,53,.08); border: 1px solid rgba(229,57,53,.25);
+        color: rgba(239,154,154,.75); cursor: pointer; transition: background .15s;
+    }
+    .btn-del:hover { background: rgba(229,57,53,.2); color: #ef9a9a; }
+
+    .mb-empty { text-align: center; padding: 3rem 2rem; color: rgba(210,195,255,.3); }
+    .mb-empty-icon { font-size: 2.5rem; margin-bottom: .75rem; display: block; }
+</style>
+
+@* Hidden form for antiforgery token (used by AJAX mark-read) *@
+<form id="__afForm" method="post" style="display:none;"></form>
+
+<div class="container-xl px-3 px-md-4 mb-wrap">
+
+    <div class="mb-header">
+        <div>
+            <span class="mb-title">📬 Hòm Thư Admin</span>
+            @if (Model.UnreadCount > 0)
+            {
+                <span class="mb-unread-badge">@Model.UnreadCount chưa đọc</span>
+            }
+        </div>
+        <a href="/Contact" class="btn-reply">→ Xem trang liên hệ</a>
+    </div>
+
+    <div class="mb-stat-row">
+        <div class="mb-stat">
+            <div class="mb-stat-num">@Model.Messages.Count</div>
+            <div class="mb-stat-lbl">Tổng tin nhắn</div>
+        </div>
+        <div class="mb-stat">
+            <div class="mb-stat-num" style="color:#69f0ae;">@Model.UnreadCount</div>
+            <div class="mb-stat-lbl">Chưa đọc</div>
+        </div>
+        <div class="mb-stat">
+            <div class="mb-stat-num" style="color:rgba(210,195,255,.4);">@(Model.Messages.Count - Model.UnreadCount)</div>
+            <div class="mb-stat-lbl">Đã đọc</div>
+        </div>
+    </div>
+
+    @if (!Model.Messages.Any())
+    {
+        <div class="mb-table-wrap">
+            <div class="mb-empty">
+                <span class="mb-empty-icon">📭</span>
+                Hòm thư trống. Chưa có tin nhắn liên hệ nào.
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="mb-table-wrap">
+            <table class="mb-table">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Họ Tên</th>
+                        <th>Email</th>
+                        <th>SĐT</th>
+                        <th>Chủ Đề</th>
+                        <th>Ngày Gửi</th>
+                        <th>Trạng Thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @{int stt = 1;}
+                @foreach (var msg in Model.Messages)
+                {
+                    var rowClass = msg.IsRead ? "read" : "unread";
+                    <tr class="@rowClass" onclick="toggleMsg(@msg.Id, @msg.IsRead.ToString().ToLower())"
+                        id="row-@msg.Id">
+                        <td style="color:rgba(210,195,255,.35); width:48px;">@(stt++)</td>
+                        <td class="td-name">@msg.HoTen</td>
+                        <td>@msg.Email</td>
+                        <td style="color:rgba(210,195,255,.45);">@(msg.Phone ?? "—")</td>
+                        <td class="td-subject">@msg.Subject</td>
+                        <td style="white-space:nowrap;">@msg.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>
+                            @if (msg.IsRead)
+                            {
+                                <span class="badge-read" id="status-@msg.Id">Đã đọc</span>
+                            }
+                            else
+                            {
+                                <span class="badge-new" id="status-@msg.Id">🔵 Mới</span>
+                            }
+                        </td>
+                    </tr>
+                    <tr class="mb-detail-row" id="detail-@msg.Id">
+                        <td colspan="7">
+                            <div class="mb-detail-inner" id="inner-@msg.Id">
+                                <div class="mb-detail-msg">@msg.Message</div>
+                                <div class="mb-detail-actions">
+                                    <a href="mailto:@msg.Email?subject=Re: @msg.Subject"
+                                       class="btn-reply">↩ Trả lời qua email</a>
+                                    <form method="post" asp-page-handler="Delete"
+                                          onsubmit="return confirm('Xóa tin nhắn từ @Html.Raw(msg.HoTen.Replace("'","\\\'"))?")'
+                                          style="display:inline;">
+                                        <input type="hidden" name="id" value="@msg.Id" />
+                                        <button type="submit" class="btn-del">🗑 Xóa</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<script>
+const _afToken = () =>
+    document.querySelector('#__afForm input[name="__RequestVerificationToken"]')?.value ?? '';
+
+async function markRead(id) {
+    const fd = new FormData();
+    fd.append('id', id);
+    fd.append('__RequestVerificationToken', _afToken());
+    try {
+        await fetch('/Admin/Messages?handler=MarkRead', { method: 'POST', body: fd });
+        const badge = document.getElementById('status-' + id);
+        if (badge) { badge.className = 'badge-read'; badge.textContent = 'Đã đọc'; }
+        const row = document.getElementById('row-' + id);
+        if (row) { row.classList.remove('unread'); row.classList.add('read'); }
+    } catch {}
+}
+
+function toggleMsg(id, isRead) {
+    const inner = document.getElementById('inner-' + id);
+    const isOpen = inner.classList.contains('open');
+    // close all others
+    document.querySelectorAll('.mb-detail-inner.open').forEach(el => el.classList.remove('open'));
+    if (!isOpen) {
+        inner.classList.add('open');
+        if (!isRead) markRead(id);
+    }
+}
+</script>

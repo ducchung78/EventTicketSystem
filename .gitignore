@@ -1,0 +1,31 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.csproj.user
+
+# Node
+node_modules/
+
+# Test results (generated, không cần commit)
+test-results/
+
+# Environment (chứa secrets, không được commit)
+.env
+
+# Build output
+publish/
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sonar
+.sonarqube/

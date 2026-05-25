@@ -1,0 +1,331 @@
+{
+  "thoi_gian": "2026-05-25 21:07:13",
+  "tong_pass": 32,
+  "tong_fail": 22,
+  "chi_tiet": [
+    {
+      "id": "DK01",
+      "name": "Hop le day du thong tin",
+      "status": "PASS",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK02",
+      "name": "Hop le khong co SDT",
+      "status": "PASS",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK03",
+      "name": "Mat khau co chu va so",
+      "status": "PASS",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK04",
+      "name": "Mat khau manh",
+      "status": "PASS",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK05",
+      "name": "Ten 3 chu",
+      "status": "PASS",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK06",
+      "name": "Ten 2 chu",
+      "status": "PASS",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK07",
+      "name": "Ho ten trong",
+      "status": "FAIL",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK08",
+      "name": "Email khong hop le",
+      "status": "FAIL",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK09",
+      "name": "Mat khau qua ngan",
+      "status": "FAIL",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK10",
+      "name": "Xac nhan khong khop",
+      "status": "FAIL",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK11",
+      "name": "Email trong",
+      "status": "FAIL",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK12",
+      "name": "SDT hop le",
+      "status": "PASS",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK13",
+      "name": "Mat khau phuc tap",
+      "status": "PASS",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK01",
+      "name": "Email da ton tai",
+      "status": "FAIL",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK02",
+      "name": "Email da ton tai",
+      "status": "FAIL",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK03",
+      "name": "Tai khoan moi hop le",
+      "status": "PASS",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK04",
+      "name": "Tai khoan moi khong SDT",
+      "status": "PASS",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK05",
+      "name": "Mat khau ky tu dac biet",
+      "status": "PASS",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK06",
+      "name": "Hop le co SDT",
+      "status": "PASS",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK07",
+      "name": "Ten co chu hoa thuong",
+      "status": "PASS",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK08",
+      "name": "Mat khau bao mat cao",
+      "status": "PASS",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK09",
+      "name": "Ho ten trong lan 2",
+      "status": "FAIL",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK10",
+      "name": "Email sai lan 2",
+      "status": "FAIL",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK11",
+      "name": "Khac nhau lan 2",
+      "status": "FAIL",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK12",
+      "name": "SDT moi hop le",
+      "status": "PASS",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DK13",
+      "name": "Tai khoan thu 13",
+      "status": "PASS",
+      "note": "/Events?search="
+    },
+    {
+      "id": "DN01",
+      "name": "Dung email va mat khau",
+      "status": "PASS",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN02",
+      "name": "Tai khoan thu 2 dung",
+      "status": "PASS",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN03",
+      "name": "Tai khoan thu 3 dung",
+      "status": "PASS",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN04",
+      "name": "Tai khoan co SDT",
+      "status": "PASS",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN05",
+      "name": "Sai mat khau",
+      "status": "FAIL",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN06",
+      "name": "Email khong ton tai",
+      "status": "FAIL",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN07",
+      "name": "Email trong",
+      "status": "FAIL",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN08",
+      "name": "Mat khau trong",
+      "status": "FAIL",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN09",
+      "name": "Email sai dinh dang",
+      "status": "FAIL",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN10",
+      "name": "Tai khoan thu 5 dung",
+      "status": "PASS",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN11",
+      "name": "Tai khoan thu 6 dung",
+      "status": "PASS",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN12",
+      "name": "Sai mat khau lan 2",
+      "status": "FAIL",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN13",
+      "name": "Tai khoan co SDT dung",
+      "status": "PASS",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN14",
+      "name": "Tai khoan cuoi dung",
+      "status": "PASS",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN01",
+      "name": "Dung lan 2",
+      "status": "PASS",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN02",
+      "name": "Tai khoan 2 dung lan 2",
+      "status": "PASS",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN03",
+      "name": "Tai khoan 3 dung lan 2",
+      "status": "PASS",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN04",
+      "name": "Tai khoan SDT dung lan 2",
+      "status": "PASS",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN05",
+      "name": "Sai mat khau lan 2",
+      "status": "FAIL",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN06",
+      "name": "Khong ton tai lan 2",
+      "status": "FAIL",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN07",
+      "name": "Email trong lan 2",
+      "status": "FAIL",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN08",
+      "name": "Mat khau trong lan 2",
+      "status": "FAIL",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN09",
+      "name": "Email sai lan 2",
+      "status": "FAIL",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN10",
+      "name": "Tai khoan 5 dung lan 2",
+      "status": "PASS",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN11",
+      "name": "Tai khoan 6 dung lan 2",
+      "status": "PASS",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN12",
+      "name": "Tai khoan SDT dung lan 2",
+      "status": "PASS",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN13",
+      "name": "Tai khoan cuoi dung lan 2",
+      "status": "PASS",
+      "note": "Dang nhap thanh cong"
+    },
+    {
+      "id": "DN14",
+      "name": "Sai mat khau cuoi",
+      "status": "FAIL",
+      "note": "Dang nhap thanh cong"
+    }
+  ]
+}

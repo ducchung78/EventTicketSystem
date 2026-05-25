@@ -1,0 +1,851 @@
+@page "{id:int}"
+@model EventTicketSystem.Web.Pages.Events.EventDetailsModel
+@{
+    ViewData["Title"] = Model.Event?.Title ?? "Chi Tiết Sự Kiện";
+    var evt      = Model.Event;
+    var minPrice = evt?.TicketTypes.Where(t => t.AvailableQuantity > 0).OrderBy(t => t.Price).FirstOrDefault()?.Price;
+    var hasTickets  = evt?.TicketTypes.Any() ?? false;
+    var hasBuyable  = evt?.TicketTypes.Any(t => t.AvailableQuantity > 0) ?? false;
+}
+
+@if (evt == null)
+{
+    <div class="container py-5">
+        <div class="alert alert-danger">Không tìm thấy sự kiện.</div>
+        <a href="/Events" class="btn btn-secondary">Quay Lại</a>
+    </div>
+    return;
+}
+
+@if (TempData["Error"] is string errMsg)
+{
+    <div class="alert alert-danger alert-dismissible mx-n4 rounded-0 mb-0" role="alert">
+        <div class="container">@errMsg</div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["CartSuccess"] is string cartOk)
+{
+    <div class="alert alert-success alert-dismissible mx-n4 rounded-0 mb-0" role="alert">
+        <div class="container">🛒 @cartOk <a href="/Cart" class="alert-link ms-2">Xem giỏ hàng →</a></div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@* ── Breadcrumb ── *@
+<div class="container-xl px-3 px-md-4 mt-3">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small mb-0">
+            <li class="breadcrumb-item"><a href="/">Trang Chủ</a></li>
+            <li class="breadcrumb-item"><a href="/Events">Sự Kiện</a></li>
+            <li class="breadcrumb-item active text-truncate" style="max-width:240px;">@evt.Title</li>
+        </ol>
+    </nav>
+</div>
+
+@* ── Main layout ── *@
+<div class="container-xl px-3 px-md-4 py-4">
+    <div class="row g-4">
+
+        @* ═══════════════ LEFT 8/12 ═══════════════ *@
+        <div class="col-lg-8">
+
+            @* Banner image *@
+            <div class="det-banner-wrap mb-4">
+                @if (!string.IsNullOrEmpty(evt.ImageUrl))
+                {
+                    <img src="@evt.ImageUrl" alt="@evt.Title" class="det-banner-img" />
+                }
+                else
+                {
+                    <div class="det-banner-ph"><span>🎫</span></div>
+                }
+                @* Badges overlay *@
+                <div class="det-banner-badges">
+                    <span class="det-cat-badge">@evt.Category</span>
+                    @if (evt.IsHot)     { <span class="badge bg-danger ms-1">🔥 HOT</span> }
+                    @if (evt.IsSpecial) { <span class="badge ms-1" style="background:rgba(255,215,64,.25);color:#ffd740;border:1px solid rgba(255,215,64,.4);">⭐ Đặc Biệt</span> }
+                    @if (!evt.IsActive) { <span class="badge bg-secondary ms-1">Không HĐ</span> }
+                </div>
+            </div>
+
+            @* ── Section 1: Giới Thiệu ── *@
+            <div class="sec-card mb-3" id="secIntro">
+                <div class="sec-header" onclick="toggleIntro()">
+                    <h5 class="sec-title mb-0">📖 Giới Thiệu</h5>
+                    <span class="sec-arrow" id="introArrow">▼</span>
+                </div>
+                <div class="sec-body">
+                    <div class="intro-text" id="introText">@evt.Description</div>
+
+                    @* Gallery carousel – visible only when expanded *@
+                    @if (Model.GalleryImages.Any())
+                    {
+                        <div class="gc-wrap" id="gcWrap">
+                            <div class="gc-stage">
+                                <button class="gc-nav gc-prev" onclick="gcMove(-1)" aria-label="Ảnh trước">&#9664;</button>
+                                <div class="gc-img-box">
+                                    <img id="gcImg" src="@Model.GalleryImages[0].ImagePath" alt="" class="gc-img" />
+                                </div>
+                                <button class="gc-nav gc-next" onclick="gcMove(1)" aria-label="Ảnh tiếp">&#9654;</button>
+                            </div>
+                            <div class="gc-footer">
+                                <div id="gcCaption" class="gc-caption">@(Model.GalleryImages[0].Caption ?? "")</div>
+                                <div id="gcDots" class="gc-dots">
+                                    @for (int d = 0; d < Model.GalleryImages.Count; d++)
+                                    {
+                                        <span class="gc-dot @(d == 0 ? "active" : "")" data-idx="@d" onclick="gcGoto(@d)"></span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="sec-expand-btn-wrap">
+                    <button class="sec-expand-btn" id="introExpandBtn" onclick="toggleIntro()">▼ Xem thêm</button>
+                </div>
+            </div>
+
+            @* ── Section 2: Lịch Diễn ── *@
+            <div class="sec-card mb-3">
+                <div class="sec-header static">
+                    <h5 class="sec-title mb-0">📅 Lịch Diễn</h5>
+                </div>
+                <div class="sec-body">
+                    <div class="schedule-row">
+                        <div class="schedule-info">
+                            <div class="schedule-date">@evt.StartDate.ToLocalTime().ToString("dddd, dd/MM/yyyy")</div>
+                            <div class="schedule-time">
+                                🕐 @evt.StartDate.ToLocalTime().ToString("HH:mm")
+                                @if (evt.EndDate.HasValue)
+                                {
+                                    <span style="color:rgba(210,195,255,.45);"> → @evt.EndDate.Value.ToLocalTime().ToString("HH:mm")</span>
+                                }
+                            </div>
+                            <div class="schedule-venue">📍 @evt.Venue</div>
+                        </div>
+                        @if (hasBuyable)
+                        {
+                            <button type="button" class="btn-buy-green" onclick="openFirstTicket()">🎟 Mua vé ngay</button>
+                        }
+                        else if (hasTickets)
+                        {
+                            <span class="badge bg-secondary px-3 py-2">Hết vé</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @* ── Section 3: Thông Tin Vé ── *@
+            <div class="sec-card mb-3" id="ticket-section">
+                <div class="sec-header static">
+                    <h5 class="sec-title mb-0">🎟 Thông Tin Vé</h5>
+                </div>
+                <div class="sec-body p-0">
+                    @if (!hasTickets)
+                    {
+                        <div class="px-4 py-3 text-muted small">Sự kiện này chưa có loại vé.</div>
+                    }
+                    else
+                    {
+                        @foreach (var tt in evt.TicketTypes.OrderBy(t => t.Price))
+                        {
+                            var soldOut = tt.AvailableQuantity <= 0;
+                            <div class="tkt-row @(soldOut ? "tkt-row-sold" : "")">
+                                <div class="tkt-row-info">
+                                    <div class="tkt-row-name">@tt.Name</div>
+                                    @if (!string.IsNullOrEmpty(tt.Description))
+                                    {
+                                        <div class="tkt-row-desc">@tt.Description</div>
+                                    }
+                                </div>
+                                <div class="tkt-row-price">
+                                    @if (tt.Price == 0)
+                                    {
+                                        <span style="color:#69f0ae;font-weight:700;">Miễn phí</span>
+                                    }
+                                    else
+                                    {
+                                        @tt.Price.ToString("N0")<span style="font-size:.8em;">đ</span>
+                                    }
+                                </div>
+                                @if (soldOut)
+                                {
+                                    <span class="tkt-row-sold-badge">Hết vé</span>
+                                }
+                                else
+                                {
+                                    <button class="tkt-row-btn"
+                                            onclick="openBuyModal(@tt.Id, '@Html.Raw(tt.Name.Replace("'","&#39;"))', @tt.Price.ToString("0", System.Globalization.CultureInfo.InvariantCulture), @tt.AvailableQuantity)">
+                                        Mua vé
+                                    </button>
+                                }
+                            </div>
+                        }
+                        <div class="px-4 py-3 text-center small" style="color:rgba(210,195,255,.3);border-top:1px solid rgba(124,77,255,.1);">
+                            🔒 Thanh toán bảo mật &amp; mã hóa SSL
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @if (User.IsInRole("Admin"))
+            {
+                <div class="mt-3 pt-3" style="border-top:1px solid rgba(124,77,255,.12);">
+                    <a href="/Events/Edit/@evt.Id" class="btn btn-outline-secondary btn-sm">✏️ Chỉnh sửa sự kiện</a>
+                </div>
+            }
+        </div>
+
+        @* ═══════════════ RIGHT 4/12 – sticky summary ═══════════════ *@
+        <div class="col-lg-4">
+            <div class="sticky-top" style="top:80px;">
+                <div class="summary-card">
+                    <div class="summary-body">
+                        @if (!string.IsNullOrEmpty(evt.Category))
+                        {
+                            <span class="det-cat-badge mb-3 d-inline-block">@evt.Category</span>
+                        }
+                        <div class="summary-title">@evt.Title</div>
+
+                        <div class="summary-row mt-3">
+                            <span class="summary-icon">📅</span>
+                            <span class="summary-text">@evt.StartDate.ToLocalTime().ToString("dd/MM/yyyy · HH:mm")</span>
+                        </div>
+                        @if (evt.EndDate.HasValue)
+                        {
+                            <div class="summary-row">
+                                <span class="summary-icon">⏰</span>
+                                <span class="summary-text">đến @evt.EndDate.Value.ToLocalTime().ToString("HH:mm")</span>
+                            </div>
+                        }
+                        <div class="summary-row">
+                            <span class="summary-icon">📍</span>
+                            <span class="summary-text">@evt.Venue</span>
+                        </div>
+
+                        @if (hasBuyable && minPrice.HasValue)
+                        {
+                            <hr class="summary-divider" />
+                            <div class="summary-price-label">Giá vé từ</div>
+                            <div class="summary-price">
+                                @(minPrice == 0 ? "Miễn phí" : minPrice.Value.ToString("N0") + "đ")
+                            </div>
+                            <button type="button" class="btn-summary-buy" onclick="openFirstTicket()">🎟 Mua Vé Ngay</button>
+                        }
+                        else if (!hasTickets)
+                        {
+                            <hr class="summary-divider" />
+                            <span class="text-muted small">Chưa có thông tin vé</span>
+                        }
+                        else
+                        {
+                            <hr class="summary-divider" />
+                            <span class="badge bg-secondary px-3 py-2 w-100 text-center">Đã hết vé</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@* ── Buy Modal ── *@
+<div class="modal fade" id="buyModal" tabindex="-1" aria-labelledby="buyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header" style="background:linear-gradient(90deg,#7c4dff,#448aff);">
+                <div>
+                    <h5 class="modal-title fw-bold text-white" id="buyModalLabel">🎟 Đặt Vé</h5>
+                    <p class="text-white small mb-0 opacity-75" id="modalTicketDesc"></p>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" asp-page-handler="Buy">
+                <div class="modal-body p-4">
+                    <input type="hidden" name="eventId" value="@evt.Id" />
+                    <input type="hidden" name="ticketTypeId" id="modalTicketTypeId" />
+
+                    <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded-3 mb-3">
+                        <div>
+                            <div class="fw-semibold" id="modalTicketName">—</div>
+                            <small class="text-muted">Giá / vé</small>
+                        </div>
+                        <div class="fw-bold fs-5" style="color:#7c4dff;" id="modalTicketPrice">—</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Số lượng vé</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn btn-outline-secondary px-3" onclick="changeQty(-1)">−</button>
+                            <input type="number" name="qty" id="modalQty"
+                                   class="form-control text-center fw-bold fs-5" style="width:80px;"
+                                   value="1" min="1" max="10" readonly />
+                            <button type="button" class="btn btn-outline-secondary px-3" onclick="changeQty(1)">+</button>
+                            <span class="text-muted small" id="modalMaxQtyLabel"></span>
+                        </div>
+                    </div>
+
+                    @* Coupon bar *@
+                    <div class="coupon-bar mb-3">
+                        <div class="coupon-bar-inner">
+                            <span class="coupon-icon">🏷</span>
+                            <input type="text" id="buyCouponInput" class="coupon-bar-input"
+                                   placeholder="Nhập mã giảm giá..." autocomplete="off" />
+                            <button type="button" class="btn-apply-coupon-green"
+                                    onclick="applyBuyCoupon()">Áp dụng</button>
+                        </div>
+                        <div id="buyCouponMsg" class="coupon-feedback" style="display:none;"></div>
+                    </div>
+                    <input type="hidden" name="couponCode" id="buyCouponCode" />
+
+                    @* Total: 2-line *@
+                    <div class="total-summary mb-3">
+                        <div class="total-row-item" id="grossRow" style="display:none;">
+                            <span class="total-lbl">Tạm tính</span>
+                            <s class="total-gross-val" id="modalGross"></s>
+                        </div>
+                        <div class="total-row-item total-discount-item" id="modalDiscountRow" style="display:none;">
+                            <span class="total-lbl" style="color:#69f0ae;">Giảm</span>
+                            <span class="total-discount-val" id="modalDiscountAmt"></span>
+                        </div>
+                        <div class="total-row-item total-final-item">
+                            <span class="total-final-lbl">Thanh toán</span>
+                            <span class="total-final-val" id="modalTotal">0đ</span>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Họ và tên <span class="text-danger">*</span></label>
+                        <input type="text" name="customerName" class="form-control"
+                               value="@(Model.CurrentUser?.HoTen ?? "")" placeholder="Nguyễn Văn A" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+                        <input type="email" name="customerEmail" class="form-control"
+                               value="@(Model.CurrentUser?.Email ?? "")" placeholder="email@example.com" required />
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label fw-semibold">Số điện thoại</label>
+                        <input type="tel" name="customerPhone" class="form-control"
+                               value="@(Model.CurrentUser?.PhoneNumber ?? "")" placeholder="0901234567" />
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 gap-2">
+                    <button type="button" class="btn-modal-close" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn-modal-cart" id="btnAddToCart"
+                            onclick="addToCartFromModal()">
+                        🛒 Thêm vào giỏ
+                    </button>
+                    <button type="submit" class="btn-modal-pay">
+                        Thanh Toán →
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* Bootstrap Toast *@
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:9999;">
+    <div id="cartToast" class="toast border-0 shadow-lg" role="alert" aria-live="assertive">
+        <div class="d-flex align-items-start p-3 gap-3">
+            <span style="font-size:1.6rem;line-height:1;">🛒</span>
+            <div class="flex-grow-1">
+                <div class="fw-semibold mb-1" id="cartToastMsg" style="color:#ede0ff;font-size:.9rem;"></div>
+                <a href="/Cart" class="small text-decoration-none fw-semibold"
+                   style="color:#7c4dff;">Xem giỏ hàng →</a>
+            </div>
+            <button type="button" class="btn-close btn-close-white opacity-50 flex-shrink-0"
+                    data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+<style>
+.breadcrumb-item + .breadcrumb-item::before { color: rgba(210,195,255,.3); }
+.breadcrumb-item a { color: rgba(210,195,255,.6); }
+.breadcrumb-item.active { color: rgba(210,195,255,.9); }
+
+/* ── Banner ── */
+.det-banner-wrap {
+    position: relative; border-radius: 14px; overflow: hidden;
+    background: rgba(10,6,28,.8);
+    border: 1px solid rgba(124,77,255,.2);
+    box-shadow: 0 8px 40px rgba(0,0,0,.4);
+}
+.det-banner-img { width: 100%; height: auto; display: block; }
+.det-banner-ph {
+    min-height: 220px;
+    background: linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);
+    display: flex; align-items: center; justify-content: center; font-size: 4rem;
+}
+.det-banner-badges {
+    position: absolute; top: 12px; left: 12px;
+}
+.det-cat-badge {
+    font-size: .74rem; font-weight: 600; letter-spacing: .04em;
+    padding: 4px 12px; border-radius: 50px;
+    background: rgba(124,77,255,.3); color: #c2a6ff;
+    border: 1px solid rgba(124,77,255,.5);
+}
+
+/* ── Section cards ── */
+.sec-card {
+    background: rgba(15,9,40,.75);
+    border: 1px solid rgba(124,77,255,.18);
+    border-radius: 14px; overflow: hidden;
+}
+.sec-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(124,77,255,.12);
+    cursor: pointer; user-select: none;
+    transition: background .15s;
+}
+.sec-header:hover { background: rgba(124,77,255,.07); }
+.sec-header.static { cursor: default; }
+.sec-header.static:hover { background: transparent; }
+.sec-title { font-size: .95rem; font-weight: 700; }
+.sec-arrow { font-size: .8rem; color: rgba(210,195,255,.5); transition: transform .3s; }
+.sec-arrow.open { transform: rotate(180deg); }
+.sec-body { padding: 18px 20px; }
+
+/* ── Intro text ── */
+.intro-text {
+    color: rgba(210,195,255,.75); line-height: 1.85; white-space: pre-wrap;
+    max-height: 92px; overflow: hidden; position: relative;
+    transition: max-height .4s ease;
+}
+.intro-text::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+    height: 44px;
+    background: linear-gradient(transparent, rgba(15,9,40,.95));
+    transition: opacity .3s;
+}
+.intro-text.expanded { max-height: 9999px; }
+.intro-text.expanded::after { opacity: 0; pointer-events: none; }
+
+/* Expand button */
+.sec-expand-btn-wrap { text-align: center; padding-bottom: 14px; }
+.sec-expand-btn {
+    background: none; border: none; cursor: pointer;
+    color: rgba(124,77,255,.85); font-size: .82rem; font-weight: 600;
+    padding: 4px 12px; border-radius: 50px;
+    transition: color .15s, background .15s;
+}
+.sec-expand-btn:hover { color: #c2a6ff; background: rgba(124,77,255,.1); }
+
+/* ── Gallery carousel ── */
+.gc-wrap { margin-top: 18px; display: none; }
+.gc-stage {
+    position: relative; display: flex; align-items: center;
+    background: rgba(10,6,28,.7); border-radius: 12px; overflow: hidden;
+    min-height: 200px;
+}
+.gc-img-box {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    padding: 14px 60px;
+}
+.gc-img {
+    max-width: 100%; max-height: 380px;
+    object-fit: contain; border-radius: 8px;
+    transition: opacity .2s;
+}
+.gc-nav {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(124,77,255,.4);
+    background: rgba(124,77,255,.25); color: #fff; font-size: 1rem;
+    cursor: pointer; z-index: 2; display: flex; align-items: center; justify-content: center;
+    transition: background .15s;
+}
+.gc-nav:hover { background: rgba(124,77,255,.55); }
+.gc-prev { left: 10px; } .gc-next { right: 10px; }
+.gc-footer { padding: 10px 14px 4px; }
+.gc-caption { font-size: .78rem; color: rgba(210,195,255,.5); text-align: center; min-height: 1.1em; margin-bottom: 8px; }
+.gc-dots { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.gc-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(210,195,255,.2); cursor: pointer; transition: background .15s;
+}
+.gc-dot.active { background: #7c4dff; }
+
+/* ── Schedule ── */
+.schedule-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.schedule-date { font-size: 1rem; font-weight: 700; color: #ede0ff; margin-bottom: 3px; }
+.schedule-time { font-size: .88rem; color: rgba(210,195,255,.65); margin-bottom: 4px; }
+.schedule-venue { font-size: .84rem; color: rgba(210,195,255,.5); }
+.btn-buy-green {
+    display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
+    padding: 11px 26px; border-radius: 50px; font-weight: 700; font-size: .92rem;
+    background: #00c853; color: #fff; border: none; text-decoration: none;
+    box-shadow: 0 3px 18px rgba(0,200,83,.35); cursor: pointer;
+    transition: opacity .15s;
+}
+.btn-buy-green:hover { opacity: .86; color: #fff; }
+
+/* ── Ticket rows ── */
+.tkt-row {
+    display: flex; align-items: center; gap: 14px; padding: 14px 20px;
+    border-bottom: 1px solid rgba(124,77,255,.1);
+    transition: background .15s;
+}
+.tkt-row:hover { background: rgba(124,77,255,.04); }
+.tkt-row:last-child { border-bottom: none; }
+.tkt-row-sold { opacity: .45; }
+.tkt-row-info { flex: 1; min-width: 0; }
+.tkt-row-name { font-weight: 600; color: #ede0ff; font-size: .95rem; }
+.tkt-row-desc { font-size: .75rem; color: rgba(210,195,255,.48); margin-top: 2px; }
+.tkt-row-price { font-weight: 800; font-size: 1rem; color: #ffd740; flex-shrink: 0; white-space: nowrap; }
+.tkt-row-btn {
+    padding: 7px 18px; border-radius: 50px; border: none; flex-shrink: 0;
+    background: linear-gradient(90deg,#7c4dff,#448aff); color: #fff;
+    font-weight: 600; font-size: .8rem; cursor: pointer;
+    box-shadow: 0 2px 12px rgba(124,77,255,.35);
+    transition: opacity .15s, transform .15s;
+}
+.tkt-row-btn:hover { opacity: .85; transform: scale(1.04); }
+.tkt-row-sold-badge {
+    font-size: .74rem; color: rgba(210,195,255,.35); flex-shrink: 0;
+    padding: 6px 12px; border-radius: 50px;
+    border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.04);
+}
+/* ── Coupon bar ── */
+.coupon-bar { padding: 0; }
+.coupon-bar-inner {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(124,77,255,.2);
+    border-radius: 10px; padding: 8px 10px;
+    transition: border-color .15s;
+}
+.coupon-bar-inner:focus-within { border-color: rgba(0,200,83,.5); box-shadow: 0 0 0 2px rgba(0,200,83,.1); }
+.coupon-icon { font-size: 1rem; flex-shrink: 0; }
+.coupon-bar-input {
+    flex: 1; border: none; background: transparent;
+    color: #ede0ff; font-size: .88rem; outline: none;
+    text-transform: uppercase; letter-spacing: .04em;
+}
+.coupon-bar-input::placeholder { color: rgba(210,195,255,.3); text-transform: none; letter-spacing: 0; }
+.btn-apply-coupon-green {
+    padding: 5px 14px; border-radius: 8px; flex-shrink: 0;
+    background: linear-gradient(90deg,#00c853,#00bfa5);
+    border: none; color: #fff; font-weight: 700; font-size: .8rem;
+    cursor: pointer; white-space: nowrap;
+    transition: opacity .15s;
+}
+.btn-apply-coupon-green:hover { opacity: .85; }
+.coupon-feedback {
+    font-size: .78rem; margin-top: 6px; padding: 5px 10px;
+    border-radius: 6px;
+}
+.coupon-feedback.ok  { background: rgba(0,200,83,.1); color: #69f0ae; border: 1px solid rgba(0,200,83,.2); }
+.coupon-feedback.err { background: rgba(229,57,53,.1); color: #ef9a9a; border: 1px solid rgba(229,57,53,.2); }
+
+/* ── Total summary ── */
+.total-summary {
+    background: rgba(124,77,255,.07);
+    border: 1px solid rgba(124,77,255,.18);
+    border-radius: 12px; padding: 12px 16px;
+}
+.total-row-item {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: .84rem; color: rgba(210,195,255,.6);
+    padding: 3px 0;
+}
+.total-lbl { }
+.total-gross-val { color: rgba(210,195,255,.45); text-decoration: line-through; }
+.total-discount-item { color: #69f0ae !important; }
+.total-discount-val { color: #69f0ae; font-weight: 600; }
+.total-final-item {
+    margin-top: 8px; padding-top: 8px;
+    border-top: 1px solid rgba(124,77,255,.15);
+}
+.total-final-lbl { font-weight: 700; font-size: .95rem; color: rgba(210,195,255,.9); }
+.total-final-val { font-weight: 800; font-size: 1.45rem; color: #7c4dff; }
+
+/* ── Modal footer buttons ── */
+.btn-modal-close {
+    padding: 9px 18px; border-radius: 50px;
+    border: 1px solid rgba(255,255,255,.15);
+    background: transparent; color: rgba(210,195,255,.6);
+    font-size: .85rem; cursor: pointer; transition: border-color .15s;
+}
+.btn-modal-close:hover { border-color: rgba(255,255,255,.35); color: rgba(210,195,255,.9); }
+.btn-modal-cart {
+    padding: 9px 18px; border-radius: 50px; flex-shrink: 0;
+    background: rgba(0,200,83,.12);
+    border: 1px solid rgba(0,200,83,.35);
+    color: #00c853; font-weight: 700; font-size: .85rem;
+    cursor: pointer; transition: background .15s;
+}
+.btn-modal-cart:hover { background: rgba(0,200,83,.25); }
+.btn-modal-pay {
+    padding: 9px 22px; border-radius: 50px; flex: 1;
+    background: linear-gradient(90deg,#7c4dff,#448aff);
+    border: none; color: #fff; font-weight: 700; font-size: .88rem;
+    cursor: pointer; box-shadow: 0 2px 14px rgba(124,77,255,.35);
+    transition: opacity .15s;
+}
+.btn-modal-pay:hover { opacity: .88; }
+
+/* Toast dark theme */
+#cartToast {
+    background: rgba(18,10,45,.95);
+    border: 1px solid rgba(124,77,255,.3);
+    border-radius: 14px; min-width: 280px;
+    backdrop-filter: blur(12px);
+}
+
+/* ── Summary sidebar ── */
+.summary-card {
+    background: rgba(15,9,40,.85);
+    border: 1px solid rgba(124,77,255,.22);
+    border-radius: 16px; overflow: hidden;
+    box-shadow: 0 10px 46px rgba(0,0,0,.4);
+}
+.summary-body { padding: 20px; }
+.summary-title { font-size: .95rem; font-weight: 700; color: #ede0ff; line-height: 1.35; margin-bottom: 0; }
+.summary-row { display: flex; gap: 9px; align-items: flex-start; margin-bottom: 8px; }
+.summary-icon { flex-shrink: 0; font-size: 1rem; }
+.summary-text { font-size: .82rem; color: rgba(210,195,255,.65); line-height: 1.4; }
+.summary-divider { border-color: rgba(124,77,255,.15); margin: 16px 0; }
+.summary-price-label { font-size: .68rem; color: rgba(210,195,255,.4); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.summary-price { font-size: 1.5rem; font-weight: 800; color: #ffd740; text-shadow: 0 0 20px rgba(255,215,64,.3); margin-bottom: 14px; }
+.btn-summary-buy {
+    display: block; width: 100%; padding: 13px; border-radius: 50px; text-align: center;
+    background: linear-gradient(90deg,#7c4dff,#448aff);
+    color: #fff; border: none; font-weight: 700; font-size: .97rem;
+    box-shadow: 0 4px 22px rgba(124,77,255,.45);
+    text-decoration: none; cursor: pointer;
+    transition: opacity .15s;
+}
+.btn-summary-buy:hover { opacity: .88; color: #fff; }
+
+@@media (max-width:768px) {
+    .schedule-row { flex-direction: column; align-items: flex-start; }
+    .gc-img-box { padding: 10px 52px; }
+}
+</style>
+
+@section Scripts {
+<script>
+/* ── Buyable tickets (for generic open-modal buttons) ── */
+const _buyableTickets = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+    evt.TicketTypes
+       .Where(t => t.AvailableQuantity > 0)
+       .OrderBy(t => t.Price)
+       .Select(t => new {
+           id        = t.Id,
+           name      = t.Name,
+           price     = (double)t.Price,
+           available = t.AvailableQuantity
+       })
+       .ToList()
+));
+
+function openFirstTicket() {
+    if (_buyableTickets.length === 0) return;
+    const t = _buyableTickets[0];
+    openBuyModal(t.id, t.name, t.price, t.available);
+}
+
+/* ── Buy modal state ── */
+let modalPrice = 0, modalMaxQty = 10, modalDiscount = 0, modalEventId = 0, modalTtId = 0;
+
+function openBuyModal(ttId, name, price, maxQty) {
+    modalTtId     = ttId;
+    modalEventId  = @evt.Id;
+    modalPrice    = price;
+    modalDiscount = 0;
+    modalMaxQty   = Math.min(maxQty, 10);
+
+    document.getElementById('modalTicketTypeId').value         = ttId;
+    document.getElementById('modalTicketName').textContent     = name;
+    document.getElementById('modalTicketDesc').textContent     = name;
+    document.getElementById('modalTicketPrice').textContent    = price.toLocaleString('vi-VN') + 'đ';
+    document.getElementById('modalMaxQtyLabel').textContent    = '(tối đa ' + modalMaxQty + ')';
+    document.getElementById('modalQty').max                    = modalMaxQty;
+    document.getElementById('modalQty').value                  = 1;
+    document.getElementById('buyCouponInput').value            = '';
+    document.getElementById('buyCouponCode').value             = '';
+    resetCouponUI();
+    updateTotal();
+    new bootstrap.Modal(document.getElementById('buyModal')).show();
+}
+
+function resetCouponUI() {
+    modalDiscount = 0;
+    document.getElementById('buyCouponCode').value = '';
+    const msg = document.getElementById('buyCouponMsg');
+    msg.style.display = 'none';
+    msg.className = 'coupon-feedback';
+    document.getElementById('grossRow').style.display       = 'none';
+    document.getElementById('modalDiscountRow').style.display = 'none';
+}
+
+function changeQty(d) {
+    const el = document.getElementById('modalQty');
+    el.value = Math.min(Math.max(parseInt(el.value) + d, 1), modalMaxQty);
+    resetCouponUI();
+    updateTotal();
+}
+
+function updateTotal() {
+    const qty   = parseInt(document.getElementById('modalQty').value) || 1;
+    const gross = modalPrice * qty;
+    const net   = gross - modalDiscount;
+
+    if (modalDiscount > 0) {
+        document.getElementById('grossRow').style.display = '';
+        document.getElementById('modalGross').textContent = gross.toLocaleString('vi-VN') + 'đ';
+        document.getElementById('modalDiscountRow').style.display = '';
+        document.getElementById('modalDiscountAmt').textContent = '−' + modalDiscount.toLocaleString('vi-VN') + 'đ';
+    } else {
+        document.getElementById('grossRow').style.display        = 'none';
+        document.getElementById('modalDiscountRow').style.display = 'none';
+    }
+    document.getElementById('modalTotal').textContent = net.toLocaleString('vi-VN') + 'đ';
+}
+
+document.getElementById('modalQty').addEventListener('input', () => { resetCouponUI(); updateTotal(); });
+
+async function applyBuyCoupon() {
+    const code  = document.getElementById('buyCouponInput').value.trim();
+    const qty   = parseInt(document.getElementById('modalQty').value) || 1;
+    const gross = modalPrice * qty;
+    const msg   = document.getElementById('buyCouponMsg');
+
+    if (!code) {
+        msg.textContent = '✗ Vui lòng nhập mã giảm giá.';
+        msg.className   = 'coupon-feedback err';
+        msg.style.display = '';
+        return;
+    }
+
+    const res  = await fetch(`/api/coupons/validate?code=${encodeURIComponent(code)}&total=${gross}`);
+    const data = await res.json();
+
+    if (data.valid) {
+        modalDiscount = data.discount;
+        document.getElementById('buyCouponCode').value = code;
+        msg.textContent = '✓ ' + data.message;
+        msg.className   = 'coupon-feedback ok';
+    } else {
+        modalDiscount = 0;
+        document.getElementById('buyCouponCode').value = '';
+        msg.textContent = '✗ ' + data.error;
+        msg.className   = 'coupon-feedback err';
+    }
+    msg.style.display = '';
+    updateTotal();
+}
+
+document.getElementById('buyCouponInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); applyBuyCoupon(); }
+});
+
+/* ── Add to cart (AJAX) ── */
+async function addToCartFromModal() {
+    const qty = parseInt(document.getElementById('modalQty').value) || 1;
+    const btn = document.getElementById('btnAddToCart');
+    btn.disabled = true;
+    btn.textContent = '⏳ Đang thêm...';
+
+    try {
+        const res  = await fetch('/api/cart/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ eventId: modalEventId, ticketTypeId: modalTtId, qty })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('buyModal')).hide();
+            showCartToast(data.message);
+            updateNavBadge(data.count);
+        } else {
+            alert(data.message || 'Không thể thêm vào giỏ hàng.');
+        }
+    } catch {
+        alert('Lỗi kết nối. Vui lòng thử lại.');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '🛒 Thêm vào giỏ';
+    }
+}
+
+function showCartToast(message) {
+    document.getElementById('cartToastMsg').textContent = message;
+    new bootstrap.Toast(document.getElementById('cartToast'), { delay: 3500 }).show();
+}
+
+function updateNavBadge(count) {
+    const badge = document.getElementById('navCartBadge');
+    if (badge) {
+        badge.textContent = count > 99 ? '99+' : String(count);
+        badge.style.display = count > 0 ? '' : 'none';
+    } else if (count > 0) {
+        const link = document.querySelector('.cart-nav-link');
+        if (link) {
+            const b = document.createElement('span');
+            b.id        = 'navCartBadge';
+            b.className = 'cart-badge';
+            b.textContent = count > 99 ? '99+' : String(count);
+            link.appendChild(b);
+        }
+    }
+}
+
+/* ── Intro expand/collapse ── */
+let introOpen = false;
+function toggleIntro() {
+    introOpen = !introOpen;
+    document.getElementById('introText').classList.toggle('expanded', introOpen);
+    document.getElementById('introArrow').classList.toggle('open', introOpen);
+    document.getElementById('introExpandBtn').textContent = introOpen ? '▲ Thu gọn' : '▼ Xem thêm';
+    const gc = document.getElementById('gcWrap');
+    if (gc) gc.style.display = introOpen ? 'block' : 'none';
+}
+</script>
+
+@if (Model.GalleryImages.Any())
+{
+    var gcJson = System.Text.Json.JsonSerializer.Serialize(
+        Model.GalleryImages.Select(i => new { src = i.ImagePath, caption = i.Caption ?? "" }));
+    <script>
+    const gcImages = @Html.Raw(gcJson);
+    let gcIdx = 0;
+
+    function gcMove(delta) {
+        gcIdx = (gcIdx + delta + gcImages.length) % gcImages.length;
+        gcShow(gcIdx);
+    }
+    function gcGoto(idx) { gcIdx = idx; gcShow(idx); }
+    function gcShow(idx) {
+        const img = document.getElementById('gcImg');
+        img.style.opacity = '0';
+        setTimeout(() => {
+            img.src = gcImages[idx].src;
+            img.alt = gcImages[idx].caption;
+            img.style.opacity = '1';
+        }, 150);
+        document.getElementById('gcCaption').textContent = gcImages[idx].caption;
+        document.querySelectorAll('.gc-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+    }
+
+    // Touch swipe on carousel
+    (function() {
+        const stage = document.querySelector('.gc-stage');
+        if (!stage) return;
+        let tx = 0;
+        stage.addEventListener('touchstart', e => { tx = e.changedTouches[0].clientX; }, { passive: true });
+        stage.addEventListener('touchend',   e => {
+            const dx = e.changedTouches[0].clientX - tx;
+            if (Math.abs(dx) > 45) gcMove(dx < 0 ? 1 : -1);
+        }, { passive: true });
+    })();
+    </script>
+}
+}

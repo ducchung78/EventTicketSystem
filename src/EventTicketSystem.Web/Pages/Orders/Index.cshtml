@@ -1,0 +1,71 @@
+@page
+@model EventTicketSystem.Web.Pages.Orders.OrdersIndexModel
+@{
+    ViewData["Title"] = "Tất Cả Đơn Hàng";
+}
+
+<div class="container">
+    <h1 class="mb-4">Tất Cả Đơn Hàng</h1>
+
+    <form method="get" class="row g-2 mb-4">
+        <div class="col-md-4">
+            <input type="text" name="email" value="@Model.Email" class="form-control" placeholder="Tìm theo email..." />
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Tìm Kiếm</button>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.Email))
+        {
+            <div class="col-md-2">
+                <a href="/Orders" class="btn btn-outline-secondary w-100">Xóa Lọc</a>
+            </div>
+        }
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Mã Xác Nhận</th>
+                    <th>Khách Hàng</th>
+                    <th>Email</th>
+                    <th>Ngày Đặt</th>
+                    <th class="text-center">Số Vé</th>
+                    <th class="text-end">Tổng Tiền</th>
+                    <th>Trạng Thái</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in Model.Orders)
+                {
+                    <tr>
+                        <td><code>@order.ConfirmationCode</code></td>
+                        <td>@order.CustomerName</td>
+                        <td>@order.CustomerEmail</td>
+                        <td>@order.OrderDate.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                        <td class="text-center">@order.OrderItems.Sum(i => i.Quantity)</td>
+                        <td class="text-end fw-bold">@order.TotalAmount.ToString("N0") đ</td>
+                        <td>
+                            <span class="badge @order.Status.ToBadgeClass()">
+                                @order.Status.ToVietnamese()
+                            </span>
+                        </td>
+                        <td><a href="/Orders/Details/@order.Id" class="btn btn-sm btn-outline-primary">Xem</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (!Model.Orders.Any())
+    {
+        <div class="text-center py-5">
+            <p class="text-muted fs-5">Không tìm thấy đơn hàng nào.</p>
+        </div>
+    }
+    else
+    {
+        <p class="text-muted small">Tổng cộng: @Model.Orders.Count đơn hàng</p>
+    }
+</div>

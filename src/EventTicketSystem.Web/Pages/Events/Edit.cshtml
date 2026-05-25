@@ -1,0 +1,247 @@
+@page "{id:int}"
+@model EventTicketSystem.Web.Pages.Events.EditEventModel
+@{
+    ViewData["Title"] = "Chỉnh Sửa Sự Kiện";
+}
+
+@if (Model.Event == null)
+{
+    <div class="container">
+        <div class="alert alert-danger">Không tìm thấy sự kiện.</div>
+        <a href="/Events" class="btn btn-secondary">Quay Lại</a>
+    </div>
+    return;
+}
+
+<style>
+.ticket-type-row { background:rgba(20,12,52,.5); border:1px solid rgba(124,77,255,.25) !important; border-radius:10px; transition:opacity .2s; }
+.ticket-type-row.deleted { opacity:.35; pointer-events:none; }
+.gallery-edit-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px; }
+.gallery-edit-item { position:relative; border-radius:8px; overflow:hidden; aspect-ratio:1; border:1px solid rgba(124,77,255,.25); }
+.gallery-edit-item img { width:100%; height:100%; object-fit:cover; }
+.gallery-edit-item .del-overlay { position:absolute; inset:0; background:rgba(233,30,99,.7); display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity .15s; pointer-events:none; font-size:1.5rem; color:#fff; }
+.gallery-edit-item.marked .del-overlay { opacity:1; }
+.gallery-edit-item .del-btn { position:absolute; top:4px; right:4px; width:26px; height:26px; border-radius:50%; background:rgba(233,30,99,.85); border:none; color:#fff; font-size:.85rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+</style>
+
+<div class="container" style="max-width:800px">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Chỉnh Sửa Sự Kiện</h1>
+        <a href="/Events/Details/@Model.Event.Id" class="btn btn-outline-secondary">← Quay Lại</a>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        <div asp-validation-summary="All" class="alert alert-danger"
+             style="display:@(ViewData.ModelState.IsValid ? "none" : "block")"></div>
+
+        @* ── BASIC INFO ── *@
+        <div class="mb-3">
+            <label asp-for="Input.Title" class="form-label fw-bold">Tên Sự Kiện *</label>
+            <input asp-for="Input.Title" class="form-control" />
+            <span asp-validation-for="Input.Title" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Input.Description" class="form-label fw-bold">Mô Tả</label>
+            <textarea asp-for="Input.Description" class="form-control" rows="4"></textarea>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.StartDate" class="form-label fw-bold">Ngày Bắt Đầu *</label>
+                <input asp-for="Input.StartDate" type="datetime-local" class="form-control" />
+                <span asp-validation-for="Input.StartDate" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Input.EndDate" class="form-label fw-bold">Ngày Kết Thúc</label>
+                <input asp-for="Input.EndDate" type="datetime-local" class="form-control" />
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Input.Venue" class="form-label fw-bold">Địa Điểm *</label>
+            <input asp-for="Input.Venue" class="form-control" />
+            <span asp-validation-for="Input.Venue" class="text-danger small"></span>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label asp-for="Input.Category" class="form-label fw-bold">Danh Mục</label>
+                <input asp-for="Input.Category" class="form-control" />
+            </div>
+            <div class="col-md-6 d-flex align-items-end gap-4">
+                <div class="form-check mb-1">
+                    <input asp-for="Input.IsActive" class="form-check-input" type="checkbox" />
+                    <label asp-for="Input.IsActive" class="form-check-label fw-bold">Hoạt Động</label>
+                </div>
+                <div class="form-check mb-1">
+                    <input asp-for="Input.IsSpecial" class="form-check-input" type="checkbox" />
+                    <label asp-for="Input.IsSpecial" class="form-check-label fw-bold">⭐ Đặc Biệt</label>
+                </div>
+            </div>
+        </div>
+
+        @* ── BANNER IMAGE ── *@
+        <div class="mb-4">
+            <label class="form-label fw-bold">Ảnh Banner</label>
+            @if (!string.IsNullOrEmpty(Model.Event.ImageUrl))
+            {
+                <div class="mb-2">
+                    <img src="@Model.Event.ImageUrl" alt="Banner hiện tại"
+                         class="img-fluid rounded" style="max-height:180px; object-fit:cover;" />
+                    <div class="form-check mt-1">
+                        <input type="checkbox" name="Input.RemoveImage" class="form-check-input" id="removeImage" value="true" />
+                        <label class="form-check-label text-danger small" for="removeImage">Xóa ảnh banner</label>
+                    </div>
+                </div>
+            }
+            <input asp-for="Input.BannerImage" type="file" class="form-control" accept="image/*" />
+            <div class="form-text">JPG, PNG, GIF, WebP. Khuyến nghị tỷ lệ 16:9.</div>
+        </div>
+
+        <hr style="border-color:rgba(124,77,255,.2);" />
+
+        @* ── TICKET TYPES ── *@
+        <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">🎟 Loại Vé</h5>
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="addTicketTypeRow()">+ Thêm Loại Vé</button>
+            </div>
+
+            <div id="tt-list">
+                @for (int i = 0; i < Model.TicketTypes.Count; i++)
+                {
+                    var tt = Model.TicketTypes[i];
+                    var canDelete = tt.SoldQuantity == 0;
+                    <div class="ticket-type-row p-3 mb-2 position-relative" id="ttRow_@i">
+                        <input type="hidden" name="TicketTypes[@i].Id"           value="@tt.Id" />
+                        <input type="hidden" name="TicketTypes[@i].SoldQuantity" value="@tt.SoldQuantity" />
+                        <input type="hidden" name="TicketTypes[@i].IsDeleted"    value="false" id="ttDel_@i" />
+
+                        <div class="row g-2">
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold" style="color:rgba(210,195,255,.8);">Tên Loại Vé</label>
+                                <input name="TicketTypes[@i].Name" class="form-control" value="@tt.Name" required />
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold" style="color:rgba(210,195,255,.8);">Giá (đ)</label>
+                                <input name="TicketTypes[@i].Price" type="number" min="0" class="form-control" value="@tt.Price.ToString("0", System.Globalization.CultureInfo.InvariantCulture)" />
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold" style="color:rgba(210,195,255,.8);">Số Lượng</label>
+                                <input name="TicketTypes[@i].TotalQuantity" type="number" min="@tt.SoldQuantity" class="form-control" value="@tt.TotalQuantity" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold" style="color:rgba(210,195,255,.8);">Mô Tả</label>
+                                <input name="TicketTypes[@i].Description" class="form-control" value="@tt.Description" />
+                            </div>
+                            <div class="col-md-2 d-flex flex-column align-items-start justify-content-end gap-1">
+                                @if (tt.SoldQuantity > 0)
+                                {
+                                    <small style="color:#69f0ae; font-size:.72rem;">✓ Đã bán: @tt.SoldQuantity</small>
+                                }
+                                @if (canDelete)
+                                {
+                                    <button type="button" class="btn btn-danger btn-sm"
+                                            onclick="markDeleteTt(@i)">🗑 Xóa</button>
+                                }
+                                else
+                                {
+                                    <button type="button" class="btn btn-secondary btn-sm" disabled
+                                            title="Không thể xóa vì đã có đơn hàng">🔒 Xóa</button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <hr style="border-color:rgba(124,77,255,.2);" />
+
+        @* ── GALLERY IMAGES ── *@
+        <div class="mb-4">
+            <h5 class="fw-bold mb-3">📸 Ảnh Mô Tả Sự Kiện</h5>
+
+            @if (Model.ExistingGalleryImages.Any())
+            {
+                <p class="small mb-2" style="color:rgba(210,195,255,.6);">Nhấn × để đánh dấu xóa. Thay đổi được lưu khi bạn nhấn "Lưu Thay Đổi".</p>
+                <div class="gallery-edit-grid mb-3">
+                    @foreach (var img in Model.ExistingGalleryImages)
+                    {
+                        <div class="gallery-edit-item" id="galItem_@img.Id">
+                            <img src="@img.ImagePath" alt="@img.Caption" />
+                            <div class="del-overlay">🗑</div>
+                            <button type="button" class="del-btn" onclick="markDeleteGallery(@img.Id)" title="Đánh dấu xóa">×</button>
+                            <input type="hidden" name="DeletedGalleryImageIds" value="@img.Id"
+                                   id="galDel_@img.Id" disabled />
+                        </div>
+                    }
+                </div>
+            }
+
+            <label class="form-label fw-bold">Thêm Ảnh Mới</label>
+            <input type="file" name="GalleryImages" class="form-control" accept="image/*" multiple />
+            <div class="form-text">Chọn nhiều ảnh cùng lúc. JPG, PNG, GIF, WebP.</div>
+        </div>
+
+        @* ── ACTIONS ── *@
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary px-4">Lưu Thay Đổi</button>
+            <a href="/Events/Details/@Model.Event.Id" class="btn btn-outline-secondary">Hủy</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+<partial name="_ValidationScriptsPartial" />
+<script>
+let ttNextIdx = @Model.TicketTypes.Count;
+
+function markDeleteTt(idx) {
+    const row = document.getElementById('ttRow_' + idx);
+    document.getElementById('ttDel_' + idx).value = 'true';
+    row.classList.add('deleted');
+}
+
+function addTicketTypeRow() {
+    const i = ttNextIdx++;
+    const html = `
+    <div class="ticket-type-row p-3 mb-2 position-relative" id="ttRow_${i}">
+        <input type="hidden" name="TicketTypes[${i}].Id"           value="0" />
+        <input type="hidden" name="TicketTypes[${i}].SoldQuantity" value="0" />
+        <input type="hidden" name="TicketTypes[${i}].IsDeleted"    value="false" id="ttDel_${i}" />
+        <div class="row g-2">
+            <div class="col-md-3">
+                <label class="form-label small fw-bold" style="color:rgba(210,195,255,.8);">Tên Loại Vé</label>
+                <input name="TicketTypes[${i}].Name" class="form-control" placeholder="VD: Vé VIP" required />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-bold" style="color:rgba(210,195,255,.8);">Giá (đ)</label>
+                <input name="TicketTypes[${i}].Price" type="number" min="0" class="form-control" value="0" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-bold" style="color:rgba(210,195,255,.8);">Số Lượng</label>
+                <input name="TicketTypes[${i}].TotalQuantity" type="number" min="1" class="form-control" value="50" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold" style="color:rgba(210,195,255,.8);">Mô Tả</label>
+                <input name="TicketTypes[${i}].Description" class="form-control" placeholder="Tùy chọn" />
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="button" class="btn btn-danger btn-sm"
+                        onclick="this.closest('.ticket-type-row').remove()">✕ Xóa</button>
+            </div>
+        </div>
+    </div>`;
+    document.getElementById('tt-list').insertAdjacentHTML('beforeend', html);
+}
+
+function markDeleteGallery(imgId) {
+    const input = document.getElementById('galDel_' + imgId);
+    const item  = document.getElementById('galItem_' + imgId);
+    const isMarked = item.classList.toggle('marked');
+    input.disabled = !isMarked;
+}
+</script>
+}

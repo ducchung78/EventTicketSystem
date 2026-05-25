@@ -1,0 +1,165 @@
+@page
+@model EventTicketSystem.Web.Pages.Events.EventsIndexModel
+@{
+    ViewData["Title"] = "Tất Cả Sự Kiện";
+}
+
+<div class="container">
+    @if (TempData["Success"] is string successMsg)
+    {
+        <div class="alert alert-success alert-dismissible mb-4" role="alert">
+            @successMsg
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Sự Kiện</h1>
+        @if (User.IsInRole("Admin"))
+        {
+            <a href="/Events/Create" class="btn btn-success">+ Tạo Sự Kiện</a>
+        }
+    </div>
+
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-5">
+            <input type="text" name="search" value="@Model.Search" class="form-control" placeholder="Tìm kiếm sự kiện..." />
+        </div>
+        <div class="col-md-3">
+            <select name="category" class="form-select">
+                <option value="">Tất Cả Danh Mục</option>
+                @foreach (var cat in Model.Categories)
+                {
+                    <option value="@cat" selected="@(Model.Category == cat)">@cat</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Lọc</button>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.Search) || !string.IsNullOrEmpty(Model.Category))
+        {
+            <div class="col-md-2">
+                <a href="/Events" class="btn btn-outline-secondary w-100">Xóa Lọc</a>
+            </div>
+        }
+    </form>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @foreach (var evt in Model.Events)
+        {
+            var cheapest = evt.TicketTypes.Where(t => t.AvailableQuantity > 0).OrderBy(t => t.Price).FirstOrDefault();
+            <div class="col">
+                <div class="event-card position-relative" style="border-radius:12px; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,.15);">
+                    @* 16:9 image area *@
+                    <div class="position-relative" style="padding-top:56.25%;">
+                        @if (!string.IsNullOrEmpty(evt.ImageUrl))
+                        {
+                            <img src="@evt.ImageUrl" alt="@evt.Title"
+                                 class="position-absolute top-0 start-0 w-100 h-100"
+                                 style="object-fit:cover;" />
+                        }
+                        else
+                        {
+                            <div class="position-absolute top-0 start-0 w-100 h-100"
+                                 style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);"></div>
+                            <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+                                <span style="font-size:3rem; opacity:.3;">🎟</span>
+                            </div>
+                        }
+
+                        @* Gradient overlay *@
+                        <div class="position-absolute top-0 start-0 w-100 h-100"
+                             style="background:linear-gradient(transparent 30%, rgba(0,0,0,0.28) 55%, rgba(0,0,0,0.68) 100%);"></div>
+
+                        @* Top-left badges: HOT + Category + Inactive *@
+                        <div class="position-absolute top-0 start-0 p-2 d-flex gap-1 flex-wrap" style="position:relative; z-index:2;">
+                            @if (evt.IsHot)
+                            {
+                                <span class="badge fw-bold" style="background:#e91e63; font-size:.75rem; letter-spacing:.3px;">🔥 HOT</span>
+                            }
+                            <span class="badge bg-warning text-dark" style="font-size:.7rem;">@evt.Category</span>
+                            @if (!evt.IsActive)
+                            {
+                                <span class="badge bg-danger" style="font-size:.7rem;">Không Hoạt Động</span>
+                            }
+                        </div>
+
+                        @* Top-right admin controls *@
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <div class="position-absolute top-0 end-0 p-2 d-flex gap-1" style="position:relative; z-index:2;">
+                                <form method="post" asp-page-handler="ToggleHot">
+                                    <input type="hidden" name="id" value="@evt.Id" />
+                                    <input type="hidden" name="search" value="@Model.Search" />
+                                    <input type="hidden" name="category" value="@Model.Category" />
+                                    <button type="submit"
+                                            class="btn btn-sm @(evt.IsHot ? "btn-danger" : "btn-outline-light")"
+                                            style="font-size:.65rem; padding:2px 8px; position:relative; z-index:2;"
+                                            title="@(evt.IsHot ? "Bỏ HOT" : "Đánh dấu HOT")">
+                                        @(evt.IsHot ? "🔥 Bỏ HOT" : "☆ HOT")
+                                    </button>
+                                </form>
+                                <a href="/Events/Edit/@evt.Id"
+                                   class="btn btn-sm btn-dark"
+                                   style="font-size:.65rem; padding:2px 8px; opacity:.85; position:relative; z-index:2;">✏️</a>
+                                <form method="post" asp-page-handler="Delete"
+                                      onsubmit="return confirm('Xóa sự kiện «@Html.Raw(evt.Title.Replace("'","&#39;"))»?\n\nHành động này sẽ xóa vĩnh viễn tất cả loại vé và ảnh liên quan.')">
+                                    <input type="hidden" name="id" value="@evt.Id" />
+                                    <button type="submit" class="btn btn-sm btn-danger"
+                                            style="font-size:.65rem; padding:2px 8px; position:relative; z-index:2;"
+                                            title="Xóa sự kiện">🗑</button>
+                                </form>
+                            </div>
+                        }
+
+                        @* Bottom text overlay *@
+                        <div class="position-absolute bottom-0 start-0 w-100 p-3">
+                            <h6 class="text-white fw-bold mb-2 lh-sm"
+                                style="text-shadow:0 1px 6px rgba(0,0,0,.8); font-size:.95rem;">@evt.Title</h6>
+                            <div class="d-flex justify-content-between align-items-end gap-2">
+                                <div style="min-width:0;">
+                                    <div class="small mb-1" style="color:#69f0ae; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                        <span style="font-size:1.2rem; vertical-align:middle;">📅</span>
+                                        <span style="vertical-align:middle;"> @evt.StartDate.ToLocalTime().ToString("dd/MM/yyyy · HH:mm")</span>
+                                    </div>
+                                    <div class="small" style="color:#69f0ae; opacity:.85; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                        <span style="font-size:1.2rem; vertical-align:middle;">📍</span>
+                                        <span style="vertical-align:middle;"> @evt.Venue</span>
+                                    </div>
+                                </div>
+                                <div class="flex-shrink-0">
+                                    @if (cheapest != null)
+                                    {
+                                        <span class="badge rounded-pill fw-semibold px-2 py-1"
+                                              style="background:rgba(233,30,99,.9); font-size:.75rem; white-space:nowrap;">
+                                            Từ @cheapest.Price.ToString("N0")đ
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary rounded-pill" style="font-size:.75rem;">Hết Vé</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Full-card click area *@
+                    <a href="/Events/Details/@evt.Id" class="stretched-link" aria-label="@evt.Title"></a>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!Model.Events.Any())
+    {
+        <div class="text-center py-5">
+            <p class="text-muted fs-5">Không tìm thấy sự kiện nào.</p>
+            @if (User.IsInRole("Admin"))
+            {
+                <a href="/Events/Create" class="btn btn-primary mt-2">Tạo Sự Kiện Đầu Tiên</a>
+            }
+        </div>
+    }
+</div>

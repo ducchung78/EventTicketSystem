@@ -1,0 +1,67 @@
+@page "{id:int}"
+@model EventTicketSystem.Web.Pages.Orders.OrderConfirmationModel
+@{
+    ViewData["Title"] = "Đặt Vé Thành Công!";
+}
+
+@if (Model.Order == null)
+{
+    <div class="container">
+        <div class="alert alert-danger">Không tìm thấy đơn hàng.</div>
+    </div>
+    return;
+}
+
+<div class="container" style="max-width:600px">
+    <div class="text-center py-4">
+        <div class="display-1 text-success">✓</div>
+        <h1 class="text-success">Đặt Vé Thành Công!</h1>
+        <p class="lead text-muted">Cảm ơn bạn, @Model.Order.CustomerName! Vé của bạn đã được đặt thành công.</p>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-body text-center">
+            <p class="text-muted mb-1">Mã Xác Nhận</p>
+            <div class="display-6 fw-bold text-primary font-monospace">@Model.Order.ConfirmationCode</div>
+            <p class="text-muted small mt-2">Lưu mã này lại — bạn sẽ cần dùng để tra cứu đơn hàng</p>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header"><h6 class="mb-0">Vé Của Bạn</h6></div>
+        <div class="card-body p-0">
+            <table class="table mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Sự Kiện</th>
+                        <th>Loại Vé</th>
+                        <th class="text-center">SL</th>
+                        <th class="text-end">Thành Tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Order.OrderItems)
+                    {
+                        <tr>
+                            <td>@item.TicketType.Event.Title</td>
+                            <td>@item.TicketType.Name</td>
+                            <td class="text-center">@item.Quantity</td>
+                            <td class="text-end">@item.Subtotal.ToString("N0") đ</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot class="table-light">
+                    <tr>
+                        <td colspan="3" class="text-end fw-bold">Tổng Đã Thanh Toán</td>
+                        <td class="text-end fw-bold">@Model.Order.TotalAmount.ToString("N0") đ</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <div class="text-center d-flex gap-3 justify-content-center">
+        <a href="/Events" class="btn btn-primary">Khám Phá Thêm Sự Kiện</a>
+        <a href="/Orders/Details/@Model.Order.Id" class="btn btn-outline-secondary">Xem Chi Tiết Đơn</a>
+    </div>
+</div>

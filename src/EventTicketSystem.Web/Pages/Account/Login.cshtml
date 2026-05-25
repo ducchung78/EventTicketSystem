@@ -1,0 +1,318 @@
+@page
+@model EventTicketSystem.Web.Pages.Account.LoginModel
+@{
+    ViewData["Title"] = "Đăng Nhập";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<style>
+    .tb-login-wrap {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 2.5rem 1rem 3rem;
+        min-height: calc(100vh - 120px);
+    }
+
+    .tb-login-card {
+        width: 100%;
+        max-width: 440px;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 8px 40px rgba(0,0,0,.18), 0 2px 8px rgba(0,0,0,.08);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .tb-card-header {
+        background: #00c853;
+        padding: 1.45rem 1.5rem 2.2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .tb-card-header::after {
+        content: '';
+        position: absolute;
+        bottom: -24px; left: -5%; right: -5%;
+        height: 48px;
+        background: #fff;
+        border-radius: 50%;
+    }
+
+    .tb-header-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: .5rem;
+    }
+    .tb-logo-text {
+        color: #fff;
+        font-size: 1.45rem;
+        font-weight: 800;
+        letter-spacing: -.5px;
+        line-height: 1;
+    }
+    .tb-header-right {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+    }
+    .tb-mascot {
+        font-size: 2rem;
+        line-height: 1;
+        filter: drop-shadow(0 2px 6px rgba(0,0,0,.18));
+    }
+    .tb-close-btn {
+        width: 28px; height: 28px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.25);
+        border: none;
+        color: #fff;
+        font-size: 1rem;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background .15s;
+        padding: 0;
+        line-height: 1;
+    }
+    .tb-close-btn:hover { background: rgba(255,255,255,.4); color: #fff; }
+
+    .tb-header-title {
+        color: #fff;
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin: 0 0 .15rem;
+    }
+    .tb-header-sub {
+        color: rgba(255,255,255,.85);
+        font-size: .88rem;
+        margin: 0;
+    }
+
+    .tb-card-body {
+        padding: 2rem 1.75rem 1.5rem;
+    }
+
+    .tb-input-group {
+        position: relative;
+        margin-bottom: 1rem;
+    }
+    .tb-input {
+        width: 100%;
+        border: 1.5px solid #ddd;
+        border-radius: 10px;
+        padding: .72rem 2.6rem .72rem .95rem;
+        font-size: .95rem;
+        color: #222;
+        outline: none;
+        transition: border-color .18s, box-shadow .18s;
+        background: #fff;
+        box-sizing: border-box;
+    }
+    .tb-input:focus {
+        border-color: #00c853;
+        box-shadow: 0 0 0 3px rgba(0,200,83,.12);
+    }
+    .tb-input::placeholder { color: #bbb; }
+    .tb-input-icon {
+        position: absolute;
+        right: .85rem; top: 50%;
+        transform: translateY(-50%);
+        color: #aaa;
+        font-size: .95rem;
+        cursor: pointer;
+        user-select: none;
+        background: none;
+        border: none;
+        padding: 0;
+        display: flex; align-items: center;
+        transition: color .15s;
+    }
+    .tb-input-icon:hover { color: #555; }
+
+    .tb-btn-continue {
+        width: 100%;
+        border: none;
+        border-radius: 10px;
+        padding: .78rem;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #fff;
+        cursor: pointer;
+        transition: opacity .2s, box-shadow .2s, transform .12s;
+        background: linear-gradient(90deg, #00c853, #00bcd4);
+        box-shadow: 0 4px 16px rgba(0,200,83,.3);
+        margin-bottom: .75rem;
+        letter-spacing: .2px;
+    }
+    .tb-btn-continue:hover {
+        opacity: .9;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 22px rgba(0,200,83,.38);
+    }
+    .tb-btn-continue:active { transform: translateY(0); }
+
+    .tb-forgot {
+        text-align: right;
+        margin-bottom: .85rem;
+    }
+    .tb-forgot a {
+        color: #00c853;
+        font-size: .84rem;
+        font-weight: 600;
+        text-decoration: none;
+    }
+    .tb-forgot a:hover { text-decoration: underline; color: #00a844; }
+
+    .tb-card-footer-links {
+        text-align: center;
+        margin-bottom: .6rem;
+        font-size: .88rem;
+        color: #888;
+    }
+    .tb-card-footer-links a {
+        color: #00c853;
+        font-weight: 600;
+        text-decoration: none;
+        margin-left: .25rem;
+    }
+    .tb-card-footer-links a:hover { text-decoration: underline; }
+
+    .tb-terms {
+        text-align: center;
+        font-size: .75rem;
+        color: #bbb;
+        line-height: 1.5;
+        padding: 0 .5rem;
+    }
+    .tb-terms a { color: #00c853; text-decoration: none; }
+    .tb-terms a:hover { text-decoration: underline; }
+
+    .tb-demo-card {
+        background: #f7f7f7;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        padding: .85rem 1rem;
+        margin-top: 1.25rem;
+    }
+    .tb-demo-card code {
+        color: #007a32;
+        background: rgba(0,200,83,.1);
+        border-radius: 4px;
+        padding: 1px 5px;
+        font-size: .82rem;
+    }
+
+    .tb-card-body .alert-danger {
+        border-radius: 8px;
+        font-size: .85rem;
+        padding: .6rem .9rem;
+    }
+</style>
+
+<div class="tb-login-wrap">
+    <div class="tb-login-card">
+
+        <div class="tb-card-header">
+            <div class="tb-header-top">
+                <span class="tb-logo-text">TicketHub</span>
+                <div class="tb-header-right">
+                    <span class="tb-mascot">🎟</span>
+                    <a href="/" class="tb-close-btn" title="Đóng">✕</a>
+                </div>
+            </div>
+            <h1 class="tb-header-title">Đăng nhập</h1>
+            <p class="tb-header-sub">Chào mừng trở lại TicketHub!</p>
+        </div>
+
+        <div class="tb-card-body">
+            <form method="post" id="loginForm">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 mb-3 small"></div>
+
+                <label class="tb-field-label" style="display:block; color:#555; font-size:.85rem; font-weight:600; margin-bottom:.3rem;"
+                       asp-for="Input.UsernameOrEmail">Tên người dùng hoặc Email</label>
+                <div class="tb-input-group">
+                    <input asp-for="Input.UsernameOrEmail"
+                           id="tbEmail"
+                           class="tb-input"
+                           placeholder="Nhập tên người dùng hoặc email"
+                           autocomplete="username" />
+                    <span class="tb-input-icon" title="Tên người dùng hoặc email">👤</span>
+                </div>
+
+                <div class="tb-input-group" style="margin-bottom:.5rem;">
+                    <input asp-for="Input.Password"
+                           id="tbPassword"
+                           type="password"
+                           class="tb-input"
+                           placeholder="Nhập mật khẩu"
+                           autocomplete="current-password" />
+                    <button type="button" class="tb-input-icon" id="eyeToggle"
+                            onclick="toggleEye()" title="Hiện/ẩn mật khẩu">
+                        <span id="eyeIcon">👁</span>
+                    </button>
+                </div>
+
+                <div class="tb-forgot">
+                    <a href="#">Quên mật khẩu?</a>
+                </div>
+
+                <div class="mb-3 form-check" style="margin-top:-.25rem; margin-bottom:.85rem!important;">
+                    <input asp-for="Input.RememberMe" class="form-check-input" type="checkbox" />
+                    <label asp-for="Input.RememberMe" class="form-check-label"
+                           style="color:#666; font-size:.88rem;">Ghi nhớ đăng nhập</label>
+                </div>
+
+                <div style="display:flex; gap:.6rem;">
+                    <button type="submit" class="tb-btn-continue" style="flex:1;">Đăng Nhập</button>
+                    <a asp-page="/Account/Register"
+                       class="tb-btn-continue"
+                       style="flex:1; text-align:center; text-decoration:none; display:flex;
+                              align-items:center; justify-content:center;
+                              background:linear-gradient(90deg,#448aff,#00bcd4);
+                              box-shadow:0 4px 16px rgba(68,138,255,.3);">Đăng Ký</a>
+                </div>
+            </form>
+
+            <p class="tb-terms">
+                Bằng việc tiếp tục, bạn đồng ý với
+                <a href="#">Điều khoản sử dụng</a> và
+                <a href="#">Chính sách bảo mật</a> của TicketHub.
+            </p>
+        </div>
+
+        <div class="tb-demo-card mx-3 mb-3">
+            <p class="mb-1" style="color:#888; font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px;">Tài Khoản Demo</p>
+            <div style="color:#555; font-size:.83rem; line-height:1.9;">
+                <span style="color:#aaa;">Admin:</span>
+                <code>admin@@tickethub.vn</code>
+                <span style="color:#ccc;"> / </span>
+                <code>Admin@@123456</code>
+                <br />
+                <span style="color:#aaa;">User:</span>
+                <code>nguyen.van.an@@email.com</code>
+                <span style="color:#ccc;"> / </span>
+                <code>User@@123456</code>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+    window.toggleEye = function () {
+        var inp = document.getElementById('tbPassword');
+        var icon = document.getElementById('eyeIcon');
+        if (inp.type === 'password') {
+            inp.type = 'text';
+            icon.textContent = '🙈';
+        } else {
+            inp.type = 'password';
+            icon.textContent = '👁';
+        }
+    };
+    </script>
+}

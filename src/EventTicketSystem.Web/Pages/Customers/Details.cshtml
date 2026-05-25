@@ -1,0 +1,110 @@
+@page "{id}"
+@model EventTicketSystem.Web.Pages.Customers.CustomerDetailsModel
+@{
+    ViewData["Title"] = "Chi Tiết Khách Hàng";
+}
+
+@if (Model.Customer == null)
+{
+    <div class="container">
+        <div class="alert alert-danger">Không tìm thấy khách hàng.</div>
+        <a href="/Customers" class="btn btn-secondary">Quay Lại</a>
+    </div>
+    return;
+}
+
+<div class="container" style="max-width:800px">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/Customers">Khách Hàng</a></li>
+            <li class="breadcrumb-item active">@Model.Customer.HoTen</li>
+        </ol>
+    </nav>
+
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">👤 @Model.Customer.HoTen</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-4 text-muted">Email</div>
+                <div class="col-sm-8">@Model.Customer.Email</div>
+            </div>
+            <hr class="my-2" />
+            <div class="row">
+                <div class="col-sm-4 text-muted">Số Điện Thoại</div>
+                <div class="col-sm-8">@(Model.Customer.PhoneNumber ?? "Chưa cung cấp")</div>
+            </div>
+            <hr class="my-2" />
+            <div class="row">
+                <div class="col-sm-4 text-muted">Ngày Đăng Ký</div>
+                <div class="col-sm-8">@Model.Customer.NgayTao.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+            </div>
+            <hr class="my-2" />
+            <div class="row">
+                <div class="col-sm-4 text-muted">Vai Trò</div>
+                <div class="col-sm-8">
+                    @foreach (var role in Model.Roles)
+                    {
+                        <span class="badge @(role == "Admin" ? "bg-danger" : "bg-primary") me-1">@role</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h5 class="mb-3">Lịch Sử Đặt Vé (@Model.Orders.Count đơn hàng)</h5>
+
+    @if (!Model.Orders.Any())
+    {
+        <div class="alert alert-info">Khách hàng chưa có đơn hàng nào.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mã Xác Nhận</th>
+                        <th>Ngày Đặt</th>
+                        <th class="text-center">Số Vé</th>
+                        <th class="text-end">Tổng Tiền</th>
+                        <th>Trạng Thái</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var o in Model.Orders)
+                    {
+                        <tr>
+                            <td><code>@o.ConfirmationCode</code></td>
+                            <td>@o.OrderDate.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                            <td class="text-center">@o.OrderItems.Sum(i => i.Quantity)</td>
+                            <td class="text-end fw-bold">@o.TotalAmount.ToString("N0") đ</td>
+                            <td>
+                                <span class="badge @o.Status.ToBadgeClass()">
+                                    @o.Status.ToVietnamese()
+                                </span>
+                            </td>
+                            <td>
+                                <a href="/Orders/Details/@o.Id" class="btn btn-sm btn-outline-secondary">
+                                    Xem
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot class="table-light">
+                    <tr>
+                        <td colspan="3" class="text-end fw-bold">Tổng Chi Tiêu:</td>
+                        <td class="text-end fw-bold text-success fs-6">
+                            @Model.Orders.Where(o => o.Status == EventTicketSystem.Web.Models.OrderStatus.Confirmed)
+                                         .Sum(o => o.TotalAmount).ToString("N0") đ
+                        </td>
+                        <td colspan="2"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    }
+</div>

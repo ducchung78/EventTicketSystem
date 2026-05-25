@@ -1,0 +1,630 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Trang Chủ";
+    var hotList  = Model.HotEvents;
+    var slideCount = (hotList.Count + 1) / 2;
+}
+
+<style>
+    /* ===== Homepage – green theme overrides ===== */
+    .horiz-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
+    .horiz-scroll::-webkit-scrollbar { height: 5px; }
+    .horiz-scroll::-webkit-scrollbar-track { background: rgba(0,200,83,.08); border-radius: 3px; }
+    .horiz-scroll::-webkit-scrollbar-thumb { background: rgba(0,200,83,.28); border-radius: 3px; }
+
+    .section-title { color: #f0f0f0; font-size: 1.3rem; font-weight: 700; margin-bottom: 0; }
+    .section-emoji { font-size: 1.4rem; line-height: 1; }
+    .section-divider { border: none; border-top: 1px solid rgba(0,200,83,.14); margin: 0 0 2.5rem; }
+
+    /* Tab pills – green */
+    #calendarTab .nav-link {
+        color: rgba(200,230,200,.75) !important;
+        background: rgba(0,200,83,.1) !important;
+        border: 1px solid rgba(0,200,83,.22) !important;
+        border-radius: 20px !important;
+        font-size: .82rem;
+        padding: .28rem .9rem;
+        transition: all .2s;
+        text-shadow: none !important;
+    }
+    #calendarTab .nav-link.active,
+    #calendarTab .nav-link:hover {
+        background: rgba(0,200,83,.28) !important;
+        border-color: rgba(0,200,83,.55) !important;
+        color: #e0ffe8 !important;
+    }
+
+    /* Venue card – green accent */
+    .venue-card {
+        border-radius: 12px; overflow: hidden; min-height: 120px; position: relative; cursor: pointer;
+        background: linear-gradient(135deg, rgba(0,200,83,.14) 0%, rgba(0,130,55,.08) 100%);
+        border: 1px solid rgba(0,200,83,.2);
+        transition: transform .22s, box-shadow .22s;
+    }
+    .venue-card:hover { transform: translateY(-4px); box-shadow: 0 10px 32px rgba(0,200,83,.28); }
+
+    /* "Xem tất cả" buttons – green outline */
+    .btn-see-all {
+        border: 1px solid rgba(0,200,83,.4) !important;
+        color: rgba(150,255,180,.85) !important;
+        background: transparent !important;
+        border-radius: 20px;
+        font-size: .8rem;
+        padding: .25rem .85rem;
+        text-decoration: none;
+        transition: background .18s, border-color .18s;
+    }
+    .btn-see-all:hover {
+        background: rgba(0,200,83,.15) !important;
+        border-color: rgba(0,200,83,.7) !important;
+        color: #fff !important;
+    }
+
+    /* ===== HERO CAROUSEL ===== */
+    .hero-wrap {
+        position: relative;
+        background: #111;
+        overflow: hidden;
+    }
+    .hero-slide { display: none; padding: 14px 20px 10px; }
+    .hero-slide.active { display: block; animation: hFadeIn .38s ease; }
+    @@keyframes hFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .hero-card {
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+        aspect-ratio: 16 / 9;
+        cursor: pointer;
+        background: #1a1a2e;
+    }
+    .hero-card img {
+        width: 100%; height: 100%; object-fit: cover; display: block;
+        transition: transform .38s;
+    }
+    .hero-card:hover img { transform: scale(1.04); }
+    .hero-card-overlay {
+        position: absolute; inset: 0;
+        background: linear-gradient(transparent 30%, rgba(0,0,0,.32) 58%, rgba(0,0,0,.78) 100%);
+    }
+    .hero-card-body {
+        position: absolute; bottom: 0; left: 0; right: 0;
+        padding: 10px 14px 14px;
+    }
+    .hero-card-badges { margin-bottom: 5px; }
+    .hero-card-title {
+        color: #fff; font-weight: 700; font-size: .95rem; line-height: 1.35;
+        text-shadow: 0 1px 6px rgba(0,0,0,.8);
+        margin-bottom: 5px;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .hero-card-meta { color: #69f0ae; font-size: .76rem; margin-bottom: 8px; }
+    .hero-card-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .btn-hero-detail {
+        display: inline-block;
+        background: #00c853;
+        color: #fff !important;
+        border: none;
+        border-radius: 18px;
+        padding: 4px 16px;
+        font-size: .79rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: background .18s;
+        flex-shrink: 0;
+    }
+    .btn-hero-detail:hover { background: #00e676; color: #fff !important; }
+    .hero-card-price {
+        color: #fff; font-size: .76rem; font-weight: 600;
+        background: rgba(233,30,99,.85); border-radius: 10px;
+        padding: 2px 8px; white-space: nowrap;
+    }
+
+    /* Nav arrows */
+    .hero-arrow {
+        position: absolute; top: 50%; transform: translateY(-50%);
+        background: rgba(0,0,0,.5); color: #fff;
+        border: none; width: 36px; height: 36px; border-radius: 50%;
+        font-size: 1.15rem; cursor: pointer; z-index: 10;
+        display: flex; align-items: center; justify-content: center;
+        transition: background .18s;
+        backdrop-filter: blur(4px);
+        line-height: 1;
+    }
+    .hero-arrow:hover { background: rgba(0,200,83,.75); }
+    .hero-arrow-prev { left: 10px; }
+    .hero-arrow-next { right: 10px; }
+
+    /* Dots */
+    .hero-dots {
+        display: flex; justify-content: center; gap: 6px;
+        padding: 7px 0 10px;
+        background: #111;
+    }
+    .hero-dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: rgba(255,255,255,.3); cursor: pointer;
+        border: none; padding: 0;
+        transition: background .18s, transform .18s;
+    }
+    .hero-dot.active { background: #00c853; transform: scale(1.35); }
+</style>
+
+@* ===== HERO 2-UP CAROUSEL ===== *@
+@if (hotList.Any())
+{
+    <div class="mx-n4 mt-0">
+        <div class="hero-wrap" id="heroWrap">
+            @for (int si = 0; si < slideCount; si++)
+            {
+                var i1 = si * 2;
+                var i2 = si * 2 + 1;
+                var ev1 = hotList[i1];
+                var ev2 = i2 < hotList.Count ? hotList[i2] : null;
+                var colClass = ev2 != null ? "col-6" : "col-12";
+
+                <div class="hero-slide @(si == 0 ? "active" : "")">
+                    <div class="row g-3">
+                        @* Card 1 *@
+                        @{
+                            var cheap1 = ev1.TicketTypes.Where(t => t.AvailableQuantity > 0).OrderBy(t => t.Price).FirstOrDefault();
+                        }
+                        <div class="@colClass">
+                            <div class="hero-card">
+                                @if (!string.IsNullOrEmpty(ev1.ImageUrl))
+                                {
+                                    <img src="@ev1.ImageUrl" alt="@ev1.Title" />
+                                }
+                                <div class="hero-card-overlay"></div>
+                                <div class="hero-card-body">
+                                    <div class="hero-card-badges d-flex gap-1 flex-wrap">
+                                        @if (ev1.IsHot)
+                                        {
+                                            <span class="badge fw-bold" style="background:#e91e63; font-size:.65rem;">🔥 HOT</span>
+                                        }
+                                        <span class="badge bg-warning text-dark" style="font-size:.63rem;">@ev1.Category</span>
+                                    </div>
+                                    <div class="hero-card-title">@ev1.Title</div>
+                                    <div class="hero-card-meta">
+                                        📅 @ev1.StartDate.ToLocalTime().ToString("dd/MM/yyyy") &nbsp;📍 @ev1.Venue
+                                    </div>
+                                    <div class="hero-card-footer">
+                                        <a href="/Events/Details/@ev1.Id" class="btn-hero-detail" data-i18n="view-detail">Xem chi tiết</a>
+                                        @if (cheap1 != null)
+                                        {
+                                            <span class="hero-card-price">Từ @cheap1.Price.ToString("N0")đ</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @* Card 2 (if exists) *@
+                        @if (ev2 != null)
+                        {
+                            var cheap2 = ev2.TicketTypes.Where(t => t.AvailableQuantity > 0).OrderBy(t => t.Price).FirstOrDefault();
+                            <div class="col-6">
+                                <div class="hero-card">
+                                    @if (!string.IsNullOrEmpty(ev2.ImageUrl))
+                                    {
+                                        <img src="@ev2.ImageUrl" alt="@ev2.Title" />
+                                    }
+                                    <div class="hero-card-overlay"></div>
+                                    <div class="hero-card-body">
+                                        <div class="hero-card-badges d-flex gap-1 flex-wrap">
+                                            @if (ev2.IsHot)
+                                            {
+                                                <span class="badge fw-bold" style="background:#e91e63; font-size:.65rem;">🔥 HOT</span>
+                                            }
+                                            <span class="badge bg-warning text-dark" style="font-size:.63rem;">@ev2.Category</span>
+                                        </div>
+                                        <div class="hero-card-title">@ev2.Title</div>
+                                        <div class="hero-card-meta">
+                                            📅 @ev2.StartDate.ToLocalTime().ToString("dd/MM/yyyy") &nbsp;📍 @ev2.Venue
+                                        </div>
+                                        <div class="hero-card-footer">
+                                            <a href="/Events/Details/@ev2.Id" class="btn-hero-detail" data-i18n="view-detail">Xem chi tiết</a>
+                                            @if (cheap2 != null)
+                                            {
+                                                <span class="hero-card-price">Từ @cheap2.Price.ToString("N0")đ</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (slideCount > 1)
+            {
+                <button class="hero-arrow hero-arrow-prev" onclick="heroMove(-1)" aria-label="Trước">&#8249;</button>
+                <button class="hero-arrow hero-arrow-next" onclick="heroMove(1)" aria-label="Sau">&#8250;</button>
+            }
+        </div>
+
+        @if (slideCount > 1)
+        {
+            <div class="hero-dots" id="heroDots">
+                @for (int di = 0; di < slideCount; di++)
+                {
+                    <button class="hero-dot @(di == 0 ? "active" : "")"
+                            onclick="heroGoto(@di)" aria-label="Slide @(di + 1)"></button>
+                }
+            </div>
+        }
+    </div>
+}
+
+<div class="container pb-5 pt-4">
+
+    @* ===== 1. SỰ KIỆN NỔI BẬT ===== *@
+    @if (Model.HotEvents.Any())
+    {
+        <div class="mb-5">
+            <div class="d-flex align-items-center gap-2 mb-4">
+                <span class="section-emoji">🔥</span>
+                <h2 class="fw-bold mb-0" style="color:#f0f0f0;" data-i18n="hot-events">Sự Kiện Nổi Bật</h2>
+                <span class="badge ms-1 align-self-center"
+                      style="background:linear-gradient(90deg,#e91e63,#f44336); font-size:.75rem; letter-spacing:.5px;">HOT</span>
+                <a href="/Events" class="btn-see-all ms-auto" data-i18n="see-all">Xem tất cả →</a>
+            </div>
+
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                @foreach (var evt in Model.HotEvents)
+                {
+                    var cheapest = evt.TicketTypes.Where(t => t.AvailableQuantity > 0).OrderBy(t => t.Price).FirstOrDefault();
+                    <div class="col">
+                        <div class="event-card position-relative" style="border-radius:12px; overflow:hidden; box-shadow:0 4px 20px rgba(233,30,99,.18);">
+                            <div class="position-relative" style="padding-top:56.25%;">
+                                @if (!string.IsNullOrEmpty(evt.ImageUrl))
+                                {
+                                    <img src="@evt.ImageUrl" alt="@evt.Title"
+                                         class="position-absolute top-0 start-0 w-100 h-100"
+                                         style="object-fit:cover;" />
+                                }
+                                else
+                                {
+                                    <div class="position-absolute top-0 start-0 w-100 h-100"
+                                         style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);"></div>
+                                    <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+                                        <span style="font-size:3rem; opacity:.3;">🎟</span>
+                                    </div>
+                                }
+                                <div class="position-absolute top-0 start-0 w-100 h-100"
+                                     style="background:linear-gradient(transparent 30%, rgba(0,0,0,.28) 55%, rgba(0,0,0,.68) 100%);"></div>
+                                <div class="position-absolute top-0 start-0 p-2 d-flex gap-1" style="z-index:2;">
+                                    <span class="badge fw-bold" style="background:#e91e63; font-size:.75rem; letter-spacing:.3px;">🔥 HOT</span>
+                                    <span class="badge bg-warning text-dark" style="font-size:.7rem;">@evt.Category</span>
+                                </div>
+                                <div class="position-absolute bottom-0 start-0 w-100 p-3">
+                                    <h6 class="text-white fw-bold mb-2 lh-sm"
+                                        style="text-shadow:0 1px 6px rgba(0,0,0,.8); font-size:.95rem;">@evt.Title</h6>
+                                    <div class="d-flex justify-content-between align-items-end gap-2">
+                                        <div style="min-width:0;">
+                                            <div class="small mb-1" style="color:#69f0ae; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                                <span style="font-size:1.2rem; vertical-align:middle;">📅</span>
+                                                <span style="vertical-align:middle;"> @evt.StartDate.ToLocalTime().ToString("dd/MM/yyyy · HH:mm")</span>
+                                            </div>
+                                            <div class="small" style="color:#69f0ae; opacity:.85; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                                <span style="font-size:1.2rem; vertical-align:middle;">📍</span>
+                                                <span style="vertical-align:middle;"> @evt.Venue</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex-shrink-0">
+                                            @if (cheapest != null)
+                                            {
+                                                <span class="badge rounded-pill fw-semibold px-2 py-1"
+                                                      style="background:rgba(233,30,99,.9); font-size:.75rem; white-space:nowrap;">
+                                                    Từ @cheapest.Price.ToString("N0")đ
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary rounded-pill" style="font-size:.75rem;">Hết Vé</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <a href="/Events/Details/@evt.Id" class="stretched-link" aria-label="@evt.Title"></a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+        <hr class="section-divider" />
+    }
+
+    @* ===== 2. SỰ KIỆN ĐẶC BIỆT ===== *@
+    @if (Model.SpecialEvents.Any())
+    {
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="section-emoji">⭐</span>
+                    <h2 class="section-title" data-i18n="special-events">Sự Kiện Đặc Biệt</h2>
+                </div>
+                <a href="/Events" class="btn-see-all" data-i18n="see-all">Xem tất cả →</a>
+            </div>
+            <div class="horiz-scroll">
+                <div class="d-flex gap-3" style="flex-wrap:nowrap;">
+                    @foreach (var evt in Model.SpecialEvents)
+                    {
+                        @await Html.PartialAsync("_HorizEventCard", evt)
+                    }
+                </div>
+            </div>
+        </div>
+        <hr class="section-divider" />
+    }
+
+    @* ===== 3. CUỐI TUẦN & THÁNG NÀY ===== *@
+    @if (Model.WeekendEvents.Any() || Model.ThisMonthEvents.Any())
+    {
+        <div class="mb-5">
+            <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="section-emoji">📅</span>
+                    <h2 class="section-title" data-i18n="time-events">Sự Kiện Theo Thời Gian</h2>
+                </div>
+                <ul class="nav gap-1 mb-0" id="calendarTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="weekend-tab"
+                                data-bs-toggle="tab" data-bs-target="#weekendPane"
+                                type="button" role="tab" data-i18n="weekend-tab">
+                            Cuối Tuần Này
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="month-tab"
+                                data-bs-toggle="tab" data-bs-target="#monthPane"
+                                type="button" role="tab" data-i18n="month-tab">
+                            Tháng Này
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="tab-content" id="calendarTabContent">
+                <div class="tab-pane fade show active" id="weekendPane" role="tabpanel">
+                    @if (Model.WeekendEvents.Any())
+                    {
+                        <div class="horiz-scroll">
+                            <div class="d-flex gap-3" style="flex-wrap:nowrap;">
+                                @foreach (var evt in Model.WeekendEvents)
+                                {
+                                    @await Html.PartialAsync("_HorizEventCard", evt)
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="py-3 ps-1" style="color:rgba(200,230,200,.45);">Không có sự kiện cuối tuần này.</p>
+                    }
+                </div>
+                <div class="tab-pane fade" id="monthPane" role="tabpanel">
+                    @if (Model.ThisMonthEvents.Any())
+                    {
+                        <div class="horiz-scroll">
+                            <div class="d-flex gap-3" style="flex-wrap:nowrap;">
+                                @foreach (var evt in Model.ThisMonthEvents)
+                                {
+                                    @await Html.PartialAsync("_HorizEventCard", evt)
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="py-3 ps-1" style="color:rgba(200,230,200,.45);">Không có sự kiện trong tháng này.</p>
+                    }
+                </div>
+            </div>
+        </div>
+        <hr class="section-divider" />
+    }
+
+    @* ===== 4. NHẠC SỐNG ===== *@
+    @if (Model.MusicEvents.Any())
+    {
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="section-emoji">🎵</span>
+                    <h2 class="section-title" data-i18n="music-section">Nhạc Sống</h2>
+                </div>
+                <a asp-page="/Events/Index" asp-route-category="Âm nhạc" class="btn-see-all" data-i18n="see-all">Xem tất cả →</a>
+            </div>
+            <div class="horiz-scroll">
+                <div class="d-flex gap-3" style="flex-wrap:nowrap;">
+                    @foreach (var evt in Model.MusicEvents)
+                    {
+                        @await Html.PartialAsync("_HorizEventCard", evt)
+                    }
+                </div>
+            </div>
+        </div>
+        <hr class="section-divider" />
+    }
+
+    @* ===== 5. SÂN KHẤU NGHỆ THUẬT ===== *@
+    @if (Model.ArtEvents.Any())
+    {
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="section-emoji">🎭</span>
+                    <h2 class="section-title" data-i18n="art-section">Sân Khấu Nghệ Thuật</h2>
+                </div>
+                <a asp-page="/Events/Index" asp-route-category="Nghệ thuật" class="btn-see-all" data-i18n="see-all">Xem tất cả →</a>
+            </div>
+            <div class="horiz-scroll">
+                <div class="d-flex gap-3" style="flex-wrap:nowrap;">
+                    @foreach (var evt in Model.ArtEvents)
+                    {
+                        @await Html.PartialAsync("_HorizEventCard", evt)
+                    }
+                </div>
+            </div>
+        </div>
+        <hr class="section-divider" />
+    }
+
+    @* ===== 6. HỘI THẢO & WORKSHOP ===== *@
+    @if (Model.WorkshopEvents.Any())
+    {
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="section-emoji">💡</span>
+                    <h2 class="section-title" data-i18n="workshop-section">Hội Thảo &amp; Workshop</h2>
+                </div>
+                <a asp-page="/Events/Index" asp-route-category="Hội thảo" class="btn-see-all" data-i18n="see-all">Xem tất cả →</a>
+            </div>
+            <div class="horiz-scroll">
+                <div class="d-flex gap-3" style="flex-wrap:nowrap;">
+                    @foreach (var evt in Model.WorkshopEvents)
+                    {
+                        @await Html.PartialAsync("_HorizEventCard", evt)
+                    }
+                </div>
+            </div>
+        </div>
+        <hr class="section-divider" />
+    }
+
+    @* ===== 7. THAM QUAN & TRẢI NGHIỆM ===== *@
+    @if (Model.TourEvents.Any())
+    {
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="section-emoji">🌿</span>
+                    <h2 class="section-title" data-i18n="tour-section">Tham Quan &amp; Trải Nghiệm</h2>
+                </div>
+                <a asp-page="/Events/Index" asp-route-category="Tham quan" class="btn-see-all" data-i18n="see-all">Xem tất cả →</a>
+            </div>
+            <div class="horiz-scroll">
+                <div class="d-flex gap-3" style="flex-wrap:nowrap;">
+                    @foreach (var evt in Model.TourEvents)
+                    {
+                        @await Html.PartialAsync("_HorizEventCard", evt)
+                    }
+                </div>
+            </div>
+        </div>
+        <hr class="section-divider" />
+    }
+
+    @* ===== 8. THỂ THAO ===== *@
+    @if (Model.SportsEvents.Any())
+    {
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="section-emoji">🏆</span>
+                    <h2 class="section-title" data-i18n="sports-section">Thể Thao &amp; Các Loại Khác</h2>
+                </div>
+                <a asp-page="/Events/Index" asp-route-category="Thể thao" class="btn-see-all" data-i18n="see-all">Xem tất cả →</a>
+            </div>
+            <div class="horiz-scroll">
+                <div class="d-flex gap-3" style="flex-wrap:nowrap;">
+                    @foreach (var evt in Model.SportsEvents)
+                    {
+                        @await Html.PartialAsync("_HorizEventCard", evt)
+                    }
+                </div>
+            </div>
+        </div>
+        <hr class="section-divider" />
+    }
+
+    @* ===== 9. ĐIỂM ĐẾN THÚ VỊ ===== *@
+    @if (Model.FeaturedVenues.Any())
+    {
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="section-emoji">📍</span>
+                    <h2 class="section-title" data-i18n="venues-section">Điểm Đến Thú Vị</h2>
+                </div>
+                <a href="/Events" class="btn-see-all" data-i18n="see-all">Xem tất cả →</a>
+            </div>
+            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+                @foreach (var venue in Model.FeaturedVenues)
+                {
+                    <div class="col">
+                        <a asp-page="/Events/Index" asp-route-search="@venue.Name"
+                           class="text-decoration-none d-block h-100">
+                            <div class="venue-card d-flex flex-column justify-content-end p-3">
+                                @if (!string.IsNullOrEmpty(venue.ImageUrl))
+                                {
+                                    <img src="@venue.ImageUrl" alt="@venue.Name"
+                                         class="position-absolute top-0 start-0 w-100 h-100"
+                                         style="object-fit:cover; opacity:.15; border-radius:12px;" />
+                                }
+                                <div class="position-relative" style="z-index:1;">
+                                    <div style="font-size:1.5rem; margin-bottom:4px;">📍</div>
+                                    <div class="fw-bold lh-sm"
+                                         style="color:#e8ffe8; font-size:.875rem; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">@venue.Name</div>
+                                    <div class="mt-1" style="color:rgba(180,255,200,.55); font-size:.75rem;">
+                                        @venue.EventCount sự kiện
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @if (!Model.HotEvents.Any() && !Model.SpecialEvents.Any() && !Model.MusicEvents.Any())
+    {
+        <div class="text-center py-5">
+            <p style="color:rgba(200,230,200,.45);">Hiện chưa có sự kiện nào. Hãy quay lại sau!</p>
+        </div>
+    }
+
+    <div class="text-center mt-4">
+        <a href="/Events" class="btn-see-all px-5 py-2" style="font-size:.9rem;" data-i18n="see-all-events">Xem Tất Cả Sự Kiện →</a>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    var slides = document.querySelectorAll('.hero-slide');
+    var dots   = document.querySelectorAll('.hero-dot');
+    if (!slides.length) return;
+
+    var current = 0;
+    var timer;
+
+    function show(idx) {
+        slides[current].classList.remove('active');
+        if (dots.length) dots[current].classList.remove('active');
+        current = (idx + slides.length) % slides.length;
+        slides[current].classList.add('active');
+        if (dots.length) dots[current].classList.add('active');
+    }
+
+    function start() { timer = setInterval(function () { show(current + 1); }, 4000); }
+    function stop()  { clearInterval(timer); }
+
+    window.heroMove = function (d) { stop(); show(current + d); start(); };
+    window.heroGoto = function (i) { stop(); show(i); start(); };
+
+    var wrap = document.getElementById('heroWrap');
+    if (wrap) {
+        wrap.addEventListener('mouseenter', stop);
+        wrap.addEventListener('mouseleave', start);
+    }
+
+    start();
+})();
+</script>
+}

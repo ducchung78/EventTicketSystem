@@ -1,0 +1,316 @@
+@page
+@model EventTicketSystem.Web.Pages.Cart.CartIndexModel
+@{
+    ViewData["Title"] = "Giỏ Hàng";
+    var subtotal = Model.CartItems.Sum(c => c.Subtotal);
+}
+
+<div class="container-xl px-3 px-md-4 py-4">
+    <h3 class="fw-bold mb-4" style="color:#ede0ff;">🛒 Giỏ Hàng (@Model.CartItems.Sum(c => c.Quantity) vé)</h3>
+
+    @if (TempData["Error"] is string err)
+    {
+        <div class="alert alert-danger alert-dismissible" role="alert">
+            @err <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (!Model.CartItems.Any())
+    {
+        <div class="empty-cart text-center py-5">
+            <div style="font-size:4rem; margin-bottom:16px;">🛒</div>
+            <h5 style="color:#ede0ff;">Giỏ hàng trống</h5>
+            <p class="text-muted">Thêm vé từ các sự kiện để bắt đầu đặt chỗ.</p>
+            <a href="/Events" class="btn-buy-now mt-3">Khám phá sự kiện</a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @* Left: cart items *@
+            <div class="col-lg-8">
+                <div class="cart-card mb-3">
+                    @foreach (var item in Model.CartItems)
+                    {
+                        <div class="cart-item" id="item-@item.TicketTypeId">
+                            @if (!string.IsNullOrEmpty(item.EventImageUrl))
+                            {
+                                <img src="@item.EventImageUrl" alt="@item.EventName" class="cart-item-img" />
+                            }
+                            else
+                            {
+                                <div class="cart-item-img-ph">🎫</div>
+                            }
+                            <div class="cart-item-info">
+                                <div class="cart-item-event">@item.EventName</div>
+                                <div class="cart-item-type">@item.TicketTypeName</div>
+                                <div class="cart-item-price">@item.Price.ToString("N0")đ / vé</div>
+                            </div>
+                            <div class="cart-item-right">
+                                <div class="qty-control">
+                                    <form method="post" asp-page-handler="UpdateQty"
+                                          asp-route-ticketTypeId="@item.TicketTypeId"
+                                          asp-route-qty="@(item.Quantity - 1)"
+                                          class="d-inline">
+                                        <button type="submit" class="qty-btn">−</button>
+                                    </form>
+                                    <span class="qty-val">@item.Quantity</span>
+                                    <form method="post" asp-page-handler="UpdateQty"
+                                          asp-route-ticketTypeId="@item.TicketTypeId"
+                                          asp-route-qty="@(item.Quantity + 1)"
+                                          class="d-inline">
+                                        <button type="submit" class="qty-btn" @(item.Quantity >= 10 ? "disabled" : "")>+</button>
+                                    </form>
+                                </div>
+                                <div class="cart-item-subtotal">@item.Subtotal.ToString("N0")đ</div>
+                                <form method="post" asp-page-handler="Remove"
+                                      asp-route-ticketTypeId="@item.TicketTypeId" class="d-inline">
+                                    <button type="submit" class="remove-btn" title="Xóa">✕</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <form method="post" asp-page-handler="Clear"
+                          onsubmit="return confirm('Xóa tất cả vé trong giỏ?')">
+                        <button type="submit" class="btn-clear-cart">🗑 Xóa giỏ hàng</button>
+                    </form>
+                </div>
+            </div>
+
+            @* Right: summary + checkout *@
+            <div class="col-lg-4">
+                <div class="summary-card sticky-top" style="top:80px;">
+                    <div class="summary-header">Tóm Tắt Đơn Hàng</div>
+                    <div class="summary-body">
+
+                        @* Coupon input *@
+                        <div class="coupon-wrap mb-3">
+                            <div class="d-flex gap-2">
+                                <input type="text" id="couponInput" class="form-control coupon-input"
+                                       placeholder="Nhập mã giảm giá..." />
+                                <button type="button" class="btn-apply-coupon" onclick="applyCoupon()">Áp dụng</button>
+                            </div>
+                            <div id="couponMsg" class="coupon-msg mt-2" style="display:none;"></div>
+                        </div>
+                        <input type="hidden" id="appliedCouponCode" value="" />
+                        <input type="hidden" id="appliedCouponDiscount" value="0" />
+
+                        <div class="summary-row">
+                            <span>Tạm tính</span>
+                            <span id="subtotalDisplay">@subtotal.ToString("N0")đ</span>
+                        </div>
+                        <div class="summary-row" id="discountRow" style="display:none;">
+                            <span style="color:#69f0ae;">Giảm giá</span>
+                            <span style="color:#69f0ae;" id="discountDisplay">-0đ</span>
+                        </div>
+                        <hr style="border-color:rgba(124,77,255,.15); margin:12px 0;" />
+                        <div class="summary-total">
+                            <span>Tổng cộng</span>
+                            <span id="totalDisplay">@subtotal.ToString("N0")đ</span>
+                        </div>
+
+                        <hr style="border-color:rgba(124,77,255,.15); margin:16px 0;" />
+
+                        @* Checkout form *@
+                        <form method="post" asp-page-handler="Checkout" id="checkoutForm">
+                            <input type="hidden" name="couponCode" id="checkoutCoupon" />
+
+                            <div class="mb-3">
+                                <label class="form-label-sm">Họ và tên *</label>
+                                <input type="text" name="customerName" class="form-control form-control-sm"
+                                       value="@(Model.CurrentUser?.HoTen ?? "")" placeholder="Nguyễn Văn A" required />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label-sm">Email *</label>
+                                <input type="email" name="customerEmail" class="form-control form-control-sm"
+                                       value="@(Model.CurrentUser?.Email ?? "")" placeholder="email@example.com" required />
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label-sm">Số điện thoại</label>
+                                <input type="tel" name="customerPhone" class="form-control form-control-sm"
+                                       value="@(Model.CurrentUser?.PhoneNumber ?? "")" placeholder="0901234567" />
+                            </div>
+
+                            <button type="submit" class="btn-checkout w-100">
+                                Thanh Toán (@Model.CartItems.Sum(c => c.Quantity) vé) →
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+.cart-card {
+    background: rgba(15,9,40,.75);
+    border: 1px solid rgba(124,77,255,.18);
+    border-radius: 14px; overflow: hidden;
+}
+.cart-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(124,77,255,.1);
+    transition: background .15s;
+}
+.cart-item:last-child { border-bottom: none; }
+.cart-item:hover { background: rgba(124,77,255,.04); }
+.cart-item-img {
+    width: 70px; height: 55px; object-fit: cover;
+    border-radius: 8px; flex-shrink: 0;
+}
+.cart-item-img-ph {
+    width: 70px; height: 55px; border-radius: 8px; flex-shrink: 0;
+    background: rgba(124,77,255,.12); display: flex; align-items: center;
+    justify-content: center; font-size: 1.5rem;
+}
+.cart-item-info { flex: 1; min-width: 0; }
+.cart-item-event { font-weight: 700; font-size: .92rem; color: #ede0ff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cart-item-type  { font-size: .78rem; color: rgba(210,195,255,.5); margin-top: 2px; }
+.cart-item-price { font-size: .78rem; color: rgba(210,195,255,.4); margin-top: 4px; }
+.cart-item-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
+.cart-item-subtotal { font-weight: 800; font-size: 1rem; color: #ffd740; }
+
+.qty-control { display: flex; align-items: center; gap: 8px; }
+.qty-btn {
+    width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(124,77,255,.4);
+    background: rgba(124,77,255,.1); color: #c2a6ff; font-size: .9rem;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background .15s;
+}
+.qty-btn:hover:not(:disabled) { background: rgba(124,77,255,.3); }
+.qty-btn:disabled { opacity: .4; cursor: default; }
+.qty-val { font-weight: 700; color: #ede0ff; min-width: 20px; text-align: center; }
+
+.remove-btn {
+    border: none; background: none; color: rgba(229,57,53,.6);
+    font-size: .9rem; cursor: pointer; padding: 4px;
+    transition: color .15s;
+}
+.remove-btn:hover { color: #ef5350; }
+
+.btn-clear-cart {
+    border: 1px solid rgba(229,57,53,.3); background: none;
+    color: rgba(229,57,53,.6); padding: 7px 18px; border-radius: 50px;
+    font-size: .8rem; cursor: pointer; transition: all .15s;
+}
+.btn-clear-cart:hover { border-color: #ef5350; color: #ef5350; }
+
+/* Summary card */
+.summary-card {
+    background: rgba(15,9,40,.85);
+    border: 1px solid rgba(124,77,255,.22);
+    border-radius: 16px; overflow: hidden;
+}
+.summary-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid rgba(124,77,255,.15);
+    font-weight: 700; font-size: .9rem; color: rgba(210,195,255,.7);
+}
+.summary-body { padding: 20px; }
+.summary-row { display: flex; justify-content: space-between; font-size: .88rem; color: rgba(210,195,255,.7); margin-bottom: 8px; }
+.summary-total { display: flex; justify-content: space-between; font-weight: 800; font-size: 1.15rem; color: #ffd740; }
+
+/* Coupon */
+.coupon-input {
+    background: rgba(255,255,255,.05); border: 1px solid rgba(124,77,255,.25);
+    color: #ede0ff; border-radius: 8px; font-size: .85rem;
+}
+.coupon-input:focus { background: rgba(255,255,255,.08); border-color: #7c4dff; color: #ede0ff; box-shadow: 0 0 0 3px rgba(124,77,255,.15); }
+.coupon-input::placeholder { color: rgba(210,195,255,.3); }
+.btn-apply-coupon {
+    padding: 7px 16px; border-radius: 8px; border: 1px solid rgba(124,77,255,.5);
+    background: rgba(124,77,255,.15); color: #c2a6ff; font-size: .82rem;
+    font-weight: 600; cursor: pointer; white-space: nowrap; transition: background .15s;
+}
+.btn-apply-coupon:hover { background: rgba(124,77,255,.3); }
+.coupon-msg { font-size: .8rem; padding: 6px 10px; border-radius: 6px; }
+.coupon-msg.success { background: rgba(0,200,83,.1); color: #69f0ae; border: 1px solid rgba(0,200,83,.2); }
+.coupon-msg.error   { background: rgba(229,57,53,.1); color: #ef9a9a; border: 1px solid rgba(229,57,53,.2); }
+
+/* Form */
+.form-label-sm { font-size: .8rem; color: rgba(210,195,255,.7); margin-bottom: 4px; display: block; }
+.form-control.form-control-sm {
+    background: rgba(255,255,255,.05); border: 1px solid rgba(124,77,255,.2);
+    color: #ede0ff; border-radius: 8px;
+}
+.form-control.form-control-sm:focus { background: rgba(255,255,255,.08); border-color: #7c4dff; color: #ede0ff; box-shadow: 0 0 0 2px rgba(124,77,255,.12); }
+.form-control.form-control-sm::placeholder { color: rgba(210,195,255,.3); }
+
+.btn-checkout {
+    padding: 13px; border-radius: 50px; border: none;
+    background: linear-gradient(90deg,#7c4dff,#448aff);
+    color: #fff; font-weight: 700; font-size: 1rem;
+    box-shadow: 0 4px 22px rgba(124,77,255,.45);
+    cursor: pointer; transition: opacity .15s;
+}
+.btn-checkout:hover { opacity: .88; }
+
+.btn-buy-now {
+    display: inline-block; padding: 12px 28px; border-radius: 50px;
+    background: linear-gradient(90deg,#7c4dff,#448aff);
+    color: #fff; font-weight: 700; text-decoration: none;
+    box-shadow: 0 3px 18px rgba(124,77,255,.4);
+}
+.btn-buy-now:hover { opacity: .85; color: #fff; }
+
+.empty-cart { color: rgba(210,195,255,.7); }
+</style>
+
+@section Scripts {
+<script>
+const subtotalRaw = @subtotal.ToString("0", System.Globalization.CultureInfo.InvariantCulture);
+
+async function applyCoupon() {
+    const code = document.getElementById('couponInput').value.trim();
+    const msg  = document.getElementById('couponMsg');
+    if (!code) { showMsg('Vui lòng nhập mã giảm giá.', false); return; }
+
+    const res  = await fetch(`/api/coupons/validate?code=${encodeURIComponent(code)}&total=${subtotalRaw}`);
+    const data = await res.json();
+
+    if (data.valid) {
+        document.getElementById('appliedCouponCode').value     = code;
+        document.getElementById('appliedCouponDiscount').value  = data.discount;
+        document.getElementById('checkoutCoupon').value         = code;
+        updateSummary(data.discount);
+        showMsg('✓ ' + data.message, true);
+    } else {
+        document.getElementById('appliedCouponCode').value     = '';
+        document.getElementById('appliedCouponDiscount').value  = 0;
+        document.getElementById('checkoutCoupon').value         = '';
+        updateSummary(0);
+        showMsg('✗ ' + data.error, false);
+    }
+}
+
+function updateSummary(discount) {
+    const discountRow  = document.getElementById('discountRow');
+    const discountDisp = document.getElementById('discountDisplay');
+    const totalDisp    = document.getElementById('totalDisplay');
+
+    if (discount > 0) {
+        discountRow.style.display = '';
+        discountDisp.textContent  = '-' + discount.toLocaleString('vi-VN') + 'đ';
+    } else {
+        discountRow.style.display = 'none';
+    }
+    totalDisp.textContent = (subtotalRaw - discount).toLocaleString('vi-VN') + 'đ';
+}
+
+function showMsg(text, ok) {
+    const msg = document.getElementById('couponMsg');
+    msg.textContent = text;
+    msg.className   = 'coupon-msg mt-2 ' + (ok ? 'success' : 'error');
+    msg.style.display = '';
+}
+
+document.getElementById('couponInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); applyCoupon(); }
+});
+</script>
+}

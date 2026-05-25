@@ -1,0 +1,74 @@
+@page
+@model EventTicketSystem.Web.Pages.Customers.CustomersIndexModel
+@{
+    ViewData["Title"] = "Quản Lý Khách Hàng";
+}
+
+<div class="container">
+    <h1 class="mb-4">Quản Lý Khách Hàng</h1>
+
+    <form method="get" class="row g-2 mb-4">
+        <div class="col-md-5">
+            <input type="text" name="search" value="@Model.Search" class="form-control"
+                   placeholder="Tìm theo tên, email, số điện thoại..." />
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Tìm Kiếm</button>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.Search))
+        {
+            <div class="col-md-2">
+                <a href="/Customers" class="btn btn-outline-secondary w-100">Xóa Lọc</a>
+            </div>
+        }
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Họ Tên</th>
+                    <th>Email</th>
+                    <th>Điện Thoại</th>
+                    <th>Ngày Đăng Ký</th>
+                    <th class="text-center">Số Đơn</th>
+                    <th class="text-end">Tổng Chi Tiêu</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model.Customers)
+                {
+                    <tr>
+                        <td class="fw-semibold">@c.HoTen</td>
+                        <td>@c.Email</td>
+                        <td>@(c.Phone ?? "—")</td>
+                        <td>@c.NgayTao.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                        <td class="text-center">
+                            <span class="badge bg-secondary">@c.SoDon</span>
+                        </td>
+                        <td class="text-end fw-bold text-success">
+                            @c.TongTien.ToString("N0") đ
+                        </td>
+                        <td>
+                            <a href="/Customers/Details/@c.Id" class="btn btn-sm btn-outline-primary">
+                                Chi Tiết
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (!Model.Customers.Any())
+    {
+        <div class="text-center py-5">
+            <p class="text-muted fs-5">Không tìm thấy khách hàng.</p>
+        </div>
+    }
+    else
+    {
+        <p class="text-muted small">Tổng cộng: @Model.Customers.Count khách hàng</p>
+    }
+</div>

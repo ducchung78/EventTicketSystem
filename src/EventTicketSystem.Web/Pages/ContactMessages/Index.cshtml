@@ -1,0 +1,197 @@
+@page
+@model EventTicketSystem.Web.Pages.ContactMessages.ContactMessagesIndexModel
+@{
+    ViewData["Title"] = "Tin Nhắn Liên Hệ";
+}
+
+<style>
+    .cm-wrap { padding: 2rem 0 3rem; }
+
+    .cm-header {
+        display: flex; align-items: center; justify-content: space-between;
+        flex-wrap: wrap; gap: 12px; margin-bottom: 1.5rem;
+    }
+    .cm-title { font-size: 1.45rem; font-weight: 800; color: #ede0ff; }
+    .cm-badge-unread {
+        background: #e53935; color: #fff;
+        font-size: .75rem; font-weight: 700;
+        padding: 2px 8px; border-radius: 50px;
+        margin-left: 8px;
+    }
+
+    .cm-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-cm-action {
+        padding: 7px 16px; border-radius: 8px; font-size: .82rem; font-weight: 600;
+        border: 1px solid rgba(124,77,255,.35);
+        background: rgba(124,77,255,.12); color: rgba(210,195,255,.8);
+        cursor: pointer; text-decoration: none;
+        transition: background .15s;
+    }
+    .btn-cm-action:hover { background: rgba(124,77,255,.25); color: #ede0ff; }
+    .btn-cm-action.green {
+        border-color: rgba(0,200,83,.35); background: rgba(0,200,83,.1); color: #69f0ae;
+    }
+    .btn-cm-action.green:hover { background: rgba(0,200,83,.2); }
+
+    .cm-card {
+        background: rgba(20,10,52,.82);
+        border: 1px solid rgba(124,77,255,.22);
+        border-radius: 14px; overflow: hidden;
+    }
+
+    .cm-row {
+        padding: 16px 20px;
+        border-bottom: 1px solid rgba(124,77,255,.1);
+        transition: background .15s;
+    }
+    .cm-row:last-child { border-bottom: none; }
+    .cm-row:hover { background: rgba(124,77,255,.05); }
+    .cm-row.unread { border-left: 3px solid #00c853; }
+
+    .cm-row-top {
+        display: flex; align-items: flex-start; gap: 12px;
+        flex-wrap: wrap;
+    }
+    .cm-sender { flex: 1; min-width: 0; }
+    .cm-sender-name {
+        font-weight: 700; font-size: .95rem; color: #ede0ff;
+    }
+    .cm-sender-meta {
+        font-size: .78rem; color: rgba(210,195,255,.5);
+        margin-top: 2px;
+    }
+
+    .cm-subject {
+        font-weight: 600; color: rgba(210,195,255,.85);
+        font-size: .9rem; margin: 6px 0 4px;
+    }
+    .cm-preview {
+        font-size: .82rem; color: rgba(210,195,255,.45);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        max-width: 650px;
+    }
+
+    .cm-row-actions {
+        display: flex; gap: 6px; flex-shrink: 0; margin-top: 4px;
+    }
+    .btn-cm-tiny {
+        padding: 5px 12px; border-radius: 6px; font-size: .75rem; font-weight: 600;
+        border: 1px solid rgba(124,77,255,.3);
+        background: rgba(124,77,255,.1); color: rgba(210,195,255,.7);
+        cursor: pointer; transition: background .15s;
+    }
+    .btn-cm-tiny:hover { background: rgba(124,77,255,.25); color: #ede0ff; }
+    .btn-cm-tiny.del {
+        border-color: rgba(229,57,53,.3); background: rgba(229,57,53,.08); color: rgba(239,154,154,.7);
+    }
+    .btn-cm-tiny.del:hover { background: rgba(229,57,53,.2); color: #ef9a9a; }
+
+    .cm-full-msg {
+        background: rgba(0,0,0,.15); border-radius: 8px;
+        padding: 10px 14px; margin-top: 10px;
+        font-size: .85rem; color: rgba(210,195,255,.7);
+        white-space: pre-wrap; line-height: 1.6;
+        display: none;
+    }
+    .cm-row.expanded .cm-full-msg { display: block; }
+
+    .cm-date { font-size: .75rem; color: rgba(210,195,255,.35); flex-shrink: 0; }
+    .badge-unread-dot {
+        display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+        background: #00c853; margin-right: 4px; flex-shrink: 0; margin-top: 6px;
+    }
+
+    .cm-empty { text-align: center; padding: 3rem 2rem; color: rgba(210,195,255,.35); }
+    .cm-empty-icon { font-size: 2.5rem; margin-bottom: .75rem; display: block; }
+</style>
+
+<div class="container-xl px-3 px-md-4 cm-wrap">
+    <div class="cm-header">
+        <div>
+            <span class="cm-title">📬 Tin Nhắn Liên Hệ</span>
+            @if (Model.UnreadCount > 0)
+            {
+                <span class="cm-badge-unread">@Model.UnreadCount chưa đọc</span>
+            }
+        </div>
+        <div class="cm-actions">
+            @if (Model.UnreadCount > 0)
+            {
+                <form method="post" asp-page-handler="MarkAllRead" style="display:inline;">
+                    <button type="submit" class="btn-cm-action green">✓ Đánh dấu tất cả đã đọc</button>
+                </form>
+            }
+            <a href="/Contact" class="btn-cm-action">→ Xem trang liên hệ</a>
+        </div>
+    </div>
+
+    <div class="cm-card">
+        @if (!Model.Messages.Any())
+        {
+            <div class="cm-empty">
+                <span class="cm-empty-icon">📭</span>
+                Chưa có tin nhắn liên hệ nào.
+            </div>
+        }
+        else
+        {
+            @foreach (var msg in Model.Messages)
+            {
+                <div class="cm-row @(!msg.IsRead ? "unread" : "")" id="msg-@msg.Id"
+                     onclick="toggleMsg(@msg.Id)" style="cursor:pointer;">
+                    <div class="cm-row-top">
+                        @if (!msg.IsRead)
+                        {
+                            <span class="badge-unread-dot"></span>
+                        }
+                        <div class="cm-sender" style="@(!msg.IsRead ? "" : "margin-left:11px;")">
+                            <div class="cm-sender-name">@msg.HoTen</div>
+                            <div class="cm-sender-meta">
+                                @msg.Email
+                                @if (!string.IsNullOrEmpty(msg.Phone))
+                                {
+                                    <span style="color:rgba(210,195,255,.3)"> · </span>@msg.Phone
+                                }
+                            </div>
+                        </div>
+                        <div class="cm-date">@msg.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                    </div>
+
+                    <div style="@(!msg.IsRead ? "margin-left:11px;" : "")">
+                        <div class="cm-subject">@msg.Subject</div>
+                        <div class="cm-preview">@msg.Message</div>
+                        <div class="cm-full-msg">@msg.Message</div>
+
+                        <div class="cm-row-actions mt-2" onclick="event.stopPropagation()">
+                            @if (!msg.IsRead)
+                            {
+                                <form method="post" asp-page-handler="MarkRead" style="display:inline;">
+                                    <input type="hidden" name="id" value="@msg.Id" />
+                                    <button type="submit" class="btn-cm-tiny">✓ Đánh dấu đã đọc</button>
+                                </form>
+                            }
+                            <a href="mailto:@msg.Email?subject=Re: @msg.Subject"
+                               class="btn-cm-tiny" onclick="event.stopPropagation()">
+                                ↩ Trả lời
+                            </a>
+                            <form method="post" asp-page-handler="Delete" style="display:inline;"
+                                  onsubmit="return confirm('Xóa tin nhắn này?')">
+                                <input type="hidden" name="id" value="@msg.Id" />
+                                <button type="submit" class="btn-cm-tiny del">🗑 Xóa</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<script>
+function toggleMsg(id) {
+    const row = document.getElementById('msg-' + id);
+    row.classList.toggle('expanded');
+    const preview = row.querySelector('.cm-preview');
+    if (preview) preview.style.display = row.classList.contains('expanded') ? 'none' : '';
+}
+</script>

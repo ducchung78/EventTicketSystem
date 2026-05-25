@@ -1,0 +1,126 @@
+@page
+@model EventTicketSystem.Web.Pages.Cart.CartConfirmationModel
+@{
+    ViewData["Title"] = "Đặt Vé Thành Công";
+    var couponUsed = Model.Orders.FirstOrDefault(o => o.Coupon != null)?.Coupon;
+    var totalDiscount = Model.Orders.Sum(o => o.DiscountAmount);
+    var totalOriginal = Model.Orders.Sum(o => o.OriginalAmount);
+}
+
+<div class="container-xl px-3 px-md-4 py-5" style="max-width:800px;">
+    @* Success hero *@
+    <div class="text-center mb-5">
+        <div class="success-icon">✓</div>
+        <h2 class="fw-bold mt-3 mb-2" style="color:#ede0ff;">Đặt Vé Thành Công!</h2>
+        <p class="text-muted">@Model.Orders.Count đơn hàng đã được xác nhận. Kiểm tra email để nhận vé.</p>
+    </div>
+
+    @* Order list *@
+    @foreach (var order in Model.Orders)
+    {
+        var item = order.OrderItems.FirstOrDefault();
+        var evt  = item?.TicketType?.Event;
+        <div class="order-card mb-3">
+            <div class="order-card-header">
+                <div>
+                    <div class="order-event-name">@(evt?.Title ?? "—")</div>
+                    <div class="order-ticket-type">@(item?.TicketType?.Name) × @(item?.Quantity)</div>
+                </div>
+                <div class="text-end">
+                    <div class="order-code">@order.ConfirmationCode</div>
+                    <div class="order-amount">@order.TotalAmount.ToString("N0")đ</div>
+                </div>
+            </div>
+            @if (evt != null)
+            {
+                <div class="order-card-footer">
+                    <span>📅 @evt.StartDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                    <span>📍 @evt.Venue</span>
+                    <a href="/Orders/Details/@order.Id" class="view-detail-link">Xem chi tiết →</a>
+                </div>
+            }
+        </div>
+    }
+
+    @* Payment summary *@
+    <div class="payment-summary mt-4">
+        <div class="payment-row">
+            <span>Tạm tính</span>
+            <span>@totalOriginal.ToString("N0")đ</span>
+        </div>
+        @if (couponUsed != null && totalDiscount > 0)
+        {
+            <div class="payment-row" style="color:#69f0ae;">
+                <span>Mã giảm giá (@couponUsed.Code)</span>
+                <span>-@totalDiscount.ToString("N0")đ</span>
+            </div>
+        }
+        <hr style="border-color:rgba(124,77,255,.2); margin:12px 0;" />
+        <div class="payment-total">
+            <span>Tổng đã thanh toán</span>
+            <span>@Model.TotalPaid.ToString("N0")đ</span>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-center gap-3 mt-5">
+        <a href="/Orders/MyOrders" class="btn-secondary-action">📋 Vé của tôi</a>
+        <a href="/Events" class="btn-primary-action">Tiếp tục mua vé →</a>
+    </div>
+</div>
+
+<style>
+.success-icon {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: linear-gradient(135deg,#00c853,#69f0ae);
+    color: #fff; font-size: 2rem; font-weight: 900;
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 40px rgba(0,200,83,.4);
+}
+.order-card {
+    background: rgba(15,9,40,.75);
+    border: 1px solid rgba(124,77,255,.18);
+    border-radius: 14px; overflow: hidden;
+}
+.order-card-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 16px 20px; gap: 12px;
+}
+.order-event-name { font-weight: 700; color: #ede0ff; font-size: .95rem; }
+.order-ticket-type { font-size: .8rem; color: rgba(210,195,255,.5); margin-top: 3px; }
+.order-code {
+    font-size: .75rem; color: rgba(210,195,255,.5); margin-bottom: 4px;
+    font-family: monospace; letter-spacing: .05em;
+}
+.order-amount { font-weight: 800; font-size: 1.1rem; color: #ffd740; }
+.order-card-footer {
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+    padding: 10px 20px;
+    border-top: 1px solid rgba(124,77,255,.1);
+    background: rgba(124,77,255,.04);
+    font-size: .78rem; color: rgba(210,195,255,.5);
+}
+.view-detail-link { color: #c2a6ff; text-decoration: none; font-weight: 600; margin-left: auto; }
+.view-detail-link:hover { color: #ede0ff; }
+
+.payment-summary {
+    background: rgba(15,9,40,.75);
+    border: 1px solid rgba(124,77,255,.18);
+    border-radius: 14px; padding: 20px;
+}
+.payment-row { display: flex; justify-content: space-between; font-size: .9rem; color: rgba(210,195,255,.7); margin-bottom: 8px; }
+.payment-total { display: flex; justify-content: space-between; font-weight: 800; font-size: 1.2rem; color: #ffd740; }
+
+.btn-primary-action {
+    padding: 12px 28px; border-radius: 50px;
+    background: linear-gradient(90deg,#7c4dff,#448aff);
+    color: #fff; font-weight: 700; text-decoration: none;
+    box-shadow: 0 4px 22px rgba(124,77,255,.4); transition: opacity .15s;
+}
+.btn-primary-action:hover { opacity: .88; color: #fff; }
+.btn-secondary-action {
+    padding: 12px 24px; border-radius: 50px;
+    border: 1px solid rgba(124,77,255,.4); color: rgba(210,195,255,.8);
+    text-decoration: none; transition: border-color .15s;
+}
+.btn-secondary-action:hover { border-color: #7c4dff; color: #ede0ff; }
+</style>
