@@ -53,22 +53,24 @@ jobs:
       - name: Build .NET app
         run: dotnet build src/EventTicketSystem.Web/ --no-restore --configuration Release
 
-      # Chờ SQL Server thực sự sẵn sàng nhận kết nối
+      # Chờ SQL Server thực sự sẵn sàng (port 1433 mở + thêm 5s để SQL Server init xong)
       - name: Wait for SQL Server to be ready
         run: |
-          echo "Waiting for SQL Server..."
-          for i in $(seq 1 30); do
-            if /opt/mssql-tools18/bin/sqlcmd -S localhost,1433 -U sa -P 'TestPassword@123' -Q 'SELECT 1' -No > /dev/null 2>&1; then
-              echo "SQL Server is ready after $((i * 3))s"
+          echo "Waiting for SQL Server on port 1433..."
+          for i in $(seq 1 40); do
+            if nc -z localhost 1433 2>/dev/null; then
+              echo "Port 1433 is open after $((i * 3))s, waiting 5s for full init..."
+              sleep 5
+              echo "SQL Server ready!"
               exit 0
             fi
-            echo "  Attempt $i/30, retrying in 3s..."
+            echo "  Attempt $i/40, retrying in 3s..."
             sleep 3
           done
           echo "ERROR: SQL Server did not start in time"
           exit 1
 
-      # Cài EF Core CLI để chạy migration (bỏ qua nếu app tự migrate khi start)
+      # Cài EF Core CLI
       - name: Install EF Core tools
         run: dotnet tool install --global dotnet-ef
         continue-on-error: true
