@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ConnectionStrings__EventTicketSystemDb: "Server=localhost,1433;Database=EventTicketSystemDb;User Id=sa;Password=TestPassword@123;TrustServerCertificate=True"
+      ConnectionStrings__DefaultConnection: "Server=localhost,1433;Database=EventTicketSystemDb;User Id=sa;Password=TestPassword@123;TrustServerCertificate=True"
       ASPNETCORE_URLS: "http://localhost:5134"
 
     services:
@@ -75,7 +75,8 @@ jobs:
         run: |
           dotnet ef database update \
             --project src/EventTicketSystem.Web/ \
-            --startup-project src/EventTicketSystem.Web/
+            --startup-project src/EventTicketSystem.Web/ \
+            --connection "Server=localhost,1433;Database=EventTicketSystemDb;User Id=sa;Password=TestPassword@123;TrustServerCertificate=True"
 
       - name: Start app in background
         run: |
