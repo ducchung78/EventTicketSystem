@@ -59,14 +59,19 @@ jobs:
         continue-on-error: true
 
       - name: Run database migrations
-        run: dotnet ef database update --project src/EventTicketSystem.Web/
+        run: |
+          dotnet ef database update \
+            --project src/EventTicketSystem.Web/ \
+            --startup-project src/EventTicketSystem.Web/
         continue-on-error: true
 
-      # Khởi động app ở background
+      # Khởi động app ở background, log ra file để debug khi lỗi
       - name: Start app in background
         run: |
-          dotnet run --project src/EventTicketSystem.Web/ --no-build --configuration Release &
-          echo "App process started"
+          dotnet run --project src/EventTicketSystem.Web/ --no-build --configuration Release \
+            > /tmp/app.log 2>&1 &
+          echo $! > /tmp/app.pid
+          echo "App process started (PID: $(cat /tmp/app.pid))"
 
       # Chờ đến khi app sẵn sàng (tối đa 90 giây)
       - name: Wait for app to be ready
@@ -81,6 +86,8 @@ jobs:
             sleep 3
           done
           echo "ERROR: App did not start within 90 seconds"
+          echo "=== App logs ==="
+          cat /tmp/app.log || echo "(no log file)"
           exit 1
 
       - name: Create test-results directory
