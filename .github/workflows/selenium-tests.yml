@@ -1,4 +1,4 @@
-name: Selenium Tests
+name: Selenium Automation Test
 
 on:
   push:
@@ -37,12 +37,12 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Setup Node.js 18
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      - name: Install Node dependencies
+      - name: Install dependencies
         run: npm install
 
       - name: Restore .NET packages
@@ -51,20 +51,20 @@ jobs:
       - name: Build .NET app
         run: dotnet build src/EventTicketSystem.Web/ --no-restore --configuration Release
 
-      - name: Wait for SQL Server to be ready
+      - name: Wait for SQL Server
         run: |
           echo "Waiting for SQL Server on port 1433..."
           for i in $(seq 1 40); do
             if nc -z localhost 1433 2>/dev/null; then
-              echo "Port 1433 is open after $((i * 3))s, waiting 5s for full init..."
+              echo "Port 1433 open after $((i * 3))s, waiting 5s..."
               sleep 5
               echo "SQL Server ready!"
               exit 0
             fi
-            echo " Attempt $i/40, retrying in 3s..."
+            echo "  Attempt $i/40, retrying in 3s..."
             sleep 3
           done
-          echo "ERROR: SQL Server did not start in time"
+          echo "ERROR: SQL Server did not start"
           exit 1
 
       - name: Install EF Core tools
@@ -83,28 +83,27 @@ jobs:
           dotnet run --project src/EventTicketSystem.Web/ --no-build --configuration Release \
             > /tmp/app.log 2>&1 &
           echo $! > /tmp/app.pid
-          echo "App process started (PID: $(cat /tmp/app.pid))"
+          echo "App started (PID: $(cat /tmp/app.pid))"
 
       - name: Wait for app to be ready
         run: |
-          echo "Waiting for app to start..."
+          echo "Waiting for app..."
           for i in $(seq 1 30); do
             if curl -sf http://localhost:5134 > /dev/null 2>&1; then
-              echo "App is ready after $((i * 3))s"
+              echo "App ready after $((i * 3))s"
               exit 0
             fi
-            echo " Attempt $i/30, retrying in 3s..."
+            echo "  Attempt $i/30, retrying in 3s..."
             sleep 3
           done
-          echo "ERROR: App did not start within 90 seconds"
-          echo "=== App logs ==="
-          cat /tmp/app.log || echo "(no log file)"
+          echo "ERROR: App did not start"
+          cat /tmp/app.log || true
           exit 1
 
       - name: Create test-results directory
-        run: mkdir -p test-results
+        run: mkdir -p test-results/logs
 
-      - name: Run Selenium tests
+      - name: Run tests
         run: npm test
         continue-on-error: true
 
@@ -118,10 +117,10 @@ jobs:
           JIRA_PROJECT_KEY: ${{ secrets.JIRA_PROJECT_KEY }}
         continue-on-error: true
 
-      - name: Upload test results artifact
+      - name: Upload logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: selenium-test-results
+          name: test-results
           path: test-results/
-          if-no-files-found: ignore
+          retention-days: 30
