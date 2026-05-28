@@ -1,331 +1,187 @@
 {
-  "thoi_gian": "2026-05-25 21:07:13",
-  "tong_pass": 32,
-  "tong_fail": 22,
-  "chi_tiet": [
+  "thoi_gian": "2026-05-28 22:13:44",
+  "cong_cu": "Selenium WebDriver + Mocha",
+  "url": "http://localhost:5134",
+  "tong_tc": 19,
+  "tong_pass": 19,
+  "tong_fail": 0,
+  "ty_le_pass": "100%",
+  "tong_thoi_gian_ms": 11153,
+  "suites": [
     {
-      "id": "DK01",
-      "name": "Hop le day du thong tin",
-      "status": "PASS",
-      "note": "/Events?search="
+      "ma_suite": "TC01",
+      "ten_suite": "Trang Chủ",
+      "tests": [
+        {
+          "stt": 1,
+          "ma_tc": "TC01",
+          "mo_ta": "Trang chủ load thành công, title không rỗng",
+          "ket_qua": "PASS",
+          "thoi_gian_ms": 528
+        },
+        {
+          "stt": 2,
+          "ma_tc": "TC01",
+          "mo_ta": "Trang chủ hiển thị navbar",
+          "ket_qua": "PASS",
+          "thoi_gian_ms": 127
+        }
+      ]
     },
     {
-      "id": "DK02",
-      "name": "Hop le khong co SDT",
-      "status": "PASS",
-      "note": "/Events?search="
+      "ma_suite": "TC02",
+      "ten_suite": "Đăng Nhập",
+      "tests": [
+        {
+          "stt": 3,
+          "ma_tc": "TC02",
+          "mo_ta": "Trang đăng nhập hiển thị form với đầy đủ các input",
+          "ket_qua": "PASS",
+          "thoi_gian_ms": 187
+        },
+        {
+          "stt": 4,
+          "ma_tc": "TC02",
+          "mo_ta": "Đăng nhập thành công với tài khoản demo admin",
+          "ket_qua": "PASS",
+          "thoi_gian_ms": 783
+        }
+      ]
     },
     {
-      "id": "DK03",
-      "name": "Mat khau co chu va so",
-      "status": "PASS",
-      "note": "/Events?search="
+      "ma_suite": "TC03",
+      "ten_suite": "Danh Sách Sự Kiện",
+      "tests": [
+        {
+          "stt": 5,
+          "ma_tc": "TC03",
+          "mo_ta": "Trang sự kiện load thành công với heading đúng",
+          "ket_qua": "PASS",
+          "thoi_gian_ms": 460
+        },
+        {
+          "stt": 6,
+          "ma_tc": "TC03",
+          "mo_ta": "Trang sự kiện hiển thị event card hoặc thông báo trống",
+          "ket_qua": "PASS",
+          "thoi_gian_ms": 61
+        },
+        {
+          "stt": 7,
+          "ma_tc": "TC03",
+          "mo_ta": "Thanh tìm kiếm sự kiện hiển thị",
+          "ket_qua": "PASS",
+          "thoi_gian_ms": 51
+        }
+      ]
     },
     {
-      "id": "DK04",
-      "name": "Mat khau manh",
-      "status": "PASS",
-      "note": "/Events?search="
+      "ma_suite": "TC04",
+      "ten_suite": "Đăng Ký Tài Khoản",
+      "tests": [
+        {
+          "stt": 8,
+          "ma_tc": "TC04",
+          "mo_ta": "Trang đăng ký hiển thị form với đầy đủ các trường bắt buộc",
+          "ket_qua": "PASS",
+          "thoi_gian_ms": 217
+        },
+        {
+          "stt": 9,
+          "ma_tc": "TC04",
+          "mo_ta": "Đăng ký thành công với tài khoản mới và redirect khỏi trang register",
+          "ket_qua": "PASS",
+          "thoi_gian_ms": 994
+        },
+        {
+          "stt": 10,
+          "ma_tc": "TC04",
+          "mo_ta": "Hiển thị lỗi khi đăng ký với tên đăng nhập đã tồn tại trong hệ thống",
+          "ket_qua": "PASS",
+          "thoi_gian_ms": 465
+        }
+      ]
     },
     {
-      "id": "DK05",
-      "name": "Ten 3 chu",
-      "status": "PASS",
-      "note": "/Events?search="
+      "ma_suite": "TC05",
+      "ten_suite": "Chi Tiết Sự Kiện",
+      "tests": [
+        {
+          "stt": 11,
+          "ma_tc": "TC05",
+          "mo_ta": "Trang chi tiết sự kiện load thành công và hiển thị tiêu đề",
+          "ket_qua": "PASS",
+          "thoi_gian_ms": 166
+        },
+        {
+          "stt": 12,
+          "ma_tc": "TC05",
+          "mo_ta": "Phần thông tin vé hiển thị với ít nhất một loại vé",
+          "ket_qua": "PASS",
+          "thoi_gian_ms": 64
+        },
+        {
+          "stt": 13,
+          "ma_tc": "TC05",
+          "mo_ta": "Hiển thị các section Giới Thiệu, Lịch Diễn, Thông Tin Vé",
+          "ket_qua": "PASS",
+          "thoi_gian_ms": 55
+        }
+      ]
     },
     {
-      "id": "DK06",
-      "name": "Ten 2 chu",
-      "status": "PASS",
-      "note": "/Events?search="
+      "ma_suite": "TC06",
+      "ten_suite": "Giỏ Hàng",
+      "tests": [
+        {
+          "stt": 14,
+          "ma_tc": "TC06",
+          "mo_ta": "Trang giỏ hàng load thành công với tiêu đề đúng",
+          "ket_qua": "PASS",
+          "thoi_gian_ms": 133
+        },
+        {
+          "stt": 15,
+          "ma_tc": "TC06",
+          "mo_ta": "Giỏ hàng trống hiển thị thông báo và nút khám phá sự kiện",
+          "ket_qua": "PASS",
+          "thoi_gian_ms": 63
+        },
+        {
+          "stt": 16,
+          "ma_tc": "TC06",
+          "mo_ta": "Giỏ hàng trống có link dẫn đến trang sự kiện",
+          "ket_qua": "PASS",
+          "thoi_gian_ms": 53
+        }
+      ]
     },
     {
-      "id": "DK07",
-      "name": "Ho ten trong",
-      "status": "FAIL",
-      "note": "/Events?search="
-    },
-    {
-      "id": "DK08",
-      "name": "Email khong hop le",
-      "status": "FAIL",
-      "note": "/Events?search="
-    },
-    {
-      "id": "DK09",
-      "name": "Mat khau qua ngan",
-      "status": "FAIL",
-      "note": "/Events?search="
-    },
-    {
-      "id": "DK10",
-      "name": "Xac nhan khong khop",
-      "status": "FAIL",
-      "note": "/Events?search="
-    },
-    {
-      "id": "DK11",
-      "name": "Email trong",
-      "status": "FAIL",
-      "note": "/Events?search="
-    },
-    {
-      "id": "DK12",
-      "name": "SDT hop le",
-      "status": "PASS",
-      "note": "/Events?search="
-    },
-    {
-      "id": "DK13",
-      "name": "Mat khau phuc tap",
-      "status": "PASS",
-      "note": "/Events?search="
-    },
-    {
-      "id": "DK01",
-      "name": "Email da ton tai",
-      "status": "FAIL",
-      "note": "/Events?search="
-    },
-    {
-      "id": "DK02",
-      "name": "Email da ton tai",
-      "status": "FAIL",
-      "note": "/Events?search="
-    },
-    {
-      "id": "DK03",
-      "name": "Tai khoan moi hop le",
-      "status": "PASS",
-      "note": "/Events?search="
-    },
-    {
-      "id": "DK04",
-      "name": "Tai khoan moi khong SDT",
-      "status": "PASS",
-      "note": "/Events?search="
-    },
-    {
-      "id": "DK05",
-      "name": "Mat khau ky tu dac biet",
-      "status": "PASS",
-      "note": "/Events?search="
-    },
-    {
-      "id": "DK06",
-      "name": "Hop le co SDT",
-      "status": "PASS",
-      "note": "/Events?search="
-    },
-    {
-      "id": "DK07",
-      "name": "Ten co chu hoa thuong",
-      "status": "PASS",
-      "note": "/Events?search="
-    },
-    {
-      "id": "DK08",
-      "name": "Mat khau bao mat cao",
-      "status": "PASS",
-      "note": "/Events?search="
-    },
-    {
-      "id": "DK09",
-      "name": "Ho ten trong lan 2",
-      "status": "FAIL",
-      "note": "/Events?search="
-    },
-    {
-      "id": "DK10",
-      "name": "Email sai lan 2",
-      "status": "FAIL",
-      "note": "/Events?search="
-    },
-    {
-      "id": "DK11",
-      "name": "Khac nhau lan 2",
-      "status": "FAIL",
-      "note": "/Events?search="
-    },
-    {
-      "id": "DK12",
-      "name": "SDT moi hop le",
-      "status": "PASS",
-      "note": "/Events?search="
-    },
-    {
-      "id": "DK13",
-      "name": "Tai khoan thu 13",
-      "status": "PASS",
-      "note": "/Events?search="
-    },
-    {
-      "id": "DN01",
-      "name": "Dung email va mat khau",
-      "status": "PASS",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN02",
-      "name": "Tai khoan thu 2 dung",
-      "status": "PASS",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN03",
-      "name": "Tai khoan thu 3 dung",
-      "status": "PASS",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN04",
-      "name": "Tai khoan co SDT",
-      "status": "PASS",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN05",
-      "name": "Sai mat khau",
-      "status": "FAIL",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN06",
-      "name": "Email khong ton tai",
-      "status": "FAIL",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN07",
-      "name": "Email trong",
-      "status": "FAIL",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN08",
-      "name": "Mat khau trong",
-      "status": "FAIL",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN09",
-      "name": "Email sai dinh dang",
-      "status": "FAIL",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN10",
-      "name": "Tai khoan thu 5 dung",
-      "status": "PASS",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN11",
-      "name": "Tai khoan thu 6 dung",
-      "status": "PASS",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN12",
-      "name": "Sai mat khau lan 2",
-      "status": "FAIL",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN13",
-      "name": "Tai khoan co SDT dung",
-      "status": "PASS",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN14",
-      "name": "Tai khoan cuoi dung",
-      "status": "PASS",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN01",
-      "name": "Dung lan 2",
-      "status": "PASS",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN02",
-      "name": "Tai khoan 2 dung lan 2",
-      "status": "PASS",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN03",
-      "name": "Tai khoan 3 dung lan 2",
-      "status": "PASS",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN04",
-      "name": "Tai khoan SDT dung lan 2",
-      "status": "PASS",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN05",
-      "name": "Sai mat khau lan 2",
-      "status": "FAIL",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN06",
-      "name": "Khong ton tai lan 2",
-      "status": "FAIL",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN07",
-      "name": "Email trong lan 2",
-      "status": "FAIL",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN08",
-      "name": "Mat khau trong lan 2",
-      "status": "FAIL",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN09",
-      "name": "Email sai lan 2",
-      "status": "FAIL",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN10",
-      "name": "Tai khoan 5 dung lan 2",
-      "status": "PASS",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN11",
-      "name": "Tai khoan 6 dung lan 2",
-      "status": "PASS",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN12",
-      "name": "Tai khoan SDT dung lan 2",
-      "status": "PASS",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN13",
-      "name": "Tai khoan cuoi dung lan 2",
-      "status": "PASS",
-      "note": "Dang nhap thanh cong"
-    },
-    {
-      "id": "DN14",
-      "name": "Sai mat khau cuoi",
-      "status": "FAIL",
-      "note": "Dang nhap thanh cong"
+      "ma_suite": "TC07",
+      "ten_suite": "Tìm Kiếm & Lọc Sự Kiện",
+      "tests": [
+        {
+          "stt": 17,
+          "ma_tc": "TC07",
+          "mo_ta": "Tìm kiếm theo từ khóa: input giữ nguyên giá trị và hiển thị kết quả hoặc thông báo trống",
+          "ket_qua": "PASS",
+          "thoi_gian_ms": 335
+        },
+        {
+          "stt": 18,
+          "ma_tc": "TC07",
+          "mo_ta": "Lọc theo danh mục: dropdown giữ nguyên giá trị đã chọn",
+          "ket_qua": "PASS",
+          "thoi_gian_ms": 81
+        },
+        {
+          "stt": 19,
+          "ma_tc": "TC07",
+          "mo_ta": "Nút \"Xóa Lọc\" hiển thị khi đang áp dụng bộ lọc",
+          "ket_qua": "PASS",
+          "thoi_gian_ms": 55
+        }
+      ]
     }
   ]
 }

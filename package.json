@@ -3,7 +3,8 @@
     "test": "mocha \"tests/selenium/**/*.test.js\" --reporter json --reporter-option output=test-results/results.json"
   },
   "dependencies": {
-    "docx": "^9.7.0"
+    "docx": "^9.7.0",
+    "exceljs": "^4.4.0"
   },
   "devDependencies": {
     "axios": "^1.7.9",
