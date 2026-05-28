@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sơ Đồ CI/CD Tự Động Kiểm Thử và Quản Lý Lỗi với Jira</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; padding: 30px 20px; }
+  h1 { text-align: center; color: #1a1a2e; font-size: 20px; font-weight: 700; margin-bottom: 30px; letter-spacing: 0.5px; text-transform: uppercase; }
+
+  .diagram { display: flex; flex-direction: column; gap: 0; max-width: 1100px; margin: 0 auto; }
+
+  /* TOP SECTION */
+  .top-row { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 0; }
+
+  /* DEVELOPER BLOCK */
+  .dev-block { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 110px; padding-top: 10px; }
+  .dev-icon { width: 60px; height: 60px; background: #e8f4fd; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; border: 2px solid #3498db; }
+  .dev-label { font-size: 12px; color: #555; text-align: center; font-weight: 600; }
+  .dev-sublabel { font-size: 10px; color: #888; text-align: center; }
+  .arrow-right { font-size: 24px; color: #3498db; align-self: center; margin-top: 10px; }
+
+  /* GITHUB BLOCK */
+  .github-block { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 100px; padding-top: 10px; }
+  .gh-icon { width: 56px; height: 56px; background: #24292e; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; }
+  .gh-label { font-size: 12px; color: #333; font-weight: 700; text-align: center; }
+  .gh-sublabel { font-size: 10px; color: #888; text-align: center; }
+
+  /* PIPELINE SECTION */
+  .pipeline-section { flex: 1; background: #fff; border: 2px solid #3498db; border-radius: 14px; padding: 16px 18px 14px; }
+  .pipeline-title { font-size: 13px; font-weight: 700; color: #2471a3; margin-bottom: 14px; text-align: center; letter-spacing: 0.3px; }
+  .steps-row { display: flex; align-items: flex-start; gap: 4px; flex-wrap: nowrap; }
+  .step-box { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 120px; flex: 1; }
+  .step-num { font-size: 10px; font-weight: 700; color: #2471a3; }
+  .step-icon-wrap { width: 52px; height: 52px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .step-icon-wrap.blue { background: #ebf5fb; border: 2px solid #3498db; }
+  .step-icon-wrap.green { background: #eafaf1; border: 2px solid #27ae60; }
+  .step-icon-wrap.orange { background: #fef9e7; border: 2px solid #f39c12; }
+  .step-icon-wrap.purple { background: #f5eef8; border: 2px solid #8e44ad; }
+  .step-icon-wrap.red { background: #fdedec; border: 2px solid #e74c3c; }
+  .step-title { font-size: 10px; font-weight: 700; color: #333; text-align: center; line-height: 1.3; }
+  .step-desc { font-size: 9px; color: #777; text-align: center; line-height: 1.4; }
+  .step-arrow { font-size: 18px; color: #aaa; align-self: center; margin-top: 18px; flex-shrink: 0; }
+
+  /* FILE LIST in step 1 */
+  .file-list { display: flex; flex-direction: column; gap: 2px; margin-top: 2px; }
+  .file-item { font-size: 9px; color: #555; background: #f8f9fa; padding: 1px 5px; border-radius: 3px; font-family: monospace; }
+
+  /* MIDDLE ARROW */
+  .mid-arrow { text-align: center; font-size: 28px; color: #3498db; margin: 6px 0; }
+
+  /* BOTTOM SECTION */
+  .bottom-section { display: flex; gap: 16px; align-items: flex-start; }
+
+  /* EVALUATE BOX */
+  .evaluate-box { background: #fff; border: 2px solid #aaa; border-radius: 14px; padding: 14px 16px; min-width: 200px; }
+  .evaluate-title { font-size: 12px; font-weight: 700; color: #555; margin-bottom: 12px; text-align: center; }
+  .eval-row { display: flex; gap: 10px; justify-content: center; }
+  .eval-card { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 10px; border-radius: 10px; min-width: 80px; }
+  .eval-card.pass { background: #eafaf1; border: 2px solid #27ae60; }
+  .eval-card.fail { background: #fdedec; border: 2px solid #e74c3c; }
+  .eval-icon { font-size: 20px; }
+  .eval-label { font-size: 10px; font-weight: 700; }
+  .eval-label.pass { color: #27ae60; }
+  .eval-label.fail { color: #e74c3c; }
+  .eval-desc { font-size: 9px; color: #666; text-align: center; }
+
+  /* RESULT BOX */
+  .result-box { background: #eafaf1; border: 2px solid #27ae60; border-radius: 12px; padding: 10px 14px; display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 10px; }
+  .result-icon { font-size: 20px; }
+  .result-label { font-size: 11px; font-weight: 700; color: #27ae60; text-align: center; }
+
+  /* JIRA SECTION */
+  .jira-section { flex: 1; display: flex; gap: 14px; align-items: flex-start; }
+  .jira-logic-box { background: #fff; border: 2px solid #0052cc; border-radius: 14px; padding: 14px 16px; flex: 1; }
+  .jira-logic-title { font-size: 12px; font-weight: 700; color: #0052cc; margin-bottom: 10px; }
+  .logic-item { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 6px; }
+  .logic-dot { width: 8px; height: 8px; background: #0052cc; border-radius: 50%; margin-top: 3px; flex-shrink: 0; }
+  .logic-text { font-size: 10px; color: #444; line-height: 1.4; }
+  .logic-sub { font-size: 9px; color: #888; margin-left: 14px; margin-top: 2px; }
+
+  .jira-issue-box { background: #1b1b2f; border-radius: 10px; padding: 12px 14px; min-width: 200px; }
+  .jira-issue-id { font-size: 12px; font-weight: 700; color: #4da6ff; margin-bottom: 4px; }
+  .jira-issue-title { font-size: 11px; color: #fff; margin-bottom: 8px; font-weight: 600; }
+  .jira-badge { display: inline-block; background: #2d5be3; color: #fff; font-size: 9px; padding: 2px 7px; border-radius: 4px; margin-bottom: 8px; }
+  .jira-field { display: flex; gap: 6px; align-items: center; margin-bottom: 4px; }
+  .jira-field-label { font-size: 9px; color: #aaa; min-width: 60px; }
+  .jira-field-val { font-size: 9px; color: #fff; font-weight: 600; }
+  .jira-field-val.high { color: #ff6b6b; }
+  .jira-field-val.id { color: #ffd93d; }
+  .jira-desc { font-size: 9px; color: #ccc; margin-top: 6px; line-height: 1.5; }
+  .jira-fail-count { font-size: 9px; color: #aaa; margin-top: 4px; }
+  .jira-attach { display: flex; align-items: center; gap: 5px; margin-top: 8px; background: #2d2d44; padding: 4px 8px; border-radius: 5px; }
+  .jira-attach-icon { font-size: 12px; }
+  .jira-attach-name { font-size: 9px; color: #4da6ff; }
+
+  /* BENEFITS */
+  .benefits-box { background: #fff; border: 2px solid #27ae60; border-radius: 12px; padding: 12px 14px; margin-top: 16px; }
+  .benefits-title { font-size: 12px; font-weight: 700; color: #27ae60; margin-bottom: 8px; }
+  .benefit-row { display: flex; gap: 16px; flex-wrap: wrap; }
+  .benefit-item { display: flex; align-items: center; gap: 6px; }
+  .benefit-check { color: #27ae60; font-size: 14px; }
+  .benefit-text { font-size: 10px; color: #444; }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 14px; justify-content: center; }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .legend-text { font-size: 10px; color: #555; }
+
+  .down-arrow { text-align: center; font-size: 22px; color: #3498db; }
+  .side-arrow { font-size: 20px; color: #e74c3c; align-self: center; }
+</style>
+</head>
+<body>
+<h1>Sơ Đồ CI/CD Tự Động Kiểm Thử và Quản Lý Lỗi với Jira</h1>
+<div class="diagram">
+
+  <!-- TOP ROW: Developer → GitHub → Pipeline -->
+  <div class="top-row">
+    <!-- Developer -->
+    <div class="dev-block">
+      <div class="dev-icon">👨‍💻</div>
+      <div class="dev-label">Developer</div>
+      <div class="dev-sublabel">Push code<br/>(git push / PR)</div>
+    </div>
+    <div class="arrow-right">→</div>
+
+    <!-- GitHub Repo -->
+    <div class="github-block">
+      <div class="gh-icon">🐙</div>
+      <div class="gh-label">GitHub<br/>Repository</div>
+      <div class="gh-sublabel">Quản lý mã nguồn</div>
+      <div class="file-list" style="margin-top:6px;">
+        <div class="file-item">TC01_homepage.js</div>
+        <div class="file-item">TC02_login.js</div>
+        <div class="file-item">TC03_events.js</div>
+        <div class="file-item">TC04_register.js</div>
+        <div class="file-item">... TC07</div>
+      </div>
+    </div>
+    <div class="arrow-right">→</div>
+
+    <!-- Pipeline -->
+    <div class="pipeline-section">
+      <div class="pipeline-title">2. GITHUB ACTIONS – CI/CD PIPELINE</div>
+      <div class="steps-row">
+        <div class="step-box">
+          <div class="step-num">2.1 Trigger</div>
+          <div class="step-icon-wrap blue">⚡</div>
+          <div class="step-title">Kích hoạt</div>
+          <div class="step-desc">Khi có push / pull request vào nhánh main</div>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step-box">
+          <div class="step-num">2.2 Checkout</div>
+          <div class="step-icon-wrap blue">📥</div>
+          <div class="step-title">Checkout Code</div>
+          <div class="step-desc">Lấy mã nguồn mới nhất từ repository</div>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step-box">
+          <div class="step-num">2.3 Setup</div>
+          <div class="step-icon-wrap green">🛠️</div>
+          <div class="step-title">Setup Environment</div>
+          <div class="step-desc">Cài .NET 10, Node.js 18, SQL Server 2022</div>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step-box">
+          <div class="step-num">2.4 Run Tests</div>
+          <div class="step-icon-wrap orange">🧪</div>
+          <div class="step-title">Run Tests</div>
+          <div class="step-desc">Chạy toàn bộ test cases với Mocha + Selenium WebDriver</div>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step-box">
+          <div class="step-num">2.5 Logs</div>
+          <div class="step-icon-wrap purple">📋</div>
+          <div class="step-title">Generate &amp; Store Logs</div>
+          <div class="step-desc">Ghi log, lưu results.json và artifact</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MIDDLE ARROW DOWN -->
+  <div class="mid-arrow">↓</div>
+
+  <!-- BOTTOM SECTION -->
+  <div class="bottom-section">
+
+    <!-- EVALUATE BOX -->
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div class="evaluate-box">
+        <div class="evaluate-title">2.6 Đánh Giá Kết Quả Test</div>
+        <div class="eval-row">
+          <div class="eval-card pass">
+            <div class="eval-icon">✅</div>
+            <div class="eval-label pass">Tất cả PASS</div>
+            <div class="eval-desc">Pipeline thành công (Success)</div>
+          </div>
+          <div class="eval-card fail">
+            <div class="eval-icon">❌</div>
+            <div class="eval-label fail">Có test FAIL</div>
+            <div class="eval-desc">Pipeline thất bại (Failure)</div>
+          </div>
+        </div>
+      </div>
+      <div class="result-box">
+        <div class="result-icon">✅</div>
+        <div class="result-label">Kết thúc pipeline<br/>Lưu kết quả thành công</div>
+      </div>
+    </div>
+
+    <div class="side-arrow">→</div>
+
+    <!-- JIRA SECTION -->
+    <div class="jira-section">
+      <!-- Logic box -->
+      <div class="jira-logic-box">
+        <div class="jira-logic-title">3. Tích Hợp Jira – Quản Lý Lỗi</div>
+        <div class="jira-logic-title" style="font-size:11px; color:#333; margin-bottom:8px;">3.1 Tạo / Cập Nhật Issue</div>
+        <div class="logic-item">
+          <div class="logic-dot"></div>
+          <div>
+            <div class="logic-text">Kiểm tra issue tồn tại theo Testcase ID</div>
+          </div>
+        </div>
+        <div class="logic-item">
+          <div class="logic-dot" style="background:#27ae60;"></div>
+          <div>
+            <div class="logic-text">Nếu chưa có → <b>Tạo mới issue</b></div>
+            <div class="logic-sub">Bug mới với Priority, Label automated-test</div>
+          </div>
+        </div>
+        <div class="logic-item">
+          <div class="logic-dot" style="background:#f39c12;"></div>
+          <div>
+            <div class="logic-text">Nếu đã có → <b>Cập nhật issue</b></div>
+            <div class="logic-sub">Tăng số lần lỗi, cập nhật log, thời gian, trạng thái</div>
+          </div>
+        </div>
+        <div class="logic-item">
+          <div class="logic-dot" style="background:#8e44ad;"></div>
+          <div>
+            <div class="logic-text"><b>Đính kèm file .log</b> vào issue</div>
+            <div class="logic-sub">TC-XX.log chứa đầy đủ error message</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Jira Issue Preview -->
+      <div class="jira-issue-box">
+        <div class="jira-issue-id">3.2 Jira Issue</div>
+        <div class="jira-issue-id" style="font-size:13px; margin-bottom:2px;">ETS-001</div>
+        <div class="jira-issue-title">[Auto-Test FAIL] Đăng nhập thành công với tài khoản admin</div>
+        <span class="jira-badge">To Do</span>
+        <div class="jira-field">
+          <span class="jira-field-label">Priority:</span>
+          <span class="jira-field-val high">⬆ High</span>
+        </div>
+        <div class="jira-field">
+          <span class="jira-field-label">Testcase ID:</span>
+          <span class="jira-field-val id">TC-02</span>
+        </div>
+        <div class="jira-field">
+          <span class="jira-field-label">Label:</span>
+          <span class="jira-field-val" style="color:#4da6ff;">automated-test</span>
+        </div>
+        <div class="jira-desc">Mô tả:<br/>Sau khi nhập thông tin hợp lệ nhưng không đăng nhập được.</div>
+        <div class="jira-fail-count">Lần lỗi: 3 | Cập nhật lần cuối: 28/05/2026 10:30</div>
+        <div class="jira-attach">
+          <span class="jira-attach-icon">📎</span>
+          <span class="jira-attach-name">TC-02.log</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BENEFITS -->
+  <div class="benefits-box">
+    <div class="benefits-title">Lợi Ích</div>
+    <div class="benefit-row">
+      <div class="benefit-item"><span class="benefit-check">✅</span><span class="benefit-text">Tự động kiểm thử mỗi khi có thay đổi mã nguồn</span></div>
+      <div class="benefit-item"><span class="benefit-check">✅</span><span class="benefit-text">Phát hiện lỗi sớm, phản hồi nhanh</span></div>
+      <div class="benefit-item"><span class="benefit-check">✅</span><span class="benefit-text">Quản lý lỗi tập trung, tránh trùng lặp</span></div>
+      <div class="benefit-item"><span class="benefit-check">✅</span><span class="benefit-text">Nâng cao chất lượng phần mềm và hiệu suất làm việc</span></div>
+    </div>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-icon" style="background:#24292e;">🐙</div>
+      <div class="legend-text">GitHub – Quản lý mã nguồn</div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-icon" style="background:#ebf5fb; border:1px solid #3498db;">⚙️</div>
+      <div class="legend-text">GitHub Actions – Tự động hóa CI/CD</div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-icon" style="background:#fef9e7; border:1px solid #f39c12;">🧪</div>
+      <div class="legend-text">Mocha + Selenium – Thực thi test tự động</div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-icon" style="background:#f5eef8; border:1px solid #8e44ad;">📋</div>
+      <div class="legend-text">Logs / Artifacts – Lưu log, báo cáo test</div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-icon" style="background:#ebf5ff; border:1px solid #0052cc;">🔵</div>
+      <div class="legend-text">Jira – Quản lý và theo dõi lỗi</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
