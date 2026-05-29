@@ -1,12 +1,15 @@
 using EventTicketSystem.Web.Data;
 using EventTicketSystem.Web.Models;
+using EventTicketSystem.Web.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventTicketSystem.Web.Pages.Cart;
 
-public class CartConfirmationModel(AppDbContext db) : PageModel
+[Authorize]
+public class CartConfirmationModel(AppDbContext db, EmailService emailService) : PageModel
 {
     public List<Order> Orders { get; set; } = [];
     public decimal TotalPaid { get; set; }
@@ -29,14 +32,17 @@ public class CartConfirmationModel(AppDbContext db) : PageModel
 
         if (!Orders.Any()) return RedirectToPage("/Index");
 
-        // Confirm all pending orders
-        bool changed = false;
+        // Confirm all pending orders and send email for each newly confirmed order
+        var toEmail = new List<Order>();
         foreach (var o in Orders.Where(o => o.Status == OrderStatus.Pending))
         {
             o.Status = OrderStatus.Confirmed;
-            changed  = true;
+            toEmail.Add(o);
         }
-        if (changed) await db.SaveChangesAsync();
+        if (toEmail.Count > 0) await db.SaveChangesAsync();
+
+        foreach (var o in toEmail)
+            await emailService.SendOrderConfirmationAsync(o);
 
         TotalPaid = Orders.Sum(o => o.TotalAmount);
         return Page();

@@ -57,6 +57,9 @@ public class CartIndexModel(
         string? customerPhone,
         string? couponCode)
     {
+        if (!signInManager.IsSignedIn(User))
+            return Redirect("/Account/Login?ReturnUrl=/Cart&reason=checkout");
+
         var cart = cartService.GetCart(HttpContext.Session);
         if (cart.Count == 0)
         {

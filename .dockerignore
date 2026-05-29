@@ -1,0 +1,13 @@
+**/.vs/
+**/.vscode/
+**/bin/
+**/obj/
+**/*.user
+**/*.suo
+**/*.csproj.user
+.git/
+.gitignore
+.github/
+test-results/
+*.md
+src/EventTicketSystem.Web/appsettings.Development.json

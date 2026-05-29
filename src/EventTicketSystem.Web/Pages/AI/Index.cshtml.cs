@@ -18,7 +18,7 @@ public class AIPredictionModel(AppDbContext db, TicketPredictionService predicti
 
     public async Task OnGetAsync()
     {
-        predictionService.EnsureTrained();
+        await predictionService.EnsureTrainedAsync();
         IsTrained = predictionService.IsTrained;
 
         if (predictionService.ModelMetrics is { } m)

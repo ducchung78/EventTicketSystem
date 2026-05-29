@@ -21,20 +21,36 @@ public class ReportsIndexModel(AppDbContext db) : PageModel
     public string EventLabels { get; set; } = "[]";
     public string EventData   { get; set; } = "[]";
 
-    public async Task OnGetAsync()
+    public DateTime? FromDate  { get; set; }
+    public DateTime? ToDate    { get; set; }
+    public string    PeriodLabel { get; set; } = "";
+
+    public async Task OnGetAsync(DateTime? fromDate, DateTime? toDate)
     {
-        var confirmedOrders = db.Orders.Where(o => o.Status == OrderStatus.Confirmed);
+        FromDate = fromDate;
+        ToDate   = toDate;
+
+        // Effective range (UTC dates)
+        var effFrom = (fromDate ?? DateTime.UtcNow.AddDays(-29)).Date;
+        var effTo   = (toDate   ?? DateTime.UtcNow).Date.AddDays(1); // exclusive upper bound
+
+        PeriodLabel = $"{effFrom:dd/MM/yyyy} – {effTo.AddDays(-1):dd/MM/yyyy}";
+
+        var confirmedOrders = db.Orders
+            .Where(o => o.Status == OrderStatus.Confirmed
+                     && o.OrderDate >= effFrom
+                     && o.OrderDate <  effTo);
 
         TongDoanhThu = await confirmedOrders.SumAsync(o => (decimal?)o.TotalAmount) ?? 0m;
         TongDonHang  = await confirmedOrders.CountAsync();
         TongVeBan    = await db.OrderItems
-            .Where(oi => oi.Order.Status == OrderStatus.Confirmed)
+            .Where(oi => oi.Order.Status == OrderStatus.Confirmed
+                      && oi.Order.OrderDate >= effFrom
+                      && oi.Order.OrderDate <  effTo)
             .SumAsync(oi => (int?)oi.Quantity) ?? 0;
 
-        // By day – last 30 days
-        var from30 = DateTime.UtcNow.AddDays(-29).Date;
+        // By day — every date in range
         var byDay = await confirmedOrders
-            .Where(o => o.OrderDate >= from30)
             .GroupBy(o => o.OrderDate.Date)
             .Select(g => new { Date = g.Key, Total = g.Sum(o => o.TotalAmount) })
             .OrderBy(x => x.Date)
@@ -43,22 +59,27 @@ public class ReportsIndexModel(AppDbContext db) : PageModel
         DayLabels = JsonSerializer.Serialize(byDay.Select(x => x.Date.ToString("dd/MM")).ToList());
         DayData   = JsonSerializer.Serialize(byDay.Select(x => (double)x.Total).ToList());
 
-        // By month – current year
-        int year = DateTime.UtcNow.Year;
+        // By month — group across years if range spans multiple years
         var byMonth = await confirmedOrders
-            .Where(o => o.OrderDate.Year == year)
-            .GroupBy(o => o.OrderDate.Month)
-            .Select(g => new { Month = g.Key, Total = g.Sum(o => o.TotalAmount) })
-            .OrderBy(x => x.Month)
+            .GroupBy(o => new { o.OrderDate.Year, o.OrderDate.Month })
+            .Select(g => new { g.Key.Year, g.Key.Month, Total = g.Sum(o => o.TotalAmount) })
+            .OrderBy(x => x.Year).ThenBy(x => x.Month)
             .ToListAsync();
 
         string[] vietMonths = ["T1","T2","T3","T4","T5","T6","T7","T8","T9","T10","T11","T12"];
-        MonthLabels = JsonSerializer.Serialize(byMonth.Select(x => vietMonths[x.Month - 1]).ToList());
-        MonthData   = JsonSerializer.Serialize(byMonth.Select(x => (double)x.Total).ToList());
+        // Show "T5/2026" only when range spans more than one year
+        bool multiYear = byMonth.Select(x => x.Year).Distinct().Count() > 1;
+        MonthLabels = JsonSerializer.Serialize(
+            byMonth.Select(x => multiYear
+                ? $"{vietMonths[x.Month - 1]}/{x.Year}"
+                : vietMonths[x.Month - 1]).ToList());
+        MonthData = JsonSerializer.Serialize(byMonth.Select(x => (double)x.Total).ToList());
 
         // By event – top 8
         var byEvent = await db.OrderItems
-            .Where(oi => oi.Order.Status == OrderStatus.Confirmed)
+            .Where(oi => oi.Order.Status == OrderStatus.Confirmed
+                      && oi.Order.OrderDate >= effFrom
+                      && oi.Order.OrderDate <  effTo)
             .GroupBy(oi => oi.TicketType.Event.Title)
             .Select(g => new { EventTitle = g.Key, Total = g.Sum(oi => oi.UnitPrice * oi.Quantity) })
             .OrderByDescending(x => x.Total)

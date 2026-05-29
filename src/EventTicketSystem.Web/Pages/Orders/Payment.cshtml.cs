@@ -1,12 +1,15 @@
 using EventTicketSystem.Web.Data;
 using EventTicketSystem.Web.Models;
+using EventTicketSystem.Web.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventTicketSystem.Web.Pages.Orders;
 
-public class PaymentModel(AppDbContext db) : PageModel
+[Authorize]
+public class PaymentModel(AppDbContext db, EmailService emailService) : PageModel
 {
     public Order? Order { get; set; }
     public DateTime ExpiresAt { get; set; }
@@ -53,6 +56,7 @@ public class PaymentModel(AppDbContext db) : PageModel
         var order = await db.Orders
             .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.TicketType)
+                    .ThenInclude(tt => tt.Event)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order == null) return NotFound();
@@ -72,6 +76,8 @@ public class PaymentModel(AppDbContext db) : PageModel
 
             order.Status = OrderStatus.Confirmed;
             await db.SaveChangesAsync();
+
+            await emailService.SendOrderConfirmationAsync(order);
         }
 
         return RedirectToPage("Confirmation", new { id });

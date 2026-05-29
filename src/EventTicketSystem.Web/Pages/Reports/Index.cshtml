@@ -2,10 +2,42 @@
 @model EventTicketSystem.Web.Pages.Reports.ReportsIndexModel
 @{
     ViewData["Title"] = "Báo Cáo Doanh Thu";
+    var fromVal = Model.FromDate?.ToString("yyyy-MM-dd") ?? "";
+    var toVal   = Model.ToDate?.ToString("yyyy-MM-dd") ?? "";
+    bool isFiltered = Model.FromDate.HasValue || Model.ToDate.HasValue;
 }
 
 <div class="container-fluid px-2">
     <h1 class="mb-4">Báo Cáo Doanh Thu</h1>
+
+    <!-- Date Filter -->
+    <form method="get" class="card shadow-sm mb-4">
+        <div class="card-body py-3">
+            <div class="row g-3 align-items-end">
+                <div class="col-sm-4">
+                    <label class="form-label fw-semibold mb-1">Từ ngày</label>
+                    <input type="date" name="fromDate" class="form-control" value="@fromVal" />
+                </div>
+                <div class="col-sm-4">
+                    <label class="form-label fw-semibold mb-1">Đến ngày</label>
+                    <input type="date" name="toDate" class="form-control" value="@toVal" />
+                </div>
+                <div class="col-sm-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-success flex-fill">Áp dụng</button>
+                    @if (isFiltered)
+                    {
+                        <a href="/Reports" class="btn btn-outline-secondary flex-fill">Reset</a>
+                    }
+                </div>
+            </div>
+            @if (isFiltered)
+            {
+                <div class="mt-2">
+                    <span class="badge bg-success">Khoảng: @Model.PeriodLabel</span>
+                </div>
+            }
+        </div>
+    </form>
 
     <!-- Summary Cards -->
     <div class="row g-3 mb-4">
@@ -54,7 +86,10 @@
     <div class="row g-4 mb-4">
         <div class="col-md-8">
             <div class="card shadow-sm h-100">
-                <div class="card-header fw-bold">Doanh Thu 30 Ngày Gần Nhất</div>
+                <div class="card-header fw-bold">
+                    Doanh Thu Theo Ngày
+                    <small class="text-muted fw-normal ms-1">(@Model.PeriodLabel)</small>
+                </div>
                 <div class="card-body">
                     <canvas id="chartDay" height="120"></canvas>
                 </div>
@@ -62,7 +97,10 @@
         </div>
         <div class="col-md-4">
             <div class="card shadow-sm h-100">
-                <div class="card-header fw-bold">Doanh Thu Theo Tháng (@DateTime.UtcNow.Year)</div>
+                <div class="card-header fw-bold">
+                    Doanh Thu Theo Tháng
+                    <small class="text-muted fw-normal ms-1">(@Model.PeriodLabel)</small>
+                </div>
                 <div class="card-body">
                     <canvas id="chartMonth" height="200"></canvas>
                 </div>
@@ -74,7 +112,10 @@
     <div class="row g-4">
         <div class="col-md-8">
             <div class="card shadow-sm">
-                <div class="card-header fw-bold">Doanh Thu Theo Sự Kiện (Top 8)</div>
+                <div class="card-header fw-bold">
+                    Doanh Thu Theo Sự Kiện (Top 8)
+                    <small class="text-muted fw-normal ms-1">(@Model.PeriodLabel)</small>
+                </div>
                 <div class="card-body">
                     <canvas id="chartEvent" height="120"></canvas>
                 </div>

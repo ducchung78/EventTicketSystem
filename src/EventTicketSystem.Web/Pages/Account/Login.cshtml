@@ -228,6 +228,17 @@
 
         <div class="tb-card-body">
             <form method="post" id="loginForm">
+                <input type="hidden" asp-for="ReturnUrl" />
+
+                @if (Model.ShowCheckoutMessage)
+                {
+                    <div class="alert alert-warning py-2 mb-3 small d-flex align-items-center gap-2" role="alert"
+                         style="border-radius:8px; font-size:.88rem;">
+                        <span>🎟️</span>
+                        <span>Vui lòng đăng nhập để tiếp tục đặt vé.</span>
+                    </div>
+                }
+
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 mb-3 small"></div>
 
                 <label class="tb-field-label" style="display:block; color:#555; font-size:.85rem; font-weight:600; margin-bottom:.3rem;"

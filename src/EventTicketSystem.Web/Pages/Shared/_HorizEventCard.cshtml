@@ -4,58 +4,61 @@
         .Where(t => t.AvailableQuantity > 0)
         .OrderBy(t => t.Price)
         .FirstOrDefault();
+
+    var catEmoji = Model.Category switch
+    {
+        "Âm nhạc"   => "🎵",
+        "Nghệ thuật" => "🎭",
+        "Thể thao"   => "🏆",
+        "Hội thảo"   => "💡",
+        "Tham quan"  => "🌿",
+        _            => "🎟"
+    };
+
+    var dateStr = Model.StartDate.ToLocalTime().ToString("dd 'tháng' MM, yyyy");
 }
-<div class="event-card position-relative"
-     style="width:260px; min-width:260px; border-radius:12px; overflow:hidden;
-            background:rgba(20,12,52,.72); border:1px solid rgba(124,77,255,.22);
-            box-shadow:0 2px 14px rgba(0,0,0,.35);">
-    <div class="position-relative" style="padding-top:56.25%;">
+
+<div class="tc-card">
+    <div class="tc-card-img-wrap">
         @if (!string.IsNullOrEmpty(Model.ImageUrl))
         {
-            <img src="@Model.ImageUrl" alt="@Model.Title"
-                 class="position-absolute top-0 start-0 w-100 h-100"
-                 style="object-fit:cover;" />
+            <img class="tc-card-img" src="@Model.ImageUrl" alt="@Model.Title" loading="lazy" />
         }
         else
         {
-            <div class="position-absolute top-0 start-0 w-100 h-100"
-                 style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);"></div>
-            <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
-                <span style="font-size:2.5rem; opacity:.2;">🎟</span>
+            <div class="tc-card-img-placeholder">
+                <span style="font-size:2.5rem; opacity:.22;">🎟</span>
             </div>
         }
-        <div class="position-absolute top-0 start-0 w-100 h-100"
-             style="background:linear-gradient(transparent 35%, rgba(0,0,0,.6) 100%);"></div>
-        <div class="position-absolute top-0 start-0 p-2" style="z-index:2;">
-            <span class="badge bg-warning text-dark" style="font-size:.65rem;">@Model.Category</span>
-        </div>
-        <div class="position-absolute bottom-0 end-0 p-2" style="z-index:2;">
-            @if (cheapest != null)
-            {
-                <span class="badge rounded-pill fw-semibold"
-                      style="background:rgba(233,30,99,.9); font-size:.7rem; white-space:nowrap;">
-                    Từ @cheapest.Price.ToString("N0")đ
-                </span>
-            }
-            else
-            {
-                <span class="badge bg-secondary rounded-pill" style="font-size:.7rem;">Hết Vé</span>
-            }
+
+        @if (!string.IsNullOrEmpty(Model.Category))
+        {
+            <div class="tc-card-badge">
+                <span class="tc-badge-icon">@catEmoji</span>
+                <span class="tc-badge-name">@Model.Category</span>
+            </div>
+        }
+    </div>
+
+    <div class="tc-card-body">
+        <h3 class="tc-card-title">@Model.Title</h3>
+
+        @if (cheapest != null)
+        {
+            <div class="tc-card-price">
+                <span class="tc-price-prefix">Từ </span>@cheapest.Price.ToString("N0")đ
+            </div>
+        }
+        else
+        {
+            <div class="tc-card-price" style="color:#666;">Hết vé</div>
+        }
+
+        <div class="tc-card-date">
+            <span class="tc-date-icon">📅</span>
+            <span>@dateStr</span>
         </div>
     </div>
-    <div class="px-3 py-2" style="padding-bottom:10px !important;">
-        <h6 class="fw-bold mb-1 lh-sm"
-            style="color:#ede0ff; font-size:.875rem;
-                   display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
-                   overflow:hidden; min-height:2.4em;">@Model.Title</h6>
-        <div class="small mb-1" style="color:#69f0ae; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-            <span style="font-size:.95rem; vertical-align:middle;">📅</span>
-            <span style="vertical-align:middle;"> @Model.StartDate.ToLocalTime().ToString("dd/MM/yyyy · HH:mm")</span>
-        </div>
-        <div class="small" style="color:rgba(210,195,255,.6); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-            <span style="font-size:.95rem; vertical-align:middle;">📍</span>
-            <span style="vertical-align:middle;"> @Model.Venue</span>
-        </div>
-    </div>
+
     <a href="/Events/Details/@Model.Id" class="stretched-link" aria-label="@Model.Title"></a>
 </div>

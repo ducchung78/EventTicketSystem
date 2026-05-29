@@ -61,200 +61,206 @@
         color: #fff !important;
     }
 
-    /* ===== HERO CAROUSEL ===== */
-    .hero-wrap {
-        position: relative;
-        background: #111;
-        overflow: hidden;
-    }
-    .hero-slide { display: none; padding: 14px 20px 10px; }
-    .hero-slide.active { display: block; animation: hFadeIn .38s ease; }
-    @@keyframes hFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    /* ===== HERO 2-PANEL ===== */
+    .h2-wrap { padding: 14px 16px 0; }
+    .h2-slide { display: none; }
+    .h2-slide.active { display: block; animation: h2FadeIn .35s ease; }
+    @@keyframes h2FadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    .hero-card {
-        position: relative;
-        border-radius: 12px;
-        overflow: hidden;
-        aspect-ratio: 16 / 9;
-        cursor: pointer;
-        background: #1a1a2e;
+    .h2-panels { display: flex; gap: 12px; height: 420px; }
+
+    .h2-panel {
+        flex: 1; border-radius: 16px; overflow: hidden;
+        position: relative; background: #1a1a1a; cursor: pointer;
     }
-    .hero-card img {
+
+    .h2-img {
         width: 100%; height: 100%; object-fit: cover; display: block;
-        transition: transform .38s;
+        transition: transform .4s ease;
     }
-    .hero-card:hover img { transform: scale(1.04); }
-    .hero-card-overlay {
-        position: absolute; inset: 0;
-        background: linear-gradient(transparent 30%, rgba(0,0,0,.32) 58%, rgba(0,0,0,.78) 100%);
-    }
-    .hero-card-body {
-        position: absolute; bottom: 0; left: 0; right: 0;
-        padding: 10px 14px 14px;
-    }
-    .hero-card-badges { margin-bottom: 5px; }
-    .hero-card-title {
-        color: #fff; font-weight: 700; font-size: .95rem; line-height: 1.35;
-        text-shadow: 0 1px 6px rgba(0,0,0,.8);
-        margin-bottom: 5px;
-        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-    }
-    .hero-card-meta { color: #69f0ae; font-size: .76rem; margin-bottom: 8px; }
-    .hero-card-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .btn-hero-detail {
-        display: inline-block;
-        background: #00c853;
-        color: #fff !important;
-        border: none;
-        border-radius: 18px;
-        padding: 4px 16px;
-        font-size: .79rem;
-        font-weight: 700;
-        text-decoration: none;
-        transition: background .18s;
-        flex-shrink: 0;
-    }
-    .btn-hero-detail:hover { background: #00e676; color: #fff !important; }
-    .hero-card-price {
-        color: #fff; font-size: .76rem; font-weight: 600;
-        background: rgba(233,30,99,.85); border-radius: 10px;
-        padding: 2px 8px; white-space: nowrap;
+    .h2-panel:hover .h2-img { transform: scale(1.03); }
+
+    .h2-overlay {
+        position: absolute; inset: 0; pointer-events: none;
+        background: linear-gradient(transparent 38%, rgba(0,0,0,.55) 100%);
     }
 
-    /* Nav arrows */
-    .hero-arrow {
+    .h2-detail-btn {
+        position: absolute; bottom: 16px; left: 16px; z-index: 2;
+        background: rgba(255,255,255,.95); color: #111 !important;
+        font-weight: 600; border-radius: 8px; padding: 10px 20px;
+        text-decoration: none; font-size: .88rem;
+        transition: background .18s; display: inline-block;
+    }
+    .h2-detail-btn:hover { background: #fff; color: #000 !important; }
+
+    .h2-arrow {
         position: absolute; top: 50%; transform: translateY(-50%);
-        background: rgba(0,0,0,.5); color: #fff;
-        border: none; width: 36px; height: 36px; border-radius: 50%;
-        font-size: 1.15rem; cursor: pointer; z-index: 10;
+        background: rgba(0,0,0,.5); color: #fff; border: none;
+        width: 38px; height: 38px; border-radius: 50%;
+        font-size: 1.5rem; cursor: pointer; z-index: 3;
         display: flex; align-items: center; justify-content: center;
-        transition: background .18s;
-        backdrop-filter: blur(4px);
-        line-height: 1;
+        transition: background .18s; backdrop-filter: blur(4px);
+        line-height: 1; padding: 0;
     }
-    .hero-arrow:hover { background: rgba(0,200,83,.75); }
-    .hero-arrow-prev { left: 10px; }
-    .hero-arrow-next { right: 10px; }
+    .h2-arrow:hover { background: rgba(0,0,0,.78); }
+    .h2-arrow-prev { left: 12px; }
+    .h2-arrow-next { right: 12px; }
 
-    /* Dots */
-    .hero-dots {
-        display: flex; justify-content: center; gap: 6px;
-        padding: 7px 0 10px;
-        background: #111;
+    .h2-dots {
+        display: flex; justify-content: center; gap: 7px;
+        padding: 9px 0 13px; background: #111111;
     }
-    .hero-dot {
+    .h2-dot {
         width: 8px; height: 8px; border-radius: 50%;
-        background: rgba(255,255,255,.3); cursor: pointer;
+        background: rgba(255,255,255,.4); cursor: pointer;
         border: none; padding: 0;
         transition: background .18s, transform .18s;
     }
-    .hero-dot.active { background: #00c853; transform: scale(1.35); }
+    .h2-dot.active { background: #fff; transform: scale(1.35); }
+
+    /* ===== TRENDING SECTION ===== */
+    .trend-scroll-wrap { position: relative; }
+    .trend-list {
+        display: flex; gap: 0; overflow-x: auto; scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    .trend-list::-webkit-scrollbar { display: none; }
+
+    .trend-card {
+        position: relative; flex-shrink: 0;
+        width: 280px; height: 200px;
+        border-radius: 12px; overflow: hidden;
+        margin-right: 12px; cursor: pointer;
+        background: #1a1a1a; text-decoration: none;
+        transition: transform .2s;
+        display: block;
+    }
+    .trend-card:last-child { margin-right: 0; }
+    .trend-card:hover { transform: scale(1.02); }
+
+    .trend-card-img {
+        width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .trend-card-img-ph {
+        width: 100%; height: 100%;
+        background: linear-gradient(135deg, #121a12, #0f1a0f);
+        display: flex; align-items: center; justify-content: center;
+    }
+
+    .trend-rank {
+        position: absolute; bottom: -8px; left: 10px; z-index: 2;
+        font-size: 120px; font-weight: 900;
+        color: #00e676; opacity: .85; line-height: 1;
+        pointer-events: none; user-select: none;
+        text-shadow: 2px 3px 10px rgba(0,0,0,.65), -1px -1px 5px rgba(0,0,0,.4);
+    }
+
+    .trend-scroll-btn {
+        position: absolute; right: -16px; top: 50%; transform: translateY(-50%);
+        background: rgba(0,0,0,.6); color: #fff; border: none;
+        width: 36px; height: 36px; border-radius: 50%;
+        font-size: 1.3rem; cursor: pointer; z-index: 5;
+        display: flex; align-items: center; justify-content: center;
+        backdrop-filter: blur(4px); transition: background .18s;
+    }
+    .trend-scroll-btn:hover { background: rgba(0,200,83,.75); }
 </style>
 
-@* ===== HERO 2-UP CAROUSEL ===== *@
+@* ===== HERO 2-PANEL ===== *@
 @if (hotList.Any())
 {
-    <div class="mx-n4 mt-0">
-        <div class="hero-wrap" id="heroWrap">
+    <div class="mx-n4 mt-0" style="background:#111111;">
+        <div class="h2-wrap" id="h2Wrap">
             @for (int si = 0; si < slideCount; si++)
             {
                 var i1 = si * 2;
                 var i2 = si * 2 + 1;
                 var ev1 = hotList[i1];
                 var ev2 = i2 < hotList.Count ? hotList[i2] : null;
-                var colClass = ev2 != null ? "col-6" : "col-12";
 
-                <div class="hero-slide @(si == 0 ? "active" : "")">
-                    <div class="row g-3">
-                        @* Card 1 *@
-                        @{
-                            var cheap1 = ev1.TicketTypes.Where(t => t.AvailableQuantity > 0).OrderBy(t => t.Price).FirstOrDefault();
-                        }
-                        <div class="@colClass">
-                            <div class="hero-card">
-                                @if (!string.IsNullOrEmpty(ev1.ImageUrl))
-                                {
-                                    <img src="@ev1.ImageUrl" alt="@ev1.Title" />
-                                }
-                                <div class="hero-card-overlay"></div>
-                                <div class="hero-card-body">
-                                    <div class="hero-card-badges d-flex gap-1 flex-wrap">
-                                        @if (ev1.IsHot)
-                                        {
-                                            <span class="badge fw-bold" style="background:#e91e63; font-size:.65rem;">🔥 HOT</span>
-                                        }
-                                        <span class="badge bg-warning text-dark" style="font-size:.63rem;">@ev1.Category</span>
-                                    </div>
-                                    <div class="hero-card-title">@ev1.Title</div>
-                                    <div class="hero-card-meta">
-                                        📅 @ev1.StartDate.ToLocalTime().ToString("dd/MM/yyyy") &nbsp;📍 @ev1.Venue
-                                    </div>
-                                    <div class="hero-card-footer">
-                                        <a href="/Events/Details/@ev1.Id" class="btn-hero-detail" data-i18n="view-detail">Xem chi tiết</a>
-                                        @if (cheap1 != null)
-                                        {
-                                            <span class="hero-card-price">Từ @cheap1.Price.ToString("N0")đ</span>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
+                <div class="h2-slide @(si == 0 ? "active" : "")">
+                    <div class="h2-panels">
+                        @* LEFT PANEL *@
+                        <div class="h2-panel">
+                            @if (!string.IsNullOrEmpty(ev1.ImageUrl))
+                            {
+                                <img class="h2-img" src="@ev1.ImageUrl" alt="@ev1.Title" loading="lazy" />
+                            }
+                            <div class="h2-overlay"></div>
+                            @if (slideCount > 1)
+                            {
+                                <button class="h2-arrow h2-arrow-prev" onclick="h2Move(-1)" aria-label="Trước">&#8249;</button>
+                            }
+                            <a href="/Events/Details/@ev1.Id" class="h2-detail-btn" data-i18n="view-detail">Xem chi tiết</a>
                         </div>
 
-                        @* Card 2 (if exists) *@
+                        @* RIGHT PANEL *@
                         @if (ev2 != null)
                         {
-                            var cheap2 = ev2.TicketTypes.Where(t => t.AvailableQuantity > 0).OrderBy(t => t.Price).FirstOrDefault();
-                            <div class="col-6">
-                                <div class="hero-card">
-                                    @if (!string.IsNullOrEmpty(ev2.ImageUrl))
-                                    {
-                                        <img src="@ev2.ImageUrl" alt="@ev2.Title" />
-                                    }
-                                    <div class="hero-card-overlay"></div>
-                                    <div class="hero-card-body">
-                                        <div class="hero-card-badges d-flex gap-1 flex-wrap">
-                                            @if (ev2.IsHot)
-                                            {
-                                                <span class="badge fw-bold" style="background:#e91e63; font-size:.65rem;">🔥 HOT</span>
-                                            }
-                                            <span class="badge bg-warning text-dark" style="font-size:.63rem;">@ev2.Category</span>
-                                        </div>
-                                        <div class="hero-card-title">@ev2.Title</div>
-                                        <div class="hero-card-meta">
-                                            📅 @ev2.StartDate.ToLocalTime().ToString("dd/MM/yyyy") &nbsp;📍 @ev2.Venue
-                                        </div>
-                                        <div class="hero-card-footer">
-                                            <a href="/Events/Details/@ev2.Id" class="btn-hero-detail" data-i18n="view-detail">Xem chi tiết</a>
-                                            @if (cheap2 != null)
-                                            {
-                                                <span class="hero-card-price">Từ @cheap2.Price.ToString("N0")đ</span>
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
+                            <div class="h2-panel">
+                                @if (!string.IsNullOrEmpty(ev2.ImageUrl))
+                                {
+                                    <img class="h2-img" src="@ev2.ImageUrl" alt="@ev2.Title" loading="lazy" />
+                                }
+                                <div class="h2-overlay"></div>
+                                @if (slideCount > 1)
+                                {
+                                    <button class="h2-arrow h2-arrow-next" onclick="h2Move(1)" aria-label="Sau">&#8250;</button>
+                                }
+                                <a href="/Events/Details/@ev2.Id" class="h2-detail-btn" data-i18n="view-detail">Xem chi tiết</a>
                             </div>
                         }
                     </div>
                 </div>
             }
-
-            @if (slideCount > 1)
-            {
-                <button class="hero-arrow hero-arrow-prev" onclick="heroMove(-1)" aria-label="Trước">&#8249;</button>
-                <button class="hero-arrow hero-arrow-next" onclick="heroMove(1)" aria-label="Sau">&#8250;</button>
-            }
         </div>
 
         @if (slideCount > 1)
         {
-            <div class="hero-dots" id="heroDots">
+            <div class="h2-dots" id="h2Dots">
                 @for (int di = 0; di < slideCount; di++)
                 {
-                    <button class="hero-dot @(di == 0 ? "active" : "")"
-                            onclick="heroGoto(@di)" aria-label="Slide @(di + 1)"></button>
+                    <button class="h2-dot @(di == 0 ? "active" : "")"
+                            onclick="h2Goto(@di)" aria-label="Slide @(di + 1)"></button>
                 }
             </div>
         }
+    </div>
+}
+
+@* ===== TRENDING: SỰ KIỆN XU HƯỚNG ===== *@
+@if (Model.TrendingEvents.Any())
+{
+    <div class="mx-n4" style="background:#111111; padding: 4px 16px 20px;">
+        <div class="d-flex align-items-center mb-3 pt-3">
+            <h2 style="color:#fff; font-size:22px; font-weight:700; margin:0;">🔥 Sự kiện xu hướng</h2>
+        </div>
+        <div class="trend-scroll-wrap">
+            <div class="trend-list" id="trendList">
+                @for (int ti = 0; ti < Model.TrendingEvents.Count; ti++)
+                {
+                    var tevt = Model.TrendingEvents[ti];
+                    <a href="/Events/Details/@tevt.Id" class="trend-card">
+                        @if (!string.IsNullOrEmpty(tevt.ImageUrl))
+                        {
+                            <img class="trend-card-img" src="@tevt.ImageUrl" alt="@tevt.Title" loading="lazy" />
+                        }
+                        else
+                        {
+                            <div class="trend-card-img-ph">
+                                <span style="font-size:2rem; opacity:.2;">🎟</span>
+                            </div>
+                        }
+                        <div class="h2-overlay"></div>
+                        <span class="trend-rank">@(ti + 1)</span>
+                    </a>
+                }
+            </div>
+            <button class="trend-scroll-btn"
+                    onclick="document.getElementById('trendList').scrollBy({left:300,behavior:'smooth'})"
+                    aria-label="Cuộn phải">&#8250;</button>
+        </div>
     </div>
 }
 
@@ -597,8 +603,8 @@
 @section Scripts {
 <script>
 (function () {
-    var slides = document.querySelectorAll('.hero-slide');
-    var dots   = document.querySelectorAll('.hero-dot');
+    var slides = document.querySelectorAll('.h2-slide');
+    var dots   = document.querySelectorAll('.h2-dot');
     if (!slides.length) return;
 
     var current = 0;
@@ -612,13 +618,13 @@
         if (dots.length) dots[current].classList.add('active');
     }
 
-    function start() { timer = setInterval(function () { show(current + 1); }, 4000); }
+    function start() { timer = setInterval(function () { show(current + 1); }, 4500); }
     function stop()  { clearInterval(timer); }
 
-    window.heroMove = function (d) { stop(); show(current + d); start(); };
-    window.heroGoto = function (i) { stop(); show(i); start(); };
+    window.h2Move = function (d) { stop(); show(current + d); start(); };
+    window.h2Goto = function (i) { stop(); show(i); start(); };
 
-    var wrap = document.getElementById('heroWrap');
+    var wrap = document.getElementById('h2Wrap');
     if (wrap) {
         wrap.addEventListener('mouseenter', stop);
         wrap.addEventListener('mouseleave', start);

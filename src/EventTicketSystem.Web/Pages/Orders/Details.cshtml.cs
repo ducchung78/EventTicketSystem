@@ -1,11 +1,13 @@
 using EventTicketSystem.Web.Data;
 using EventTicketSystem.Web.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventTicketSystem.Web.Pages.Orders;
 
+[Authorize]
 public class OrderDetailsModel(AppDbContext db) : PageModel
 {
     public Order? Order { get; set; }

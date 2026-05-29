@@ -15,6 +15,11 @@ test-results/
 # Environment (chứa secrets, không được commit)
 .env
 
+# App settings chứa secrets (dùng appsettings.example.json làm mẫu)
+appsettings.json
+appsettings.Development.json
+appsettings.Production.json
+
 # Build output
 publish/
 dist/

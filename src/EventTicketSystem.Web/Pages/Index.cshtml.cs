@@ -16,6 +16,7 @@ public class IndexModel(AppDbContext db) : PageModel
     public List<Event> WorkshopEvents { get; set; } = [];
     public List<Event> TourEvents { get; set; } = [];
     public List<Event> SportsEvents { get; set; } = [];
+    public List<Event> TrendingEvents { get; set; } = [];
     public List<VenueInfo> FeaturedVenues { get; set; } = [];
 
     public record VenueInfo(string Name, int EventCount, string? ImageUrl);
@@ -63,6 +64,27 @@ public class IndexModel(AppDbContext db) : PageModel
         WorkshopEvents = await ByCategoryAsync("Hội thảo", now);
         TourEvents     = await ByCategoryAsync("Tham quan", now);
         SportsEvents   = await ByCategoryAsync("Thể thao", now);
+
+        // Trending: xếp hạng theo số vé đã bán (SoldQuantity trên TicketType)
+        var trendingIds = await db.TicketTypes
+            .GroupBy(t => t.EventId)
+            .OrderByDescending(g => g.Sum(t => t.SoldQuantity))
+            .Take(8)
+            .Select(g => g.Key)
+            .ToListAsync();
+
+        if (trendingIds.Count > 0)
+        {
+            var eventsById = await db.Events
+                .Include(e => e.TicketTypes)
+                .Where(e => trendingIds.Contains(e.Id) && e.IsActive)
+                .ToDictionaryAsync(e => e.Id);
+
+            TrendingEvents = trendingIds
+                .Where(id => eventsById.ContainsKey(id))
+                .Select(id => eventsById[id])
+                .ToList();
+        }
 
         var rawVenues = await db.Events
             .Where(e => e.IsActive && e.StartDate >= now)
