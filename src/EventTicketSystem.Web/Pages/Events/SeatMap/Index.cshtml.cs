@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace EventTicketSystem.Web.Pages.Events.SeatMap;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin,SuperAdmin")]
 public class SeatMapIndexModel(AppDbContext db) : PageModel
 {
     public Event?                           Event        { get; set; }

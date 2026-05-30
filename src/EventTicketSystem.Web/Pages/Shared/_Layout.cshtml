@@ -131,6 +131,11 @@
                                             </a>
                                         </li>
                                         <li><a class="dropdown-item nav-dd-item" href="/Admin/RefundRequests">🔄 Hoàn Vé</a></li>
+                                        @if (User.IsInRole("SuperAdmin"))
+                                        {
+                                            <li><hr class="dropdown-divider nav-dd-divider" /></li>
+                                            <li><a class="dropdown-item nav-dd-item" href="/Admin/Staff">👥 Nhân Viên</a></li>
+                                        }
                                     }
                                     else
                                     {

@@ -136,7 +136,7 @@ public class ChatController(
 
     // ── GET /api/chat/test — debug endpoint (Admin only) ──────────────────────
     [HttpGet("test")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "SuperAdmin")]
     public async Task<IActionResult> Test(CancellationToken ct)
     {
         var keyConfigured = groq.IsConfigured;

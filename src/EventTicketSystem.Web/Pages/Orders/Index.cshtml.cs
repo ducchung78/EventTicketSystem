@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventTicketSystem.Web.Pages.Orders;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin,SuperAdmin")]
 public class OrdersIndexModel(AppDbContext db) : PageModel
 {
     public List<Order> Orders { get; set; } = [];

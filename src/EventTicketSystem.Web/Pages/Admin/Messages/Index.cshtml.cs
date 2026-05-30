@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventTicketSystem.Web.Pages.Admin.Messages;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin,SuperAdmin")]
 public class MessagesIndexModel(AppDbContext db) : PageModel
 {
     public List<ContactMessage> Messages { get; set; } = [];

@@ -1,0 +1,195 @@
+@page
+@model EventTicketSystem.Web.Pages.Admin.Staff.StaffIndexModel
+@{
+    ViewData["Title"] = "Quản Lý Nhân Viên";
+}
+
+<style>
+    .sf-wrap { padding: 2rem 0 3rem; }
+    .sf-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:1.5rem; }
+    .sf-title  { font-size:1.45rem; font-weight:800; color:#ede0ff; }
+
+    .sf-search-row { display:flex; gap:10px; margin-bottom:1.25rem; }
+    .sf-search-input {
+        flex:1; background:rgba(255,255,255,.05); border:1.5px solid rgba(124,77,255,.25);
+        border-radius:10px; color:#ede0ff; font-size:.9rem; padding:8px 14px;
+    }
+    .sf-search-input:focus { outline:none; border-color:rgba(124,77,255,.55); }
+    .sf-search-btn { background:rgba(124,77,255,.18); border:1px solid rgba(124,77,255,.35); border-radius:10px; color:#b388ff; font-size:.88rem; font-weight:600; padding:8px 18px; cursor:pointer; }
+
+    .sf-card { background:rgba(20,10,52,.82); border:1px solid rgba(124,77,255,.22); border-radius:14px; overflow:hidden; margin-bottom:1rem; }
+    .sf-card-hdr { padding:12px 18px; border-bottom:1px solid rgba(124,77,255,.15); font-size:.88rem; font-weight:700; color:rgba(124,77,255,.8); text-transform:uppercase; letter-spacing:.06em; display:flex; justify-content:space-between; align-items:center; }
+
+    table.sf-table { width:100%; border-collapse:collapse; }
+    table.sf-table thead th { padding:9px 14px; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:rgba(124,77,255,.6); border-bottom:1px solid rgba(124,77,255,.15); }
+    table.sf-table tbody td { padding:11px 14px; font-size:.84rem; color:rgba(210,195,255,.75); border-bottom:1px solid rgba(124,77,255,.07); vertical-align:middle; }
+    table.sf-table tbody tr:last-child td { border-bottom:none; }
+
+    .badge-super { background:rgba(229,57,53,.12); border:1px solid rgba(229,57,53,.3); color:#ef9a9a; display:inline-block; padding:2px 10px; border-radius:20px; font-size:.7rem; font-weight:700; }
+    .badge-admin { background:rgba(255,167,38,.12); border:1px solid rgba(255,167,38,.3); color:#ffa726; display:inline-block; padding:2px 10px; border-radius:20px; font-size:.7rem; font-weight:700; }
+    .badge-lock  { background:rgba(229,57,53,.1); border:1px solid rgba(229,57,53,.2); color:#ef9a9a; display:inline-block; padding:2px 10px; border-radius:20px; font-size:.7rem; font-weight:700; }
+    .badge-ok    { background:rgba(0,200,83,.1); border:1px solid rgba(0,200,83,.2); color:#69f0ae; display:inline-block; padding:2px 10px; border-radius:20px; font-size:.7rem; font-weight:700; }
+
+    .btn-sm-lock   { background:rgba(255,167,38,.1); border:1px solid rgba(255,167,38,.25); color:#ffa726; }
+    .btn-sm-unlock { background:rgba(0,200,83,.1); border:1px solid rgba(0,200,83,.25); color:#69f0ae; }
+    .btn-sm-view   { background:rgba(124,77,255,.1); border:1px solid rgba(124,77,255,.25); color:#b388ff; }
+    .sf-btn { padding:5px 13px; border-radius:7px; font-size:.78rem; font-weight:600; cursor:pointer; transition:opacity .15s; text-decoration:none; display:inline-block; }
+    .sf-btn:hover { opacity:.8; }
+
+    .btn-add { background:linear-gradient(90deg,#7c4dff,#448aff); border:none; border-radius:10px; color:#fff; font-weight:700; font-size:.88rem; padding:9px 20px; cursor:pointer; box-shadow:0 3px 14px rgba(124,77,255,.35); }
+
+    .alert-ok  { background:rgba(0,200,83,.1); border:1px solid rgba(0,200,83,.25); border-radius:10px; padding:10px 16px; color:#69f0ae; font-size:.88rem; margin-bottom:1rem; }
+    .alert-err { background:rgba(229,57,53,.1); border:1px solid rgba(229,57,53,.25); border-radius:10px; padding:10px 16px; color:#ef9a9a; font-size:.88rem; margin-bottom:1rem; }
+    .alert-pwd { background:rgba(124,77,255,.1); border:1px solid rgba(124,77,255,.25); border-radius:10px; padding:10px 16px; color:#b388ff; font-size:.88rem; margin-bottom:1rem; }
+
+    /* Modal */
+    .sf-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:1050; align-items:center; justify-content:center; }
+    .sf-modal-overlay.open { display:flex; }
+    .sf-modal { background:#1a0a40; border:1px solid rgba(124,77,255,.3); border-radius:16px; padding:1.75rem; width:100%; max-width:480px; }
+    .sf-modal-title { font-size:1.05rem; font-weight:700; color:#ede0ff; margin-bottom:1.25rem; }
+    .sf-label { font-size:.8rem; font-weight:600; color:rgba(210,195,255,.6); margin-bottom:.3rem; display:block; }
+    .sf-input, .sf-select {
+        width:100%; background:rgba(255,255,255,.06); border:1.5px solid rgba(124,77,255,.25);
+        border-radius:9px; color:#ede0ff; padding:8px 12px; font-size:.9rem; margin-bottom:.85rem; box-sizing:border-box;
+    }
+    .sf-input:focus, .sf-select:focus { outline:none; border-color:rgba(124,77,255,.55); }
+    .sf-select option { background:#1a0a40; }
+    .sf-modal-btns { display:flex; gap:8px; margin-top:.5rem; }
+    .sf-modal-cancel { flex:1; padding:9px; border-radius:9px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); color:rgba(210,195,255,.6); font-size:.88rem; font-weight:600; cursor:pointer; }
+    .sf-modal-submit { flex:1; padding:9px; border-radius:9px; background:linear-gradient(90deg,#7c4dff,#448aff); border:none; color:#fff; font-size:.88rem; font-weight:700; cursor:pointer; }
+</style>
+
+<div class="container-xl px-3 px-md-4 sf-wrap">
+
+    <div class="sf-header">
+        <div class="sf-title">👥 Quản Lý Nhân Viên</div>
+        <button class="btn-add" onclick="openAddModal()">+ Thêm Nhân Viên</button>
+    </div>
+
+    @if (TempData["Success"] is string ok)  { <div class="alert-ok">✅ @ok</div> }
+    @if (TempData["Error"]   is string err) { <div class="alert-err">⚠️ @err</div> }
+    @if (TempData["CreatedPwd"] is string pwd)
+    {
+        <div class="alert-pwd">🔑 Mật khẩu tạm: <strong style="letter-spacing:2px;">@pwd</strong> (đã gửi email cho nhân viên mới)</div>
+    }
+
+    <form method="get" class="sf-search-row">
+        <input name="search" class="sf-search-input" value="@Model.Search" placeholder="Tìm theo tên hoặc email..." />
+        <button type="submit" class="sf-search-btn">🔍 Tìm</button>
+        @if (!string.IsNullOrEmpty(Model.Search))
+        {
+            <a href="/Admin/Staff" class="sf-btn btn-sm-view">✕ Xóa lọc</a>
+        }
+    </form>
+
+    <div class="sf-card">
+        <div class="sf-card-hdr">
+            Danh sách (@Model.Staff.Count nhân viên)
+        </div>
+        @if (!Model.Staff.Any())
+        {
+            <div style="text-align:center;padding:2.5rem;color:rgba(210,195,255,.3);">Không có kết quả.</div>
+        }
+        else
+        {
+            <div style="overflow-x:auto;">
+                <table class="sf-table">
+                    <thead>
+                        <tr>
+                            <th>Tên</th>
+                            <th>Email</th>
+                            <th>Vai Trò</th>
+                            <th>Trạng Thái</th>
+                            <th>Ngày Tạo</th>
+                            <th style="text-align:center;">Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in Model.Staff)
+                        {
+                            <tr>
+                                <td style="color:#ede0ff;font-weight:600;">
+                                    @s.HoTen @if (s.IsSelf) { <span style="font-size:.72rem;color:rgba(210,195,255,.4);">(bạn)</span> }
+                                </td>
+                                <td style="font-size:.82rem;">@s.Email</td>
+                                <td>
+                                    @if (s.IsSuperAdmin)
+                                    {
+                                        <span class="badge-super">SuperAdmin</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-admin">Admin</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (s.IsLocked)
+                                    {
+                                        <span class="badge-lock">🔒 Khóa</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-ok">✅ Hoạt động</span>
+                                    }
+                                </td>
+                                <td style="font-size:.8rem;color:rgba(210,195,255,.4);">@s.NgayTao.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                <td style="text-align:center;">
+                                    <div class="d-flex gap-1 justify-content-center flex-wrap">
+                                        <a href="/Customers/Details/@s.Id" class="sf-btn btn-sm-view">Xem</a>
+                                        @if (!s.IsSelf)
+                                        {
+                                            <form method="post" asp-page-handler="ToggleLock" style="display:inline;">
+                                                <input type="hidden" name="id" value="@s.Id" />
+                                                <input type="hidden" name="action" value="@(s.IsLocked ? "unlock" : "lock")" />
+                                                <button type="submit" class="sf-btn @(s.IsLocked ? "btn-sm-unlock" : "btn-sm-lock")">
+                                                    @(s.IsLocked ? "🔓 Mở" : "🔒 Khóa")
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@* Add staff modal *@
+<div class="sf-modal-overlay" id="addModal" onclick="if(event.target===this)closeAddModal()">
+    <div class="sf-modal">
+        <div class="sf-modal-title">➕ Thêm Nhân Viên Mới</div>
+        <form method="post" asp-page-handler="Create">
+            <label class="sf-label">Họ <span style="color:#ef9a9a;">*</span></label>
+            <input name="ho" class="sf-input" placeholder="Nguyễn Văn" required />
+
+            <label class="sf-label">Tên <span style="color:#ef9a9a;">*</span></label>
+            <input name="ten" class="sf-input" placeholder="An" required />
+
+            <label class="sf-label">Email <span style="color:#ef9a9a;">*</span></label>
+            <input name="email" type="email" class="sf-input" placeholder="nhanvien@tickethub.vn" required />
+
+            <label class="sf-label">Vai Trò <span style="color:#ef9a9a;">*</span></label>
+            <select name="role" class="sf-select">
+                <option value="Admin">Admin — Quản lý sự kiện/vé</option>
+                <option value="SuperAdmin">SuperAdmin — Quản lý hệ thống</option>
+            </select>
+
+            <div style="font-size:.78rem;color:rgba(210,195,255,.4);margin-bottom:.75rem;">
+                Mật khẩu tạm sẽ được tạo tự động và gửi qua email cho nhân viên.
+            </div>
+
+            <div class="sf-modal-btns">
+                <button type="button" class="sf-modal-cancel" onclick="closeAddModal()">Hủy</button>
+                <button type="submit" class="sf-modal-submit">✅ Tạo Tài Khoản</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openAddModal()  { document.getElementById('addModal').classList.add('open'); }
+function closeAddModal() { document.getElementById('addModal').classList.remove('open'); }
+</script>

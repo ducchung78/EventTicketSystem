@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventTicketSystem.Web.Pages.Customers;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin,SuperAdmin")]
 public class CustomersIndexModel(AppDbContext db, UserManager<ApplicationUser> userManager) : PageModel
 {
     public List<CustomerViewModel> Customers { get; set; } = [];

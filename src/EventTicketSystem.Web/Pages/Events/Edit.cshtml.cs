@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventTicketSystem.Web.Pages.Events;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin,SuperAdmin")]
 public class EditEventModel(AppDbContext db, IWebHostEnvironment env) : PageModel
 {
     public Event? Event { get; set; }

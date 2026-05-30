@@ -12,18 +12,29 @@ public static class DbSeeder
         UserManager<ApplicationUser> userManager)
     {
         // Roles
-        foreach (var role in new[] { "Admin", "User" })
+        foreach (var role in new[] { "SuperAdmin", "Admin", "User" })
             if (!await roleManager.RoleExistsAsync(role))
                 await roleManager.CreateAsync(new IdentityRole(role));
 
-        // Admin account
+        // Admin account — also gets SuperAdmin (root account)
         const string adminEmail = "admin@tickethub.vn";
-        if (await userManager.FindByEmailAsync(adminEmail) == null)
+        var adminUser = await userManager.FindByEmailAsync(adminEmail);
+        if (adminUser == null)
         {
-            var admin = new ApplicationUser { UserName = adminEmail, Email = adminEmail, Ho = "Quản Trị", Ten = "Viên", EmailConfirmed = true };
+            var admin = new ApplicationUser { UserName = adminEmail, Email = adminEmail, Ho = "Quản Trị", Ten = "Viên", EmailConfirmed = true, LockoutEnabled = true };
             await userManager.CreateAsync(admin, "Admin@123456");
             await userManager.AddToRoleAsync(admin, "Admin");
+            await userManager.AddToRoleAsync(admin, "SuperAdmin");
         }
+        else if (!await userManager.IsInRoleAsync(adminUser, "SuperAdmin"))
+        {
+            await userManager.AddToRoleAsync(adminUser, "SuperAdmin");
+        }
+
+        // Ensure LockoutEnabled = true for all existing users
+        await userManager.Users
+            .Where(u => !u.LockoutEnabled)
+            .ForEachAsync(async u => await userManager.SetLockoutEnabledAsync(u, true));
 
         // Sample user account
         const string userEmail = "nguyen.van.an@email.com";
@@ -46,7 +57,7 @@ public static class DbSeeder
         {
             if (await userManager.FindByEmailAsync(email) == null)
             {
-                var u = new ApplicationUser { UserName = email, Email = email, Ho = ho, Ten = ten, PhoneNumber = phone, EmailConfirmed = true };
+                var u = new ApplicationUser { UserName = email, Email = email, Ho = ho, Ten = ten, PhoneNumber = phone, EmailConfirmed = true, LockoutEnabled = true };
                 await userManager.CreateAsync(u, "User@123456");
                 await userManager.AddToRoleAsync(u, "User");
             }

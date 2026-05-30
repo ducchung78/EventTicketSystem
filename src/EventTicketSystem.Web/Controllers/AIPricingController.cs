@@ -8,7 +8,7 @@ namespace EventTicketSystem.Web.Controllers;
 
 [ApiController]
 [Route("api/ai")]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin,SuperAdmin")]
 public class AIPricingController(AppDbContext db, TicketPredictionService predictionService) : ControllerBase
 {
     /// <summary>GET /api/ai/pricing-suggestion/{eventId}</summary>

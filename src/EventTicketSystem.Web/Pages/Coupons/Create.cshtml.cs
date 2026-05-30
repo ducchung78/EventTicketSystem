@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventTicketSystem.Web.Pages.Coupons;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin,SuperAdmin")]
 public class CreateCouponModel(AppDbContext db) : PageModel
 {
     [BindProperty]

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventTicketSystem.Web.Pages.AI;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "SuperAdmin")]
 public class AIPredictionModel(AppDbContext db, TicketPredictionService predictionService) : PageModel
 {
     public bool                  IsTrained    { get; set; }

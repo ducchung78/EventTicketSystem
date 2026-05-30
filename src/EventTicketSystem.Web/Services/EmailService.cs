@@ -70,6 +70,67 @@ public class EmailService(IConfiguration config, IWebHostEnvironment env, ILogge
             .Replace("{{SiteUrl}}",          siteUrl);
     }
 
+    public async Task SendTempPasswordAsync(string toEmail, string userName, string tempPassword)
+    {
+        var smtpHost = config["Smtp:Host"];
+        if (string.IsNullOrWhiteSpace(smtpHost) || smtpHost == "smtp.gmail.com" &&
+            (config["Smtp:Username"] == "your-email@gmail.com" || string.IsNullOrWhiteSpace(config["Smtp:Username"])))
+        {
+            logger.LogInformation("SMTP not configured — skipping temp-password email to {Email}.", toEmail);
+            return;
+        }
+
+        try
+        {
+            var siteUrl  = config["App:SiteUrl"]?.TrimEnd('/') ?? "http://localhost:8080";
+            var nameEnc  = WebUtility.HtmlEncode(userName);
+            var pwdEnc   = WebUtility.HtmlEncode(tempPassword);
+            var loginUrl = $"{siteUrl}/Account/Login";
+
+            var html =
+                "<!DOCTYPE html><html lang='vi'><head><meta charset='utf-8'/>" +
+                "<style>" +
+                "body{margin:0;padding:0;background:#f4f4f8;font-family:'Segoe UI',Arial,sans-serif;}" +
+                ".w{max-width:520px;margin:32px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.1);}" +
+                ".h{background:linear-gradient(135deg,#7c4dff,#448aff);padding:28px 32px;text-align:center;color:#fff;}" +
+                ".b{padding:28px 32px;}" +
+                ".pwd{font-size:26px;font-weight:800;letter-spacing:4px;color:#7c4dff;background:#f3f0ff;border:2px dashed #7c4dff;border-radius:8px;text-align:center;padding:14px 20px;margin:20px 0;}" +
+                ".warn{background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:12px 16px;font-size:13px;color:#795548;}" +
+                ".f{background:#fafafa;padding:18px 32px;text-align:center;border-top:1px solid #eee;font-size:12px;color:#aaa;}" +
+                "</style></head><body><div class='w'>" +
+                "<div class='h'><div style='font-size:40px;margin-bottom:8px;'>🔑</div>" +
+                "<h2 style='margin:0;font-size:22px;'>Đặt Lại Mật Khẩu</h2>" +
+                "<p style='margin:6px 0 0;opacity:.85;font-size:14px;'>Quản trị viên đã đặt lại mật khẩu của bạn</p></div>" +
+                $"<div class='b'><p style='color:#333;font-size:15px;'>Xin chào <strong>{nameEnc}</strong>,</p>" +
+                "<p style='color:#555;font-size:14px;'>Mật khẩu tài khoản của bạn đã được đặt lại bởi quản trị viên. Đây là mật khẩu tạm thời:</p>" +
+                $"<div class='pwd'>{pwdEnc}</div>" +
+                $"<div class='warn'>⚠️ <strong>Quan trọng:</strong> Vui lòng đăng nhập và <strong>đổi mật khẩu ngay lập tức</strong> để bảo vệ tài khoản. " +
+                $"Đường dẫn: <a href='{loginUrl}' style='color:#7c4dff;'>{loginUrl}</a></div></div>" +
+                "<div class='f'><p>© 2026 TicketHub — Email này được gửi tự động, vui lòng không trả lời.</p></div>" +
+                "</div></body></html>";
+
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(config["Smtp:FromName"] ?? "TicketHub", config["Smtp:FromEmail"] ?? config["Smtp:Username"]!));
+            message.To.Add(new MailboxAddress(userName, toEmail));
+            message.Subject = "[TicketHub] Mật khẩu tài khoản của bạn đã được đặt lại";
+            message.Body    = new TextPart("html") { Text = html };
+
+            using var client = new SmtpClient();
+            var port    = int.Parse(config["Smtp:Port"] ?? "587");
+            var useSsl  = bool.Parse(config["Smtp:EnableSsl"] ?? "true");
+            var options = useSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None;
+            await client.ConnectAsync(smtpHost, port, options);
+            await client.AuthenticateAsync(config["Smtp:Username"], config["Smtp:Password"]);
+            await client.SendAsync(message);
+            await client.DisconnectAsync(true);
+            logger.LogInformation("Temp-password email sent to {Email}.", toEmail);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to send temp-password email to {Email}.", toEmail);
+        }
+    }
+
     public async Task SendPasswordResetAsync(string toEmail, string resetLink, string userName)
     {
         var smtpHost = config["Smtp:Host"];

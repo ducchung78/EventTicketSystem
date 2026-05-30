@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace EventTicketSystem.Web.Pages.Events;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin,SuperAdmin")]
 public class CreateEventModel(AppDbContext db, IWebHostEnvironment env) : PageModel
 {
     [BindProperty]

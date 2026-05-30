@@ -41,13 +41,23 @@ public class LoginModel(
         if (user != null)
         {
             var result = await signInManager.PasswordSignInAsync(
-                user.UserName!, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+                user.UserName!, Input.Password, Input.RememberMe, lockoutOnFailure: true);
 
             if (result.Succeeded)
             {
                 if (!string.IsNullOrEmpty(ReturnUrl) && Url.IsLocalUrl(ReturnUrl))
                     return Redirect(ReturnUrl);
                 return RedirectToPage("/Index");
+            }
+
+            if (result.IsLockedOut)
+            {
+                var lockoutEnd = await userManager.GetLockoutEndDateAsync(user);
+                var msg = lockoutEnd == DateTimeOffset.MaxValue
+                    ? "Tài khoản này đã bị khóa vĩnh viễn. Vui lòng liên hệ quản trị viên."
+                    : $"Tài khoản đã bị khóa đến {lockoutEnd!.Value.ToLocalTime():HH:mm dd/MM/yyyy}.";
+                ModelState.AddModelError("", msg);
+                return Page();
             }
         }
 

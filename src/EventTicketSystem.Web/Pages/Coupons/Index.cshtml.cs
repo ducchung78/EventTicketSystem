@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventTicketSystem.Web.Pages.Coupons;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin,SuperAdmin")]
 public class CouponsIndexModel(AppDbContext db) : PageModel
 {
     public List<Coupon> Coupons { get; set; } = [];

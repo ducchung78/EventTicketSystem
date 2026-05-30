@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventTicketSystem.Web.Pages.Reports;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin,SuperAdmin")]
 public class ReportsIndexModel(AppDbContext db) : PageModel
 {
     public decimal TongDoanhThu   { get; set; }

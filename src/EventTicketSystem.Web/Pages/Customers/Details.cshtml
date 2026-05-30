@@ -1,110 +1,258 @@
 @page "{id}"
 @model EventTicketSystem.Web.Pages.Customers.CustomerDetailsModel
+@using EventTicketSystem.Web.Models
 @{
     ViewData["Title"] = "Chi Tiết Khách Hàng";
+    var c = Model.Customer;
 }
 
-@if (Model.Customer == null)
+@if (c == null)
 {
-    <div class="container">
-        <div class="alert alert-danger">Không tìm thấy khách hàng.</div>
-        <a href="/Customers" class="btn btn-secondary">Quay Lại</a>
-    </div>
+    <div class="container"><div class="alert alert-danger">Không tìm thấy.</div></div>
     return;
 }
 
-<div class="container" style="max-width:800px">
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/Customers">Khách Hàng</a></li>
-            <li class="breadcrumb-item active">@Model.Customer.HoTen</li>
-        </ol>
-    </nav>
+<style>
+    .cd-wrap { padding: 2rem 0 3rem; }
+    .cd-back { color:rgba(210,195,255,.5); font-size:.85rem; text-decoration:none; display:inline-flex; align-items:center; gap:6px; margin-bottom:1rem; }
+    .cd-back:hover { color:#ede0ff; }
 
-    <div class="card shadow mb-4">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">👤 @Model.Customer.HoTen</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-sm-4 text-muted">Email</div>
-                <div class="col-sm-8">@Model.Customer.Email</div>
-            </div>
-            <hr class="my-2" />
-            <div class="row">
-                <div class="col-sm-4 text-muted">Số Điện Thoại</div>
-                <div class="col-sm-8">@(Model.Customer.PhoneNumber ?? "Chưa cung cấp")</div>
-            </div>
-            <hr class="my-2" />
-            <div class="row">
-                <div class="col-sm-4 text-muted">Ngày Đăng Ký</div>
-                <div class="col-sm-8">@Model.Customer.NgayTao.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
-            </div>
-            <hr class="my-2" />
-            <div class="row">
-                <div class="col-sm-4 text-muted">Vai Trò</div>
-                <div class="col-sm-8">
-                    @foreach (var role in Model.Roles)
+    .cd-card {
+        background:rgba(20,10,52,.82); border:1px solid rgba(124,77,255,.25);
+        border-radius:14px; margin-bottom:1.25rem; overflow:hidden;
+    }
+    .cd-card-hdr {
+        padding:12px 18px; border-bottom:1px solid rgba(124,77,255,.15);
+        font-size:.88rem; font-weight:700; color:rgba(124,77,255,.8);
+        text-transform:uppercase; letter-spacing:.06em;
+        display:flex; justify-content:space-between; align-items:center;
+    }
+    .cd-card-body { padding:1.25rem 1.5rem; }
+    .cd-row { display:flex; gap:12px; margin-bottom:.65rem; font-size:.88rem; }
+    .cd-lbl { min-width:130px; color:rgba(210,195,255,.45); flex-shrink:0; }
+    .cd-val { color:rgba(210,195,255,.85); }
+
+    .badge-role { display:inline-block; padding:2px 10px; border-radius:20px; font-size:.72rem; font-weight:700; margin-right:4px; }
+    .role-user        { background:rgba(68,138,255,.15); border:1px solid rgba(68,138,255,.3); color:#90caf9; }
+    .role-admin       { background:rgba(255,167,38,.12); border:1px solid rgba(255,167,38,.3); color:#ffa726; }
+    .role-superadmin  { background:rgba(229,57,53,.12); border:1px solid rgba(229,57,53,.3); color:#ef9a9a; }
+
+    .status-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 12px; border-radius:20px; font-size:.78rem; font-weight:700; }
+    .status-active { background:rgba(0,200,83,.12); border:1px solid rgba(0,200,83,.3); color:#69f0ae; }
+    .status-locked { background:rgba(229,57,53,.12); border:1px solid rgba(229,57,53,.3); color:#ef9a9a; }
+
+    /* Action buttons */
+    .btn-lock    { background:rgba(255,167,38,.12); border:1px solid rgba(255,167,38,.3); color:#ffa726; }
+    .btn-unlock  { background:rgba(0,200,83,.12); border:1px solid rgba(0,200,83,.3); color:#69f0ae; }
+    .btn-reset   { background:rgba(68,138,255,.1); border:1px solid rgba(68,138,255,.3); color:#90caf9; }
+    .btn-delete  { background:rgba(229,57,53,.1); border:1px solid rgba(229,57,53,.25); color:#ef9a9a; }
+    .cd-action-btn {
+        padding:7px 18px; border-radius:9px; font-size:.82rem; font-weight:600;
+        cursor:pointer; transition:opacity .15s; display:inline-flex; align-items:center; gap:6px;
+    }
+    .cd-action-btn:hover { opacity:.8; }
+
+    /* Orders table */
+    table.cd-table { width:100%; border-collapse:collapse; }
+    table.cd-table thead th {
+        padding:9px 14px; font-size:.7rem; font-weight:700; text-transform:uppercase;
+        letter-spacing:.06em; color:rgba(124,77,255,.6); border-bottom:1px solid rgba(124,77,255,.15);
+    }
+    table.cd-table tbody td { padding:10px 14px; font-size:.84rem; color:rgba(210,195,255,.7); border-bottom:1px solid rgba(124,77,255,.07); vertical-align:middle; }
+    table.cd-table tbody tr:last-child td { border-bottom:none; }
+
+    .alert-ok  { background:rgba(0,200,83,.1); border:1px solid rgba(0,200,83,.25); border-radius:10px; padding:10px 16px; color:#69f0ae; font-size:.88rem; margin-bottom:1rem; }
+    .alert-err { background:rgba(229,57,53,.1); border:1px solid rgba(229,57,53,.25); border-radius:10px; padding:10px 16px; color:#ef9a9a; font-size:.88rem; margin-bottom:1rem; }
+
+    /* Modal */
+    .cd-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:1050; align-items:center; justify-content:center; }
+    .cd-modal-overlay.open { display:flex; }
+    .cd-modal { background:#1a0a40; border:1px solid rgba(124,77,255,.3); border-radius:16px; padding:1.75rem; width:100%; max-width:420px; }
+    .cd-modal-title { font-size:1.05rem; font-weight:700; color:#ede0ff; margin-bottom:1rem; }
+    .cd-modal select, .cd-modal input { background:rgba(255,255,255,.07); border:1.5px solid rgba(124,77,255,.3); border-radius:9px; color:#ede0ff; padding:8px 12px; width:100%; font-size:.9rem; margin-bottom:.5rem; }
+    .cd-modal select option { background:#1a0a40; }
+    .cd-modal-btns { display:flex; gap:8px; margin-top:1rem; }
+    .cd-modal-cancel { flex:1; padding:9px; border-radius:9px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); color:rgba(210,195,255,.6); font-size:.88rem; font-weight:600; cursor:pointer; }
+</style>
+
+<div class="container-xl px-3 px-md-4 cd-wrap">
+    <a href="/Customers" class="cd-back">← Danh sách khách hàng</a>
+
+    @if (TempData["Success"] is string ok)  { <div class="alert-ok">✅ @ok</div> }
+    @if (TempData["Error"]   is string err) { <div class="alert-err">⚠️ @err</div> }
+
+    <div class="row g-3">
+
+        @* ── Left: Info + Management ── *@
+        <div class="col-lg-8">
+
+            @* Profile card *@
+            <div class="cd-card">
+                <div class="cd-card-hdr">
+                    👤 Thông Tin Tài Khoản
+                    <span class="status-badge @(Model.IsLocked ? "status-locked" : "status-active")">
+                        @(Model.IsLocked ? "🔒 Đã khóa" : "✅ Hoạt động")
+                    </span>
+                </div>
+                <div class="cd-card-body">
+                    <div class="cd-row"><span class="cd-lbl">Họ tên</span><span class="cd-val" style="font-weight:700;color:#ede0ff;">@c.HoTen</span></div>
+                    <div class="cd-row"><span class="cd-lbl">Email</span><span class="cd-val">@c.Email</span></div>
+                    <div class="cd-row"><span class="cd-lbl">Số điện thoại</span><span class="cd-val">@(c.PhoneNumber ?? "—")</span></div>
+                    <div class="cd-row"><span class="cd-lbl">Ngày đăng ký</span><span class="cd-val">@c.NgayTao.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span></div>
+                    <div class="cd-row">
+                        <span class="cd-lbl">Vai trò</span>
+                        <span class="cd-val">
+                            @foreach (var r in Model.Roles)
+                            {
+                                var cls = r == "SuperAdmin" ? "role-superadmin" : r == "Admin" ? "role-admin" : "role-user";
+                                <span class="badge-role @cls">@r</span>
+                            }
+                        </span>
+                    </div>
+                    @if (Model.IsLocked && Model.LockoutEnd.HasValue)
                     {
-                        <span class="badge @(role == "Admin" ? "bg-danger" : "bg-primary") me-1">@role</span>
+                        <div class="cd-row">
+                            <span class="cd-lbl">Khóa đến</span>
+                            <span class="cd-val" style="color:#ef9a9a;">
+                                @(Model.LockoutEnd == DateTimeOffset.MaxValue ? "Vĩnh viễn" : Model.LockoutEnd.Value.ToLocalTime().ToString("HH:mm – dd/MM/yyyy"))
+                            </span>
+                        </div>
                     }
                 </div>
             </div>
+
+            @* Management card *@
+            @if (!Model.IsSelf)
+            {
+                <div class="cd-card">
+                    <div class="cd-card-hdr">⚙️ Quản Lý Tài Khoản</div>
+                    <div class="cd-card-body">
+                        <div class="d-flex gap-2 flex-wrap">
+                            @if (Model.IsLocked)
+                            {
+                                <form method="post" asp-page-handler="Unlock">
+                                    <button type="submit" class="cd-action-btn btn-unlock">🔓 Mở Khóa</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <button type="button" class="cd-action-btn btn-lock" onclick="openLockModal()">🔒 Khóa Tài Khoản</button>
+                            }
+
+                            <form method="post" asp-page-handler="ResetPassword"
+                                  onsubmit="return confirm('Đặt lại mật khẩu và gửi email cho @c.Email?')">
+                                <button type="submit" class="cd-action-btn btn-reset">🔑 Đặt Lại Mật Khẩu</button>
+                            </form>
+
+                            @if (Model.CanDelete)
+                            {
+                                <form method="post" asp-page-handler="Delete"
+                                      onsubmit="return confirm('Xóa tài khoản @c.Email?\n\nHành động này không thể hoàn tác!')">
+                                    <button type="submit" class="cd-action-btn btn-delete">🗑 Xóa Tài Khoản</button>
+                                </form>
+                            }
+                            else if (!Model.CanDelete && !Model.IsSelf)
+                            {
+                                <span style="font-size:.78rem;color:rgba(210,195,255,.3);align-self:center;">
+                                    (Không thể xóa — tài khoản có đơn hàng)
+                                </span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
         </div>
+
+        @* ── Right: Order stats ── *@
+        <div class="col-lg-4">
+            <div class="cd-card">
+                <div class="cd-card-hdr">📊 Thống Kê</div>
+                <div class="cd-card-body">
+                    <div class="cd-row"><span class="cd-lbl">Tổng đơn</span><span class="cd-val" style="font-weight:700;color:#ede0ff;">@Model.Orders.Count</span></div>
+                    <div class="cd-row">
+                        <span class="cd-lbl">Chi tiêu</span>
+                        <span class="cd-val" style="color:#69f0ae;font-weight:700;">
+                            @Model.Orders.Where(o => o.Status == OrderStatus.Confirmed).Sum(o => o.TotalAmount).ToString("N0")đ
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <h5 class="mb-3">Lịch Sử Đặt Vé (@Model.Orders.Count đơn hàng)</h5>
-
-    @if (!Model.Orders.Any())
-    {
-        <div class="alert alert-info">Khách hàng chưa có đơn hàng nào.</div>
-    }
-    else
-    {
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead class="table-light">
-                    <tr>
-                        <th>Mã Xác Nhận</th>
-                        <th>Ngày Đặt</th>
-                        <th class="text-center">Số Vé</th>
-                        <th class="text-end">Tổng Tiền</th>
-                        <th>Trạng Thái</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var o in Model.Orders)
-                    {
+    @* Orders table *@
+    <div class="cd-card mt-1">
+        <div class="cd-card-hdr">🎫 Lịch Sử Đặt Vé (@Model.Orders.Count đơn)</div>
+        @if (!Model.Orders.Any())
+        {
+            <div style="text-align:center;padding:2rem;color:rgba(210,195,255,.3);">Chưa có đơn hàng nào.</div>
+        }
+        else
+        {
+            <div style="overflow-x:auto;">
+                <table class="cd-table">
+                    <thead>
                         <tr>
-                            <td><code>@o.ConfirmationCode</code></td>
-                            <td>@o.OrderDate.ToLocalTime().ToString("dd/MM/yyyy")</td>
-                            <td class="text-center">@o.OrderItems.Sum(i => i.Quantity)</td>
-                            <td class="text-end fw-bold">@o.TotalAmount.ToString("N0") đ</td>
-                            <td>
-                                <span class="badge @o.Status.ToBadgeClass()">
-                                    @o.Status.ToVietnamese()
-                                </span>
-                            </td>
-                            <td>
-                                <a href="/Orders/Details/@o.Id" class="btn btn-sm btn-outline-secondary">
-                                    Xem
-                                </a>
-                            </td>
+                            <th>Mã đơn</th>
+                            <th>Ngày đặt</th>
+                            <th style="text-align:center;">Số vé</th>
+                            <th style="text-align:right;">Tổng tiền</th>
+                            <th>Trạng thái</th>
+                            <th></th>
                         </tr>
-                    }
-                </tbody>
-                <tfoot class="table-light">
-                    <tr>
-                        <td colspan="3" class="text-end fw-bold">Tổng Chi Tiêu:</td>
-                        <td class="text-end fw-bold text-success fs-6">
-                            @Model.Orders.Where(o => o.Status == EventTicketSystem.Web.Models.OrderStatus.Confirmed)
-                                         .Sum(o => o.TotalAmount).ToString("N0") đ
-                        </td>
-                        <td colspan="2"></td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-    }
+                    </thead>
+                    <tbody>
+                        @foreach (var o in Model.Orders)
+                        {
+                            var stCls = o.Status switch {
+                                OrderStatus.Confirmed => "color:#69f0ae",
+                                OrderStatus.Cancelled => "color:#ef9a9a",
+                                OrderStatus.Refunded  => "color:#90caf9",
+                                _                     => "color:#ffa726"
+                            };
+                            <tr>
+                                <td><code style="color:#b388ff;">@o.ConfirmationCode</code></td>
+                                <td>@o.OrderDate.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                <td style="text-align:center;">@o.OrderItems.Sum(i => i.Quantity)</td>
+                                <td style="text-align:right;font-weight:600;">@o.TotalAmount.ToString("N0")đ</td>
+                                <td><span style="font-size:.78rem;font-weight:700;@stCls">@o.Status.ToVietnamese()</span></td>
+                                <td><a href="/Orders/Details/@o.Id" style="font-size:.78rem;color:rgba(124,77,255,.7);">Xem →</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
 </div>
+
+@* Lock modal *@
+<div class="cd-modal-overlay" id="lockModal" onclick="if(event.target===this)closeLockModal()">
+    <div class="cd-modal">
+        <div class="cd-modal-title">🔒 Khóa Tài Khoản</div>
+        <p style="font-size:.85rem;color:rgba(210,195,255,.55);margin-bottom:1rem;">
+            Chọn thời hạn khóa cho <strong style="color:#ede0ff;">@c.Email</strong>
+        </p>
+        <form method="post" asp-page-handler="Lock">
+            <select name="duration" class="form-select">
+                <option value="1">1 ngày</option>
+                <option value="7" selected>7 ngày</option>
+                <option value="30">30 ngày</option>
+                <option value="perm">Vĩnh viễn</option>
+            </select>
+            <div class="cd-modal-btns">
+                <button type="button" class="cd-modal-cancel" onclick="closeLockModal()">Hủy</button>
+                <button type="submit" class="cd-action-btn btn-lock" style="flex:1;justify-content:center;">
+                    🔒 Xác nhận khóa
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openLockModal()  { document.getElementById('lockModal').classList.add('open'); }
+function closeLockModal() { document.getElementById('lockModal').classList.remove('open'); }
+</script>

@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventTicketSystem.Web.Pages.Admin.RefundRequests;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin,SuperAdmin")]
 public class RefundRequestsIndexModel(
     AppDbContext db,
     RefundService refundService,

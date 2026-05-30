@@ -40,7 +40,7 @@ public class EventsIndexModel(AppDbContext db, IWebHostEnvironment env) : PageMo
             .ToListAsync();
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> OnPostToggleHotAsync(int id)
     {
         var evt = await db.Events.FindAsync(id);
@@ -52,7 +52,7 @@ public class EventsIndexModel(AppDbContext db, IWebHostEnvironment env) : PageMo
         return RedirectToPage(new { search = Request.Form["search"].ToString(), category = Request.Form["category"].ToString() });
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> OnPostDeleteAsync(int id)
     {
         var evt = await db.Events
