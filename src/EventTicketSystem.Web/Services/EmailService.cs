@@ -58,13 +58,16 @@ public class EmailService(IConfiguration config, IWebHostEnvironment env, ILogge
             ? $"""<div class="summary-row discount"><span>Giảm giá</span><span>-{order.DiscountAmount:N0} đ</span></div>"""
             : "";
 
+        var siteUrl = config["App:SiteUrl"]?.TrimEnd('/') ?? "http://localhost:8080";
+
         return template
             .Replace("{{CustomerName}}",    order.CustomerName)
             .Replace("{{ConfirmationCode}}", order.ConfirmationCode)
             .Replace("{{TicketItems}}",      ticketItems)
             .Replace("{{OriginalAmount}}",   order.OriginalAmount.ToString("N0"))
             .Replace("{{DiscountRow}}",      discountRow)
-            .Replace("{{TotalAmount}}",      order.TotalAmount.ToString("N0"));
+            .Replace("{{TotalAmount}}",      order.TotalAmount.ToString("N0"))
+            .Replace("{{SiteUrl}}",          siteUrl);
     }
 
     public async Task SendRefundNotificationAsync(RefundRequest refund, Order order)

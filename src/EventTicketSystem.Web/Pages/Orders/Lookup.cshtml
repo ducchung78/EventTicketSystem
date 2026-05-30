@@ -1,0 +1,310 @@
+@page "/tra-cuu-don-hang"
+@model EventTicketSystem.Web.Pages.Orders.LookupModel
+@using EventTicketSystem.Web.Models
+@{
+    ViewData["Title"] = "Tra Cứu Đơn Hàng";
+    var order = Model.Order;
+}
+
+<style>
+    .lk-wrap  { padding: 2.5rem 0 4rem; }
+    .lk-hero  { text-align: center; margin-bottom: 2.5rem; }
+    .lk-icon  { font-size: 3rem; display: block; margin-bottom: .75rem; }
+    .lk-title { font-size: 2rem; font-weight: 800; color: #ede0ff; margin-bottom: .4rem; }
+    .lk-sub   { color: rgba(210,195,255,.5); font-size: .95rem; }
+
+    /* Search card */
+    .lk-card {
+        background: rgba(20,10,52,.82); border: 1px solid rgba(124,77,255,.28);
+        border-radius: 18px; backdrop-filter: blur(16px); padding: 2rem;
+    }
+    .lk-input-row { display: flex; gap: 10px; }
+    .lk-input {
+        flex: 1; background: rgba(255,255,255,.06); border: 1.5px solid rgba(124,77,255,.3);
+        border-radius: 12px; color: #ede0ff; font-size: 1.1rem; font-weight: 600;
+        padding: .75rem 1.1rem; letter-spacing: .08em; text-transform: uppercase;
+        transition: border-color .18s, box-shadow .18s;
+    }
+    .lk-input::placeholder { color: rgba(210,195,255,.25); font-weight: 400; letter-spacing: 0; text-transform: none; font-size: .95rem; }
+    .lk-input:focus { outline: none; border-color: rgba(124,77,255,.6); box-shadow: 0 0 0 3px rgba(124,77,255,.15); }
+    .lk-btn {
+        background: linear-gradient(90deg,#7c4dff,#448aff); border: none; border-radius: 12px;
+        color: #fff; font-weight: 700; font-size: .95rem; padding: .75rem 1.75rem;
+        cursor: pointer; box-shadow: 0 4px 16px rgba(124,77,255,.35); transition: opacity .15s;
+        white-space: nowrap;
+    }
+    .lk-btn:hover { opacity: .88; }
+    .field-err { color: #ef9a9a; font-size: .8rem; margin-top: .4rem; }
+
+    /* Not found */
+    .lk-notfound {
+        text-align: center; padding: 2rem 1rem; margin-top: 1.5rem;
+        background: rgba(229,57,53,.07); border: 1px solid rgba(229,57,53,.2); border-radius: 14px;
+    }
+    .lk-notfound-icon  { font-size: 2.5rem; display: block; margin-bottom: .75rem; }
+    .lk-notfound-title { font-size: 1.15rem; font-weight: 700; color: #ef9a9a; margin-bottom: .4rem; }
+    .lk-notfound-sub   { color: rgba(210,195,255,.45); font-size: .88rem; }
+
+    /* Result card */
+    .lk-result { margin-top: 2rem; }
+    .lk-result-hdr {
+        background: linear-gradient(135deg,rgba(0,200,83,.15),rgba(0,188,212,.1));
+        border: 1px solid rgba(0,200,83,.25); border-radius: 16px 16px 0 0;
+        padding: 1.5rem 1.75rem;
+    }
+    .lk-result-body {
+        background: rgba(20,10,52,.82); border: 1px solid rgba(124,77,255,.22);
+        border-top: none; border-radius: 0 0 16px 16px; padding: 1.75rem;
+    }
+
+    /* Status badge */
+    .status-badge {
+        display: inline-block; padding: 4px 14px; border-radius: 20px;
+        font-size: .78rem; font-weight: 700; letter-spacing: .04em;
+    }
+    .status-pending   { background: rgba(255,167,38,.15); border: 1px solid rgba(255,167,38,.3); color: #ffa726; }
+    .status-confirmed { background: rgba(0,200,83,.15); border: 1px solid rgba(0,200,83,.3); color: #69f0ae; }
+    .status-cancelled { background: rgba(229,57,53,.1); border: 1px solid rgba(229,57,53,.25); color: #ef9a9a; }
+    .status-refunded  { background: rgba(68,138,255,.12); border: 1px solid rgba(68,138,255,.3); color: #90caf9; }
+
+    /* Info rows */
+    .info-row { display: flex; gap: 10px; margin-bottom: .65rem; font-size: .9rem; }
+    .info-icon { font-size: 1rem; flex-shrink: 0; opacity: .7; }
+    .info-text { color: rgba(210,195,255,.8); }
+
+    /* Items table */
+    .items-title { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: rgba(124,77,255,.7); margin: 1.5rem 0 .75rem; }
+    table.items-table { width: 100%; border-collapse: collapse; }
+    table.items-table thead th {
+        padding: 8px 12px; font-size: .7rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .06em; color: rgba(124,77,255,.6); border-bottom: 1px solid rgba(124,77,255,.18);
+    }
+    table.items-table tbody td {
+        padding: 10px 12px; font-size: .86rem; color: rgba(210,195,255,.75);
+        border-bottom: 1px solid rgba(124,77,255,.07);
+    }
+    table.items-table tbody tr:last-child td { border-bottom: none; }
+
+    /* Summary */
+    .summary-box {
+        background: rgba(124,77,255,.06); border: 1px solid rgba(124,77,255,.18);
+        border-radius: 12px; padding: 1rem 1.25rem; margin-top: 1.25rem;
+    }
+    .sum-row { display: flex; justify-content: space-between; font-size: .88rem; color: rgba(210,195,255,.6); padding: 4px 0; }
+    .sum-total { border-top: 1px solid rgba(124,77,255,.2); margin-top: 8px; padding-top: 10px; font-size: 1.05rem; font-weight: 700; color: #ede0ff; }
+
+    /* QR + code box */
+    .qr-code-col { text-align: center; }
+    .qr-box {
+        display: inline-block; background: #fff; border-radius: 12px;
+        padding: 12px; box-shadow: 0 4px 20px rgba(0,0,0,.3);
+    }
+    .qr-label { font-size: .72rem; color: rgba(210,195,255,.4); margin-top: .6rem; text-transform: uppercase; letter-spacing: .08em; }
+    .code-chip {
+        display: inline-block; background: rgba(0,200,83,.1); border: 1.5px dashed rgba(0,200,83,.4);
+        border-radius: 10px; padding: 8px 18px; font-size: 1.5rem; font-weight: 800;
+        letter-spacing: .14em; color: #69f0ae; margin-bottom: .5rem;
+    }
+
+    /* Print button */
+    .btn-print {
+        display: inline-flex; align-items: center; gap: 7px;
+        background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.14);
+        border-radius: 10px; color: rgba(210,195,255,.75); font-size: .85rem; font-weight: 600;
+        padding: 8px 20px; cursor: pointer; transition: background .15s;
+    }
+    .btn-print:hover { background: rgba(255,255,255,.13); color: #ede0ff; }
+
+    @@media print {
+        .lk-hero, .lk-card, .btn-print, header, footer, nav { display: none !important; }
+        .lk-result { margin-top: 0; }
+        .lk-result-hdr, .lk-result-body {
+            background: #fff !important; color: #111 !important;
+            border-color: #ccc !important; border-radius: 0 !important;
+        }
+        .info-text, table.items-table tbody td, .sum-row { color: #333 !important; }
+        .lk-result-hdr * { color: #111 !important; }
+    }
+</style>
+
+<div class="container-xl px-3 px-md-4 lk-wrap">
+
+    <div class="lk-hero">
+        <span class="lk-icon">🔍</span>
+        <div class="lk-title">Tra Cứu Đơn Hàng</div>
+        <div class="lk-sub">Nhập mã xác nhận để xem chi tiết đặt vé của bạn</div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+
+            @* ── Search form ── *@
+            <div class="lk-card">
+                <form method="post">
+                    <div class="lk-input-row">
+                        <input asp-for="Code"
+                               class="lk-input"
+                               placeholder="Nhập mã xác nhận, ví dụ: AB12CD34"
+                               autocomplete="off"
+                               maxlength="20" />
+                        <button type="submit" class="lk-btn">🔍 Tra cứu</button>
+                    </div>
+                    <span asp-validation-for="Code" class="field-err"></span>
+                </form>
+            </div>
+
+            @* ── Not found ── *@
+            @if (Model.Searched && Model.NotFound)
+            {
+                <div class="lk-notfound">
+                    <span class="lk-notfound-icon">😕</span>
+                    <div class="lk-notfound-title">Không tìm thấy đơn hàng</div>
+                    <div class="lk-notfound-sub">
+                        Không có đơn hàng nào với mã <strong style="color:#ede0ff;">@Model.Code</strong>.<br />
+                        Vui lòng kiểm tra lại mã xác nhận trong email đặt vé.
+                    </div>
+                </div>
+            }
+
+            @* ── Result ── *@
+            @if (order != null)
+            {
+                var firstItem = order.OrderItems.FirstOrDefault();
+                var evt       = firstItem?.TicketType?.Event;
+                var statusCls = order.Status switch
+                {
+                    OrderStatus.Confirmed => "status-confirmed",
+                    OrderStatus.Cancelled => "status-cancelled",
+                    OrderStatus.Refunded  => "status-refunded",
+                    _                     => "status-pending"
+                };
+                var statusLabel = order.Status switch
+                {
+                    OrderStatus.Pending   => "Chờ xác nhận",
+                    OrderStatus.Confirmed => "Đã xác nhận",
+                    OrderStatus.Cancelled => "Đã huỷ",
+                    OrderStatus.Refunded  => "Đã hoàn vé",
+                    _                     => order.Status.ToString()
+                };
+                var qrData = $"TICKETHUB-{order.ConfirmationCode}";
+                var qrUrl  = $"https://api.qrserver.com/v1/create-qr-code/?size=180x180&color=1a1a2e&bgcolor=ffffff&data={Uri.EscapeDataString(qrData)}";
+
+                <div class="lk-result" id="printArea">
+                    @* Header *@
+                    <div class="lk-result-hdr">
+                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                            <div>
+                                <div style="font-size:.72rem;color:rgba(0,200,83,.7);font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;">Đơn Hàng</div>
+                                <div style="font-size:1.4rem;font-weight:800;color:#ede0ff;letter-spacing:.05em;">@order.ConfirmationCode</div>
+                                <div style="font-size:.82rem;color:rgba(210,195,255,.5);margin-top:4px;">
+                                    Đặt lúc @order.OrderDate.ToLocalTime().ToString("HH:mm – dd/MM/yyyy")
+                                </div>
+                            </div>
+                            <span class="status-badge @statusCls" style="margin-top:4px;">@statusLabel</span>
+                        </div>
+                    </div>
+
+                    @* Body *@
+                    <div class="lk-result-body">
+                        <div class="row g-4">
+
+                            @* Left: order details *@
+                            <div class="col-md-8">
+                                @* Customer *@
+                                <div class="info-row"><span class="info-icon">👤</span><span class="info-text"><strong>@order.CustomerName</strong></span></div>
+                                <div class="info-row"><span class="info-icon">📧</span><span class="info-text">@order.CustomerEmail</span></div>
+                                @if (!string.IsNullOrEmpty(order.CustomerPhone))
+                                {
+                                    <div class="info-row"><span class="info-icon">📞</span><span class="info-text">@order.CustomerPhone</span></div>
+                                }
+
+                                @* Event info *@
+                                @if (evt != null)
+                                {
+                                    <div style="margin:1rem 0 .25rem;border-top:1px solid rgba(124,77,255,.12);padding-top:1rem;">
+                                        <div class="info-row"><span class="info-icon">🎟️</span><span class="info-text" style="font-weight:700;color:#ede0ff;">@evt.Title</span></div>
+                                        <div class="info-row"><span class="info-icon">📅</span><span class="info-text">@evt.StartDate.ToLocalTime().ToString("dddd, dd/MM/yyyy · HH:mm")</span></div>
+                                        @if (evt.EndDate.HasValue)
+                                        {
+                                            <div class="info-row"><span class="info-icon">⏰</span><span class="info-text">Kết thúc: @evt.EndDate.Value.ToLocalTime().ToString("HH:mm")</span></div>
+                                        }
+                                        <div class="info-row"><span class="info-icon">📍</span><span class="info-text">@evt.Venue</span></div>
+                                    </div>
+                                }
+
+                                @* Items table *@
+                                <div class="items-title">Chi Tiết Vé</div>
+                                <div style="overflow-x:auto;">
+                                    <table class="items-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Loại Vé</th>
+                                                <th style="text-align:center;">SL</th>
+                                                <th style="text-align:right;">Đơn Giá</th>
+                                                <th style="text-align:right;">Thành Tiền</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in order.OrderItems)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        <span style="color:#ede0ff;font-weight:600;">@(item.TicketType?.Name ?? "—")</span>
+                                                        @if (item.Seat != null)
+                                                        {
+                                                            <br /><span style="font-size:.74rem;color:rgba(210,195,255,.4);">🪑 @item.Seat.Label</span>
+                                                        }
+                                                    </td>
+                                                    <td style="text-align:center;">@item.Quantity</td>
+                                                    <td style="text-align:right;">@item.UnitPrice.ToString("N0")đ</td>
+                                                    <td style="text-align:right;color:#69f0ae;font-weight:600;">@item.Subtotal.ToString("N0")đ</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                @* Summary *@
+                                <div class="summary-box">
+                                    @if (order.DiscountAmount > 0)
+                                    {
+                                        <div class="sum-row">
+                                            <span>Tạm tính</span>
+                                            <span>@order.OriginalAmount.ToString("N0")đ</span>
+                                        </div>
+                                        <div class="sum-row" style="color:#69f0ae;">
+                                            <span>Giảm giá @(order.Coupon != null ? $"({order.Coupon.Code})" : "")</span>
+                                            <span>–@order.DiscountAmount.ToString("N0")đ</span>
+                                        </div>
+                                    }
+                                    <div class="sum-row sum-total">
+                                        <span>Tổng thanh toán</span>
+                                        <span style="color:#69f0ae;">@order.TotalAmount.ToString("N0")đ</span>
+                                    </div>
+                                </div>
+
+                                <div class="mt-3">
+                                    <button class="btn-print" onclick="window.print()">🖨️ In / Lưu PDF</button>
+                                </div>
+                            </div>
+
+                            @* Right: QR code *@
+                            <div class="col-md-4 qr-code-col">
+                                <div class="code-chip">@order.ConfirmationCode</div>
+                                <div class="qr-box">
+                                    <img src="@qrUrl" alt="QR @order.ConfirmationCode" width="180" height="180"
+                                         loading="lazy" style="display:block;" />
+                                </div>
+                                <div class="qr-label">Xuất trình khi vào cổng</div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }
