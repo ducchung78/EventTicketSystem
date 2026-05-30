@@ -70,6 +70,53 @@ public class EmailService(IConfiguration config, IWebHostEnvironment env, ILogge
             .Replace("{{SiteUrl}}",          siteUrl);
     }
 
+    public async Task SendPasswordResetAsync(string toEmail, string resetLink, string userName)
+    {
+        var smtpHost = config["Smtp:Host"];
+        if (string.IsNullOrWhiteSpace(smtpHost) || smtpHost == "smtp.gmail.com" &&
+            (config["Smtp:Username"] == "your-email@gmail.com" || string.IsNullOrWhiteSpace(config["Smtp:Username"])))
+        {
+            logger.LogInformation("SMTP not configured — skipping password reset email to {Email}.", toEmail);
+            return;
+        }
+
+        try
+        {
+            var templatePath = Path.Combine(env.ContentRootPath, "Templates", "Emails", "PasswordReset.html");
+            var template     = await File.ReadAllTextAsync(templatePath);
+            var siteUrl      = config["App:SiteUrl"]?.TrimEnd('/') ?? "http://localhost:8080";
+
+            var html = template
+                .Replace("{{UserName}}",  WebUtility.HtmlEncode(userName))
+                .Replace("{{ResetLink}}", resetLink)
+                .Replace("{{SiteUrl}}",   siteUrl);
+
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(
+                config["Smtp:FromName"] ?? "TicketHub",
+                config["Smtp:FromEmail"] ?? config["Smtp:Username"]!));
+            message.To.Add(new MailboxAddress(userName, toEmail));
+            message.Subject = "[TicketHub] Đặt lại mật khẩu của bạn";
+            message.Body    = new TextPart("html") { Text = html };
+
+            using var client = new SmtpClient();
+            var port    = int.Parse(config["Smtp:Port"] ?? "587");
+            var useSsl  = bool.Parse(config["Smtp:EnableSsl"] ?? "true");
+            var options = useSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None;
+
+            await client.ConnectAsync(smtpHost, port, options);
+            await client.AuthenticateAsync(config["Smtp:Username"], config["Smtp:Password"]);
+            await client.SendAsync(message);
+            await client.DisconnectAsync(true);
+
+            logger.LogInformation("Password reset email sent to {Email}.", toEmail);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to send password reset email to {Email}.", toEmail);
+        }
+    }
+
     public async Task SendRefundNotificationAsync(RefundRequest refund, Order order)
     {
         var smtpHost = config["Smtp:Host"];

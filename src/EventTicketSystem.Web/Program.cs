@@ -48,6 +48,10 @@ builder.Services.AddScoped<EventTicketSystem.Web.Services.EmailService>();
 builder.Services.AddScoped<EventTicketSystem.Web.Services.GroqService>();
 builder.Services.AddScoped<EventTicketSystem.Web.Services.RefundService>();
 
+// Password reset token valid for 1 hour
+builder.Services.Configure<Microsoft.AspNetCore.Identity.DataProtectionTokenProviderOptions>(o =>
+    o.TokenLifespan = TimeSpan.FromHours(1));
+
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
