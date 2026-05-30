@@ -37,20 +37,41 @@ public class TicketPredictionService(IServiceScopeFactory scopeFactory)
 
     // ── Public API ────────────────────────────────────────────────────────────
 
-    /// <summary>Primary training entry — must be awaited before calling Predict.</summary>
+    /// <summary>Primary training entry — reads AIConfig from DB, then trains.</summary>
     public async Task EnsureTrainedAsync()
     {
         if (_trained) return;
 
-        var allData = await LoadDataAsync();
+        var cfg     = await LoadConfigAsync();
+        var allData = await LoadDataAsync(cfg.MinTrainingSamples);
 
         lock (_lock)
         {
-            if (_trained) return;   // double-check after acquiring lock
+            if (_trained) return;
             TrainingSampleCount = allData.Count;
-            FitModel(allData);
+            FitModel(allData, cfg.Iterations, cfg.L1Regularization, cfg.L2Regularization);
             _trained = true;
         }
+    }
+
+    /// <summary>Force a full retrain with the supplied config, ignoring _trained flag.</summary>
+    public async Task<(double Mae, double Rmse, double R2)> ForceRetrainAsync(AIConfig cfg)
+    {
+        var allData = await LoadDataAsync(cfg.MinTrainingSamples);
+        lock (_lock)
+        {
+            TrainingSampleCount = allData.Count;
+            FitModel(allData, cfg.Iterations, cfg.L1Regularization, cfg.L2Regularization);
+            _trained = true;
+        }
+        return (_metrics!.MeanAbsoluteError, _metrics.RootMeanSquaredError, _metrics.RSquared);
+    }
+
+    private async Task<AIConfig> LoadConfigAsync()
+    {
+        using var scope = scopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        return await db.AIConfigs.FindAsync(1) ?? new AIConfig();
     }
 
     /// <summary>Sync guard used inside Predict(). Assumes EnsureTrainedAsync was already called.</summary>
@@ -194,13 +215,11 @@ public class TicketPredictionService(IServiceScopeFactory scopeFactory)
 
     // ── Data loading ──────────────────────────────────────────────────────────
 
-    private async Task<List<SalesData>> LoadDataAsync()
+    private async Task<List<SalesData>> LoadDataAsync(int minSamples = 60)
     {
         using var scope = scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        // One row per TicketType that has at least one confirmed sale.
-        // Label = SoldQuantity so the model learns "total tickets sold for a type".
         var rows = await db.TicketTypes
             .Include(tt => tt.Event)
             .Where(tt => tt.SoldQuantity > 0 && tt.TotalQuantity > 0)
@@ -218,24 +237,21 @@ public class TicketPredictionService(IServiceScopeFactory scopeFactory)
         {
             ThangSuKien   = r.StartDate.Month,
             NgayTrongTuan = (float)r.StartDate.DayOfWeek,
-            SoNgayCon     = 0f,            // historical records: event already completed
+            SoNgayCon     = 0f,
             GiaVe         = (float)r.Price,
             TongSoChoNgoi = r.TotalQty,
             DanhMucId     = MapCategory(r.Category),
             SoVeBan       = r.SoldQty
         }).ToList();
 
-        // Supplement with event-based samples when real data is too sparse
-        // for the regression to generalise across the SoNgayCon dimension.
-        const int MinSamples = 60;
-        if (real.Count < MinSamples)
+        if (real.Count < minSamples)
         {
             var events = await db.Events
                 .Include(e => e.TicketTypes)
                 .Where(e => e.TicketTypes.Any(tt => tt.TotalQuantity > 0))
                 .ToListAsync();
 
-            int needed = Math.Max(0, 200 - real.Count);
+            int needed = Math.Max(0, Math.Max(200, minSamples * 3) - real.Count);
             real.AddRange(GenerateEventBasedData(events, needed, seed: 42));
         }
 
@@ -306,14 +322,13 @@ public class TicketPredictionService(IServiceScopeFactory scopeFactory)
 
     // ── ML.NET training pipeline ──────────────────────────────────────────────
 
-    private void FitModel(List<SalesData> allData)
+    private void FitModel(List<SalesData> allData, int iterations = 100, float l1 = 0f, float l2 = 0.1f)
     {
         var rng = new Random(42);
         var shuffled  = allData.OrderBy(_ => rng.Next()).ToList();
         int trainSize = Math.Max(1, (int)(shuffled.Count * 0.8));
 
         var trainList = shuffled.Take(trainSize).ToList();
-        // For tiny datasets keep test = train to avoid empty evaluation
         var testList  = shuffled.Count > 5 ? shuffled.Skip(trainSize).ToList() : trainList;
 
         var trainView = _mlContext.Data.LoadFromEnumerable(trainList);
@@ -329,8 +344,11 @@ public class TicketPredictionService(IServiceScopeFactory scopeFactory)
                 nameof(SalesData.DanhMucId))
             .Append(_mlContext.Transforms.NormalizeMinMax("Features"))
             .Append(_mlContext.Regression.Trainers.Sdca(
-                labelColumnName: "Label",
-                featureColumnName: "Features"));
+                labelColumnName:          "Label",
+                featureColumnName:        "Features",
+                maximumNumberOfIterations: iterations,
+                l1Regularization:          l1 == 0f ? (float?)null : l1,
+                l2Regularization:          l2 == 0f ? (float?)null : l2));
 
         _model            = pipeline.Fit(trainView);
         _predictionEngine = _mlContext.Model.CreatePredictionEngine<SalesData, SalesPrediction>(_model);

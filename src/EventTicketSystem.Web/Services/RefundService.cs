@@ -6,7 +6,6 @@ namespace EventTicketSystem.Web.Services;
 
 public class RefundService(AppDbContext db, EmailService emailService, ILogger<RefundService> logger)
 {
-    // Returns the created RefundRequest, or null + sets errorMessage on failure
     public async Task<(RefundRequest? request, string? errorMessage)> SubmitAsync(
         string confirmationCode,
         string email,
@@ -45,39 +44,20 @@ public class RefundService(AppDbContext db, EmailService emailService, ILogger<R
             CreatedAt   = DateTime.UtcNow
         };
 
-        ApplyAIDecision(refund, order);
+        await ApplyAIDecisionAsync(refund, order);
 
         db.RefundRequests.Add(refund);
 
         if (refund.Status == RefundStatus.AutoApproved)
         {
-            order.Status = OrderStatus.Refunded;
+            order.Status       = OrderStatus.Refunded;
             refund.ProcessedAt = DateTime.UtcNow;
         }
 
         await db.SaveChangesAsync();
-
         await SendEmailAsync(refund, order);
 
         return (refund, null);
-    }
-
-    private static void ApplyAIDecision(RefundRequest refund, Order order)
-    {
-        var minutesSincePurchase = (DateTime.UtcNow - order.OrderDate).TotalMinutes;
-
-        if (minutesSincePurchase <= 60)
-        {
-            refund.Status = RefundStatus.AutoApproved;
-            refund.AutoProcessed = true;
-            refund.AIDecisionReason = refund.Reason == RefundReason.WrongTicket
-                ? $"Mua nhầm vé và yêu cầu trong vòng 1 giờ kể từ khi mua ({minutesSincePurchase:F0} phút) – duyệt tự động theo chính sách."
-                : $"Yêu cầu hoàn vé trong vòng 1 giờ kể từ khi mua ({minutesSincePurchase:F0} phút) – duyệt tự động theo chính sách hoàn 100%.";
-        }
-        else
-        {
-            refund.Status = RefundStatus.Pending;
-        }
     }
 
     public async Task<bool> ApproveAsync(int refundId, string adminId, string? note)
@@ -92,12 +72,10 @@ public class RefundService(AppDbContext db, EmailService emailService, ILogger<R
         refund.ProcessedAt = DateTime.UtcNow;
         refund.ProcessedBy = adminId;
         refund.AdminNote   = note;
-
         refund.Order.Status = OrderStatus.Refunded;
 
         await db.SaveChangesAsync();
         await SendEmailAsync(refund, refund.Order);
-
         return true;
     }
 
@@ -116,19 +94,33 @@ public class RefundService(AppDbContext db, EmailService emailService, ILogger<R
 
         await db.SaveChangesAsync();
         await SendEmailAsync(refund, refund.Order);
-
         return true;
+    }
+
+    // ── AI decision — reads threshold from AIConfig ───────────────────────────
+    private async Task ApplyAIDecisionAsync(RefundRequest refund, Order order)
+    {
+        var config    = await db.AIConfigs.FindAsync(1) ?? new AIConfig();
+        var threshold = config.AutoRefundThresholdMinutes;
+        var minutes   = (DateTime.UtcNow - order.OrderDate).TotalMinutes;
+
+        if (minutes <= threshold)
+        {
+            refund.Status        = RefundStatus.AutoApproved;
+            refund.AutoProcessed = true;
+            refund.AIDecisionReason = refund.Reason == RefundReason.WrongTicket
+                ? $"Mua nhầm vé và yêu cầu trong vòng {threshold} phút kể từ khi mua ({minutes:F0} phút) – duyệt tự động."
+                : $"Yêu cầu hoàn vé trong vòng {threshold} phút kể từ khi mua ({minutes:F0} phút) – duyệt tự động theo chính sách hoàn 100%.";
+        }
+        else
+        {
+            refund.Status = RefundStatus.Pending;
+        }
     }
 
     private async Task SendEmailAsync(RefundRequest refund, Order order)
     {
-        try
-        {
-            await emailService.SendRefundNotificationAsync(refund, order);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to send refund notification email for RefundRequest {Id}.", refund.Id);
-        }
+        try { await emailService.SendRefundNotificationAsync(refund, order); }
+        catch (Exception ex) { logger.LogError(ex, "Failed to send refund email for RefundRequest {Id}.", refund.Id); }
     }
 }

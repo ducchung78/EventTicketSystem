@@ -17,6 +17,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<ChatMessage>   ChatMessages     { get; set; }
     public DbSet<RefundRequest> RefundRequests   { get; set; }
     public DbSet<Seat>          Seats            { get; set; }
+    public DbSet<AIConfig>      AIConfigs        { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -94,6 +95,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             .WithMany()
             .HasForeignKey(oi => oi.SeatId)
             .OnDelete(DeleteBehavior.NoAction);
+
+        // Single-row config with default values seeded at migration time
+        modelBuilder.Entity<AIConfig>().HasData(new AIConfig { Id = 1 });
 
         modelBuilder.Entity<Coupon>()
             .Property(c => c.DiscountPercent).HasPrecision(5, 2);
