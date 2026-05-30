@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Tiếp nhận yêu cầu hoàn vé - TicketHub</title>
+  <style>
+    body { margin:0; padding:0; background:#f4f4f8; font-family:'Segoe UI',Arial,sans-serif; }
+    .wrapper { max-width:600px; margin:32px auto; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,.10); }
+    .header { background:linear-gradient(135deg,#7c4dff 0%,#448aff 100%); padding:36px 32px 28px; text-align:center; }
+    .header-icon { font-size:48px; display:block; margin-bottom:8px; }
+    .header h1 { margin:0; color:#fff; font-size:24px; font-weight:700; }
+    .header p { margin:6px 0 0; color:rgba(255,255,255,.85); font-size:15px; }
+    .body { padding:32px; }
+    .greeting { font-size:16px; color:#333; margin-bottom:20px; }
+    .info-box { background:#f8f9ff; border:1px solid #e0e0ef; border-radius:10px; padding:20px; margin-bottom:20px; }
+    .info-row { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #f0f0f5; font-size:14px; color:#555; }
+    .info-row:last-child { border-bottom:none; }
+    .info-row .lbl { color:#888; }
+    .info-row .val { font-weight:600; color:#222; }
+    .notice { background:#fff8e1; border-left:4px solid #ffc107; border-radius:0 8px 8px 0; padding:14px 16px; font-size:14px; color:#795548; margin-bottom:20px; }
+    .footer { background:#fafafa; padding:24px 32px; text-align:center; border-top:1px solid #eee; }
+    .footer p { margin:4px 0; font-size:12px; color:#aaa; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <span class="header-icon">📋</span>
+      <h1>Đã Tiếp Nhận Yêu Cầu Hoàn Vé</h1>
+      <p>Chúng tôi sẽ xem xét và phản hồi trong 1–3 ngày làm việc</p>
+    </div>
+    <div class="body">
+      <p class="greeting">Xin chào <strong>{{CustomerName}}</strong>,</p>
+      <p style="font-size:15px;color:#555;">Yêu cầu hoàn vé của bạn đã được tiếp nhận. Vui lòng chờ đội ngũ hỗ trợ xem xét.</p>
+
+      <div class="info-box">
+        <div class="info-row"><span class="lbl">Mã đơn hàng</span><span class="val">{{ConfirmationCode}}</span></div>
+        <div class="info-row"><span class="lbl">Lý do hoàn</span><span class="val">{{RefundReason}}</span></div>
+        <div class="info-row"><span class="lbl">Số tiền</span><span class="val">{{TotalAmount}} đ</span></div>
+        <div class="info-row"><span class="lbl">Thời gian gửi</span><span class="val">{{CreatedAt}}</span></div>
+        <div class="info-row"><span class="lbl">Trạng thái</span><span class="val" style="color:#7c4dff;">Đang chờ xử lý</span></div>
+      </div>
+
+      <div class="notice">
+        ⏳ Yêu cầu của bạn đang được xem xét. Chúng tôi sẽ thông báo kết quả qua email này trong 1–3 ngày làm việc.
+      </div>
+
+      <p style="font-size:14px;color:#777;">Nếu cần hỗ trợ khẩn cấp, liên hệ: <a href="mailto:ducchung782004@gmail.com" style="color:#7c4dff;">ducchung782004@gmail.com</a></p>
+    </div>
+    <div class="footer">
+      <p>© 2026 TicketHub. Email này được gửi tự động, vui lòng không trả lời trực tiếp.</p>
+    </div>
+  </div>
+</body>
+</html>

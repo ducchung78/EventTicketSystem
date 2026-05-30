@@ -1,0 +1,282 @@
+@page "{id:int}"
+@model EventTicketSystem.Web.Pages.Events.SelectSeatsModel
+@using EventTicketSystem.Web.Models
+@{
+    ViewData["Title"] = $"Chọn Ghế – {Model.Event?.Title}";
+    var evt = Model.Event!;
+}
+
+<style>
+    .ss-wrap { padding: 1.5rem 0 3rem; }
+    .ss-back { color:rgba(210,195,255,.5); font-size:.85rem; text-decoration:none; margin-bottom:.75rem; display:inline-flex; align-items:center; gap:6px; }
+    .ss-back:hover { color:#ede0ff; }
+    .ss-title { font-size:1.3rem; font-weight:800; color:#ede0ff; margin-bottom:.2rem; }
+    .ss-sub   { color:rgba(210,195,255,.5); font-size:.85rem; margin-bottom:1.5rem; }
+
+    /* Zone tabs */
+    .ss-zone-tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1.25rem; }
+    .ss-zone-tab {
+        padding:7px 18px; border-radius:20px; font-size:.82rem; font-weight:600;
+        cursor:pointer; border:1px solid rgba(124,77,255,.3); background:rgba(124,77,255,.08);
+        color:rgba(210,195,255,.7); transition:all .15s;
+    }
+    .ss-zone-tab.active { background:rgba(124,77,255,.3); border-color:rgba(124,77,255,.6); color:#ede0ff; }
+
+    /* Seat grid */
+    .ss-grid-card {
+        background:rgba(20,10,52,.82); border:1px solid rgba(124,77,255,.28);
+        border-radius:16px; padding:1.5rem; margin-bottom:1rem;
+    }
+    .stage-bar { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:8px; text-align:center; padding:9px; font-size:.75rem; font-weight:700; letter-spacing:.12em; color:rgba(210,195,255,.35); text-transform:uppercase; margin-bottom:1.5rem; }
+
+    .ss-zone-panel { display:none; }
+    .ss-zone-panel.active { display:block; }
+    .ss-zone-price-bar { font-size:.82rem; color:rgba(210,195,255,.5); margin-bottom:1rem; }
+    .ss-zone-price-bar strong { color:#ffd740; }
+
+    .seat-row { display:flex; align-items:center; margin-bottom:5px; gap:4px; flex-wrap:nowrap; overflow-x:auto; }
+    .seat-row-label { width:22px; font-size:.68rem; font-weight:700; color:rgba(210,195,255,.4); text-align:center; flex-shrink:0; }
+    .seat {
+        min-width:30px; height:30px; border-radius:5px; font-size:.62rem; font-weight:700;
+        display:flex; align-items:center; justify-content:center; cursor:pointer;
+        transition:transform .12s; user-select:none; flex-shrink:0; border:1px solid transparent;
+    }
+    .seat-avail    { background:rgba(0,200,83,.2); border-color:rgba(0,200,83,.35); color:#69f0ae; }
+    .seat-avail:hover { background:rgba(0,200,83,.4); transform:scale(1.12); }
+    .seat-sold     { background:rgba(255,255,255,.07); border-color:rgba(255,255,255,.06); color:rgba(210,195,255,.25); cursor:default; }
+    .seat-disabled { background:rgba(229,57,53,.1); border-color:rgba(229,57,53,.2); color:rgba(239,154,154,.3); cursor:default; }
+    .seat-selected { background:rgba(68,138,255,.4); border-color:#448aff; color:#fff; transform:scale(1.1); }
+    .seat-selected:hover { background:rgba(68,138,255,.55); }
+
+    /* Legend */
+    .legend-row { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:1.25rem; }
+    .legend-item { display:flex; align-items:center; gap:6px; font-size:.76rem; color:rgba(210,195,255,.6); }
+    .legend-dot  { width:14px; height:14px; border-radius:3px; }
+    .ld-a { background:rgba(0,200,83,.3); }
+    .ld-s { background:rgba(255,255,255,.1); }
+    .ld-d { background:rgba(229,57,53,.15); }
+    .ld-sel { background:rgba(68,138,255,.5); }
+
+    /* Right panel – summary */
+    .ss-summary-card {
+        background:rgba(20,10,52,.9); border:1px solid rgba(124,77,255,.3);
+        border-radius:16px; padding:1.5rem; position:sticky; top:80px;
+    }
+    .ss-summary-title { font-size:1rem; font-weight:800; color:#ede0ff; margin-bottom:1rem; padding-bottom:.75rem; border-bottom:1px solid rgba(124,77,255,.18); }
+    .ss-seat-list { list-style:none; padding:0; margin:0 0 1rem; min-height:60px; }
+    .ss-seat-chip { display:inline-flex; align-items:center; gap:6px; background:rgba(68,138,255,.15); border:1px solid rgba(68,138,255,.3); border-radius:20px; padding:3px 10px; font-size:.78rem; color:#90caf9; margin:3px; }
+    .ss-chip-del { cursor:pointer; color:rgba(239,154,154,.7); font-size:.85rem; }
+    .ss-chip-del:hover { color:#ef9a9a; }
+    .ss-total-row { display:flex; justify-content:space-between; font-size:.88rem; color:rgba(210,195,255,.65); margin-bottom:6px; }
+    .ss-total-final { display:flex; justify-content:space-between; font-size:1.05rem; font-weight:700; color:#ede0ff; border-top:1px solid rgba(124,77,255,.2); padding-top:.75rem; margin-top:.5rem; }
+    .btn-add-cart {
+        width:100%; background:linear-gradient(90deg,#7c4dff,#448aff); border:none;
+        border-radius:12px; color:#fff; font-weight:700; font-size:.95rem;
+        padding:.82rem; margin-top:1rem; cursor:pointer; box-shadow:0 4px 16px rgba(124,77,255,.35);
+        transition:opacity .15s;
+    }
+    .btn-add-cart:hover:not(:disabled) { opacity:.87; }
+    .btn-add-cart:disabled { opacity:.4; cursor:default; }
+    .ss-empty-note { font-size:.82rem; color:rgba(210,195,255,.35); text-align:center; padding:1rem 0; }
+
+    @if (TempData["SeatError"] is string) {
+        @:.ss-err-banner { display:block !important; }
+    }
+    .ss-err-banner {
+        display:none; background:rgba(229,57,53,.1); border:1px solid rgba(229,57,53,.25);
+        border-radius:10px; padding:10px 16px; color:#ef9a9a; font-size:.88rem; margin-bottom:1rem;
+    }
+</style>
+
+<div class="container-xl px-3 px-md-4 ss-wrap">
+
+    <a href="/Events/Details/@evt.Id" class="ss-back">← @evt.Title</a>
+    <div class="ss-title">🪑 Chọn Ghế</div>
+    <div class="ss-sub">Nhấp vào ghế trống để chọn. Tối đa 10 ghế mỗi lần.</div>
+
+    @if (TempData["SeatError"] is string seatErr)
+    {
+        <div class="ss-err-banner" style="display:block;">⚠️ @seatErr</div>
+    }
+
+    <div class="row g-3">
+        @* ── Left: seat grid ── *@
+        <div class="col-lg-8">
+            @* Zone tabs *@
+            <div class="ss-zone-tabs">
+                @{int zi = 0;}
+                @foreach (var zone in Model.SeatsByZone.Keys)
+                {
+                    var zoneSeats = Model.SeatsByZone[zone];
+                    var tt = zoneSeats.First().TicketType;
+                    <button class="ss-zone-tab @(zi == 0 ? "active" : "")" onclick="switchZone('@zone', this)" type="button">
+                        @zone @(tt != null ? $"· {tt.Price.ToString("N0")}đ" : "")
+                    </button>
+                    zi++;
+                }
+            </div>
+
+            @* Legend *@
+            <div class="legend-row">
+                <div class="legend-item"><div class="legend-dot ld-a"></div>Trống</div>
+                <div class="legend-item"><div class="legend-dot ld-s"></div>Đã bán</div>
+                <div class="legend-item"><div class="legend-dot ld-d"></div>Vô hiệu</div>
+                <div class="legend-item"><div class="legend-dot ld-sel"></div>Đang chọn</div>
+            </div>
+
+            @* Seat zones *@
+            <div class="ss-grid-card">
+                <div class="stage-bar">— Sân Khấu / Màn Hình —</div>
+                @{int zIdx = 0;}
+                @foreach (var (zone, zoneSeats) in Model.SeatsByZone)
+                {
+                    var tt = zoneSeats.First().TicketType;
+                    var rows = zoneSeats.GroupBy(s => s.RowLabel).OrderBy(g => g.Key);
+                    <div class="ss-zone-panel @(zIdx == 0 ? "active" : "")" id="ss-zone-@zone">
+                        @if (tt != null)
+                        {
+                            <div class="ss-zone-price-bar">Khu <strong>@zone</strong> · @tt.Name · <strong>@tt.Price.ToString("N0")đ</strong>/ghế</div>
+                        }
+                        @foreach (var rowGrp in rows)
+                        {
+                            <div class="seat-row">
+                                <div class="seat-row-label">@rowGrp.Key</div>
+                                @foreach (var seat in rowGrp.OrderBy(s => s.SeatNumber))
+                                {
+                                    if (seat.Status == SeatStatus.Sold)
+                                    {
+                                        <div class="seat seat-sold" title="@seat.Label – Đã bán">@seat.SeatNumber</div>
+                                    }
+                                    else if (seat.Status == SeatStatus.Disabled)
+                                    {
+                                        <div class="seat seat-disabled" title="@seat.Label – Vô hiệu">@seat.SeatNumber</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="seat seat-avail"
+                                             id="cs-@seat.Id"
+                                             data-id="@seat.Id"
+                                             data-label="@seat.Label"
+                                             data-price="@seat.TicketType?.Price.ToString("0", System.Globalization.CultureInfo.InvariantCulture)"
+                                             data-zone="@zone"
+                                             title="@seat.Label"
+                                             onclick="toggleSelectSeat(this)">@seat.SeatNumber</div>
+                                    }
+                                }
+                            </div>
+                        }
+                    </div>
+                    zIdx++;
+                }
+            </div>
+        </div>
+
+        @* ── Right: Summary ── *@
+        <div class="col-lg-4">
+            <div class="ss-summary-card">
+                <div class="ss-summary-title">🛒 Ghế Đã Chọn</div>
+                <div id="seatChips">
+                    <div class="ss-empty-note" id="emptyNote">Chưa chọn ghế nào</div>
+                </div>
+                <div id="priceBreakdown" style="display:none;">
+                    <div class="ss-total-row">
+                        <span>Số ghế</span>
+                        <span id="seatCount">0</span>
+                    </div>
+                    <div class="ss-total-final">
+                        <span>Tổng cộng</span>
+                        <span id="totalPrice" style="color:#69f0ae;">0đ</span>
+                    </div>
+                </div>
+
+                <form method="post" asp-page-handler="AddToCart" id="addCartForm">
+                    <input type="hidden" name="eventId" value="@evt.Id" />
+                    <input type="hidden" name="selectedSeatIds" id="selectedSeatIds" />
+                    <button type="submit" class="btn-add-cart" id="btnAddCart" disabled>
+                        🛒 Thêm Vào Giỏ Hàng
+                    </button>
+                </form>
+
+                <div style="margin-top:.75rem;font-size:.75rem;color:rgba(210,195,255,.3);text-align:center;">
+                    Tối đa 10 ghế · Ghế được giữ trong giỏ 15 phút
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const selected = new Map(); // seatId → { label, price }
+
+function switchZone(zone, btn) {
+    document.querySelectorAll('.ss-zone-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.ss-zone-tab').forEach(b => b.classList.remove('active'));
+    document.getElementById('ss-zone-' + zone)?.classList.add('active');
+    btn.classList.add('active');
+}
+
+function toggleSelectSeat(el) {
+    const id    = parseInt(el.dataset.id);
+    const label = el.dataset.label;
+    const price = parseFloat(el.dataset.price) || 0;
+
+    if (selected.has(id)) {
+        selected.delete(id);
+        el.classList.remove('seat-selected');
+        el.classList.add('seat-avail');
+    } else {
+        if (selected.size >= 10) {
+            alert('Bạn chỉ có thể chọn tối đa 10 ghế.');
+            return;
+        }
+        selected.set(id, { label, price });
+        el.classList.remove('seat-avail');
+        el.classList.add('seat-selected');
+    }
+    updateSummary();
+}
+
+function removeSeat(id) {
+    selected.delete(id);
+    const el = document.getElementById('cs-' + id);
+    if (el) { el.classList.remove('seat-selected'); el.classList.add('seat-avail'); }
+    updateSummary();
+}
+
+function updateSummary() {
+    const chips      = document.getElementById('seatChips');
+    const emptyNote  = document.getElementById('emptyNote');
+    const breakdown  = document.getElementById('priceBreakdown');
+    const countEl    = document.getElementById('seatCount');
+    const totalEl    = document.getElementById('totalPrice');
+    const btn        = document.getElementById('btnAddCart');
+    const hiddenIds  = document.getElementById('selectedSeatIds');
+
+    const ids = [...selected.keys()];
+    hiddenIds.value = ids.join(',');
+
+    // Remove old chips
+    chips.querySelectorAll('.ss-seat-chip').forEach(c => c.remove());
+    if (emptyNote) emptyNote.style.display = ids.length === 0 ? 'block' : 'none';
+
+    let total = 0;
+    ids.forEach(id => {
+        const { label, price } = selected.get(id);
+        total += price;
+        const chip = document.createElement('span');
+        chip.className = 'ss-seat-chip';
+        chip.innerHTML = `${label} <span class="ss-chip-del" onclick="removeSeat(${id})">✕</span>`;
+        chips.appendChild(chip);
+    });
+
+    if (ids.length > 0) {
+        breakdown.style.display = 'block';
+        countEl.textContent = ids.length;
+        totalEl.textContent = total.toLocaleString('vi') + 'đ';
+    } else {
+        breakdown.style.display = 'none';
+    }
+
+    btn.disabled = ids.length === 0;
+}
+</script>

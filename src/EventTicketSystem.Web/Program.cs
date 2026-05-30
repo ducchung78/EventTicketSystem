@@ -46,6 +46,7 @@ builder.Services.AddSingleton<TicketPredictionService>();
 builder.Services.AddScoped<EventTicketSystem.Web.Services.CartService>();
 builder.Services.AddScoped<EventTicketSystem.Web.Services.EmailService>();
 builder.Services.AddScoped<EventTicketSystem.Web.Services.GroqService>();
+builder.Services.AddScoped<EventTicketSystem.Web.Services.RefundService>();
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>

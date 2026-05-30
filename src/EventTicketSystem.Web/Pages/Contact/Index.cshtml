@@ -134,6 +134,53 @@
         transition: opacity .15s;
     }
     .btn-to-mailbox:hover { opacity: .87; color: #fff; }
+
+    /* ── Refund section ── */
+    .refund-section { margin-top: 2.5rem; }
+    .refund-section-title {
+        font-size: 1.35rem; font-weight: 800; color: #ede0ff; margin-bottom: .3rem;
+    }
+    .refund-section-sub { color: rgba(210,195,255,.5); font-size: .88rem; margin-bottom: 1.25rem; }
+    .refund-form-card {
+        background: rgba(20,10,52,.82);
+        border: 1px solid rgba(124,77,255,.28);
+        border-radius: 18px; backdrop-filter: blur(16px);
+        padding: 2rem 2rem 1.75rem;
+    }
+    .refund-form-card .form-label {
+        color: rgba(220,210,255,.85); font-weight: 600; font-size: .85rem; margin-bottom: .3rem;
+    }
+    .refund-form-card .form-control,
+    .refund-form-card .form-select {
+        background: rgba(255,255,255,.05);
+        border: 1.5px solid rgba(124,77,255,.25);
+        border-radius: 10px; color: #ede0ff; font-size: .92rem;
+        transition: border-color .18s, box-shadow .18s;
+    }
+    .refund-form-card .form-select option { background: #1a0a40; color: #ede0ff; }
+    .refund-form-card .form-control::placeholder { color: rgba(210,195,255,.3); }
+    .refund-form-card .form-control:focus,
+    .refund-form-card .form-select:focus {
+        background: rgba(255,255,255,.07);
+        border-color: rgba(255,167,38,.55);
+        box-shadow: 0 0 0 3px rgba(255,167,38,.12);
+        color: #ede0ff;
+    }
+    .refund-form-card textarea.form-control { resize: vertical; min-height: 100px; }
+    .btn-refund-send {
+        width: 100%; background: linear-gradient(90deg,#ff6d00,#ffa726);
+        border: none; border-radius: 12px; color: #fff;
+        font-weight: 700; font-size: 1rem; padding: .82rem;
+        box-shadow: 0 4px 18px rgba(255,109,0,.3);
+        transition: opacity .2s, transform .15s; cursor: pointer;
+    }
+    .btn-refund-send:hover { opacity: .88; transform: translateY(-1px); }
+
+    .refund-success { text-align: center; padding: 2rem 1.5rem; }
+    .refund-success-icon { font-size: 3rem; margin-bottom: .75rem; display: block; animation: popIn .4s cubic-bezier(.34,1.56,.64,1) both; }
+    .refund-success-title { font-size: 1.3rem; font-weight: 800; margin-bottom: .5rem; }
+    .refund-success-sub   { color: rgba(210,195,255,.6); font-size: .9rem; }
+    .badge-ai-auto { display:inline-block; background:linear-gradient(90deg,#7c4dff,#448aff); color:#fff; font-size:.78rem; font-weight:700; padding:3px 12px; border-radius:20px; }
 </style>
 
 <div class="container-xl px-3 px-md-4 contact-wrap">
@@ -273,6 +320,130 @@
         </div>
 
     </div>
+
+    @* ── Refund Request section (not shown for Admin) ── *@
+    @if (!Model.IsAdmin)
+    {
+        <div class="refund-section">
+            <h2 class="refund-section-title">🔄 Yêu Cầu Hoàn Vé</h2>
+            <p class="refund-section-sub">Điền thông tin bên dưới để gửi yêu cầu hoàn vé. Một số trường hợp sẽ được duyệt tự động bởi AI.</p>
+
+            <div class="refund-form-card">
+                @if (Model.RefundSent)
+                {
+                    @if (Model.RefundAutoApproved)
+                    {
+                        <div class="refund-success">
+                            <span class="refund-success-icon">🤖✅</span>
+                            <div class="refund-success-title" style="color:#69f0ae;">Yêu cầu đã được duyệt tự động!</div>
+                            <p class="refund-success-sub">
+                                Hệ thống AI đã phê duyệt yêu cầu hoàn vé của bạn. <span class="badge-ai-auto">🤖 AI Tự Duyệt</span><br />
+                                Tiền hoàn sẽ được xử lý trong 3–5 ngày làm việc. Email xác nhận đã được gửi đến hộp thư của bạn.
+                            </p>
+                            <a href="/Contact" class="btn-to-mailbox mt-3" style="background:linear-gradient(90deg,#00c853,#00bcd4);box-shadow:0 3px 16px rgba(0,200,83,.35);">
+                                ✉️ Gửi yêu cầu khác
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="refund-success">
+                            <span class="refund-success-icon">📋</span>
+                            <div class="refund-success-title" style="color:#ffd740;">Yêu cầu đã được tiếp nhận!</div>
+                            <p class="refund-success-sub">
+                                Yêu cầu hoàn vé của bạn đang chờ admin xem xét.<br />
+                                Chúng tôi sẽ phản hồi qua email trong 1–3 ngày làm việc.
+                            </p>
+                            <a href="/Contact" class="btn-to-mailbox mt-3">
+                                🔄 Gửi yêu cầu khác
+                            </a>
+                        </div>
+                    }
+                }
+                else
+                {
+                    var refundErrors = ViewData.ModelState["refund"]?.Errors;
+                    if (refundErrors != null && refundErrors.Count > 0)
+                    {
+                        <div class="alert alert-danger py-2 mb-3 small">
+                            @foreach (var e in refundErrors) { <div>⚠️ @e.ErrorMessage</div> }
+                        </div>
+                    }
+
+                    <form method="post" asp-page-handler="Refund">
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                <label class="form-label">Mã Đơn Hàng <span class="text-danger">*</span></label>
+                                <input asp-for="RefundInput.ConfirmationCode" class="form-control"
+                                       placeholder="VD: AB12CD34" />
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label">Email Đã Đặt Vé <span class="text-danger">*</span></label>
+                                <input asp-for="RefundInput.Email" type="email" class="form-control"
+                                       placeholder="email@example.com" value="@Model.PrefillEmail" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Lý Do Hoàn Vé <span class="text-danger">*</span></label>
+                            <select asp-for="RefundInput.Reason" class="form-select" id="refundReason">
+                                <option value="">-- Chọn lý do --</option>
+                                <option value="WrongTicket">Mua nhầm vé</option>
+                                <option value="ScheduleConflict">Trùng lịch, không thể tham dự</option>
+                                <option value="EventChanged">Sự kiện thay đổi thời gian/địa điểm</option>
+                                <option value="HealthReason">Lý do sức khỏe</option>
+                                <option value="PersonalReason">Lý do cá nhân khác</option>
+                                <option value="Other">Khác (ghi rõ bên dưới)</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">
+                                Mô Tả Chi Tiết
+                                <span id="descRequired" style="color:#ef9a9a;display:none;"> *</span>
+                                <span style="color:rgba(200,185,255,.4);font-size:.78rem;font-weight:400;" id="descOptional">(tùy chọn)</span>
+                            </label>
+                            <textarea asp-for="RefundInput.Description" class="form-control" rows="3"
+                                      placeholder="Mô tả thêm về lý do hoàn vé..." id="refundDesc"></textarea>
+                        </div>
+
+                        <div class="mb-3 p-3" style="background:rgba(255,167,38,.07);border:1px solid rgba(255,167,38,.2);border-radius:10px;font-size:.82rem;color:rgba(210,195,255,.6);">
+                            🤖 <strong style="color:#ffa726;">AI tự duyệt</strong> nếu yêu cầu trong vòng <strong>1 giờ</strong> kể từ khi mua vé. Các trường hợp khác sẽ do admin xét duyệt thủ công trong 1–3 ngày.
+                        </div>
+
+                        <button type="submit" class="btn-refund-send">🔄 Gửi Yêu Cầu Hoàn Vé</button>
+                    </form>
+                }
+            </div>
+        </div>
+    }
+
 </div>
 
-@section Scripts { <partial name="_ValidationScriptsPartial" /> }
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const reasonSel = document.getElementById('refundReason');
+        const descReq   = document.getElementById('descRequired');
+        const descOpt   = document.getElementById('descOptional');
+        const descArea  = document.getElementById('refundDesc');
+
+        function updateDescRequired() {
+            const isOther = reasonSel && reasonSel.value === 'Other';
+            if (descReq) descReq.style.display = isOther ? 'inline' : 'none';
+            if (descOpt) descOpt.style.display  = isOther ? 'none'  : 'inline';
+            if (descArea) descArea.required = isOther;
+        }
+        if (reasonSel) {
+            reasonSel.addEventListener('change', updateDescRequired);
+            updateDescRequired();
+        }
+
+        const codeInput = document.querySelector('input[name="RefundInput.ConfirmationCode"]');
+        if (codeInput) codeInput.addEventListener('input', () => {
+            const pos = codeInput.selectionStart;
+            codeInput.value = codeInput.value.toUpperCase();
+            codeInput.setSelectionRange(pos, pos);
+        });
+    </script>
+}

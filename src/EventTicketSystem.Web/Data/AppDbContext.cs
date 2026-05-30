@@ -15,6 +15,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Coupon> Coupons { get; set; }
     public DbSet<ContactMessage> ContactMessages { get; set; }
     public DbSet<ChatMessage>   ChatMessages     { get; set; }
+    public DbSet<RefundRequest> RefundRequests   { get; set; }
+    public DbSet<Seat>          Seats            { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -49,6 +51,49 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             .WithMany(c => c.Orders)
             .HasForeignKey(o => o.CouponId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<RefundRequest>()
+            .Property(r => r.Status).HasConversion<string>();
+
+        modelBuilder.Entity<RefundRequest>()
+            .Property(r => r.Reason).HasConversion<string>();
+
+        modelBuilder.Entity<RefundRequest>()
+            .HasOne(r => r.Order)
+            .WithMany()
+            .HasForeignKey(r => r.OrderId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<RefundRequest>()
+            .HasOne(r => r.User)
+            .WithMany()
+            .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<Seat>()
+            .Property(s => s.Status).HasConversion<string>();
+
+        modelBuilder.Entity<Seat>()
+            .HasOne(s => s.Event)
+            .WithMany()
+            .HasForeignKey(s => s.EventId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Seat>()
+            .HasOne(s => s.TicketType)
+            .WithMany()
+            .HasForeignKey(s => s.TicketTypeId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Seat>()
+            .HasIndex(s => new { s.EventId, s.Zone, s.RowLabel, s.SeatNumber })
+            .IsUnique();
+
+        modelBuilder.Entity<OrderItem>()
+            .HasOne(oi => oi.Seat)
+            .WithMany()
+            .HasForeignKey(oi => oi.SeatId)
+            .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<Coupon>()
             .Property(c => c.DiscountPercent).HasPrecision(5, 2);

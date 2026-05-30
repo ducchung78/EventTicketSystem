@@ -103,7 +103,16 @@
       "Bash(awk '{print $5}')",
       "Bash(xargs -r taskkill /F /PID)",
       "Bash(taskkill //F //PID 26572)",
-      "PowerShell(Head *)"
+      "PowerShell(Head *)",
+      "Bash(grep -v \"^$\")",
+      "Bash(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\ASUS\\\\EventTicketSystem\\\\src\\\\EventTicketSystem.Web\\\\Templates\\\\Emails\")",
+      "Bash(Out-Null)",
+      "Bash(python3 *)",
+      "Bash(python -c \"from PIL import Image; print\\('PIL OK'\\)\")",
+      "Bash(pip install *)",
+      "Bash(python *)",
+      "Bash(taskkill /F /IM dotnet.exe)",
+      "Bash(grep -v -E \"\\(\\\\\\\\./obj|\\\\\\\\./bin|\\\\\\\\.git|node_modules|\\\\.designer\\\\.cs|AppDbContextModelSnapshot\\)\")"
     ]
   }
 }

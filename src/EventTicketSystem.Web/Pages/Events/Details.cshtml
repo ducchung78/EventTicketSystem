@@ -136,13 +136,27 @@
                 </div>
             </div>
 
-            @* ── Section 3: Thông Tin Vé ── *@
+            @* ── Section 3: Thông Tin Vé / Chọn Ghế ── *@
             <div class="sec-card mb-3" id="ticket-section">
                 <div class="sec-header static">
-                    <h5 class="sec-title mb-0">🎟 Thông Tin Vé</h5>
+                    <h5 class="sec-title mb-0">@(evt.HasSeatMap ? "🪑 Sơ Đồ Ghế" : "🎟 Thông Tin Vé")</h5>
                 </div>
-                <div class="sec-body p-0">
-                    @if (!hasTickets)
+                <div class="sec-body @(evt.HasSeatMap ? "text-center py-4" : "p-0")">
+                    @if (evt.HasSeatMap)
+                    {
+                        <p style="color:rgba(210,195,255,.55);font-size:.9rem;margin-bottom:1.25rem;">
+                            Sự kiện này có sơ đồ ghế. Chọn ghế yêu thích của bạn!
+                        </p>
+                        @if (hasBuyable)
+                        {
+                            <a href="/Events/SelectSeats/@evt.Id" class="btn-buy-green" style="text-decoration:none;display:inline-block;">🪑 Chọn Ghế Ngay</a>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary px-3 py-2">Hết vé</span>
+                        }
+                    }
+                    else if (!hasTickets)
                     {
                         <div class="px-4 py-3 text-muted small">Sự kiện này chưa có loại vé.</div>
                     }
@@ -191,8 +205,9 @@
 
             @if (User.IsInRole("Admin"))
             {
-                <div class="mt-3 pt-3" style="border-top:1px solid rgba(124,77,255,.12);">
-                    <a href="/Events/Edit/@evt.Id" class="btn btn-outline-secondary btn-sm">✏️ Chỉnh sửa sự kiện</a>
+                <div class="mt-3 pt-3 d-flex gap-2 flex-wrap" style="border-top:1px solid rgba(124,77,255,.12);">
+                    <a href="/Events/Edit/@evt.Id" class="btn btn-outline-secondary btn-sm">✏️ Chỉnh sửa</a>
+                    <a href="/Events/SeatMap/@evt.Id" class="btn btn-sm" style="background:rgba(124,77,255,.18);border:1px solid rgba(124,77,255,.4);color:#b388ff;">🗺️ Cấu hình ghế</a>
                 </div>
             }
         </div>
@@ -231,7 +246,14 @@
                             <div class="summary-price">
                                 @(minPrice == 0 ? "Miễn phí" : minPrice.Value.ToString("N0") + "đ")
                             </div>
-                            <button type="button" class="btn-summary-buy" onclick="openFirstTicket()">🎟 Mua Vé Ngay</button>
+                            @if (evt.HasSeatMap)
+                            {
+                                <a href="/Events/SelectSeats/@evt.Id" class="btn-summary-buy" style="text-decoration:none;display:block;text-align:center;">🪑 Chọn Ghế Ngay</a>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn-summary-buy" onclick="openFirstTicket()">🎟 Mua Vé Ngay</button>
+                            }
                         }
                         else if (!hasTickets)
                         {

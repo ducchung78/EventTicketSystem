@@ -1,0 +1,24 @@
+﻿{
+  "permissions": {
+    "allow": [
+      "Bash(docker *)",
+      "Bash(gcloud *)",
+      "Bash(az *)",
+      "Bash(cloudflared *)",
+      "Bash(ngrok *)",
+      "Bash(ssh *)",
+      "Bash(scp *)",
+      "Bash(mkdir *)",
+      "Bash(cd *)",
+      "Bash(ls *)",
+      "Bash(dir *)",
+      "Bash(cat *)",
+      "Bash(npm *)",
+      "Bash(dotnet *)",
+      "Bash(git *)",
+      "Edit",
+      "Write",
+      "Read"
+    ]
+  }
+}

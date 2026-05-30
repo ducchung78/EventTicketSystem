@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Kết quả yêu cầu hoàn vé - TicketHub</title>
+  <style>
+    body { margin:0; padding:0; background:#f4f4f8; font-family:'Segoe UI',Arial,sans-serif; }
+    .wrapper { max-width:600px; margin:32px auto; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,.10); }
+    .header-approved { background:linear-gradient(135deg,#00c853 0%,#00bcd4 100%); padding:36px 32px 28px; text-align:center; }
+    .header-rejected { background:linear-gradient(135deg,#e53935 0%,#c62828 100%); padding:36px 32px 28px; text-align:center; }
+    .header-icon { font-size:48px; display:block; margin-bottom:8px; }
+    .header h1 { margin:0; color:#fff; font-size:24px; font-weight:700; }
+    .header p { margin:6px 0 0; color:rgba(255,255,255,.85); font-size:15px; }
+    .body { padding:32px; }
+    .greeting { font-size:16px; color:#333; margin-bottom:20px; }
+    .info-box { border-radius:10px; padding:20px; margin-bottom:20px; }
+    .info-box-approved { background:#f0fdf4; border:1px solid #a5d6a7; }
+    .info-box-rejected { background:#fff5f5; border:1px solid #ffcdd2; }
+    .info-row { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(0,0,0,.06); font-size:14px; color:#555; }
+    .info-row:last-child { border-bottom:none; }
+    .info-row .lbl { color:#888; }
+    .info-row .val { font-weight:600; color:#222; }
+    .note-box { border-radius:8px; padding:14px 16px; font-size:14px; margin-bottom:20px; }
+    .note-approved { background:#e8f5e9; border-left:4px solid #00c853; color:#2e7d32; }
+    .note-rejected { background:#ffebee; border-left:4px solid #e53935; color:#c62828; }
+    .footer { background:#fafafa; padding:24px 32px; text-align:center; border-top:1px solid #eee; }
+    .footer p { margin:4px 0; font-size:12px; color:#aaa; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header-{{HeaderClass}}">
+      <span class="header-icon">{{HeaderIcon}}</span>
+      <h1>{{HeaderTitle}}</h1>
+      <p>{{HeaderSub}}</p>
+    </div>
+    <div class="body">
+      <p class="greeting">Xin chào <strong>{{CustomerName}}</strong>,</p>
+      <p style="font-size:15px;color:#555;">{{BodyIntro}}</p>
+
+      <div class="info-box info-box-{{HeaderClass}}">
+        <div class="info-row"><span class="lbl">Mã đơn hàng</span><span class="val">{{ConfirmationCode}}</span></div>
+        <div class="info-row"><span class="lbl">Lý do hoàn</span><span class="val">{{RefundReason}}</span></div>
+        <div class="info-row"><span class="lbl">Số tiền</span><span class="val">{{TotalAmount}} đ</span></div>
+        <div class="info-row"><span class="lbl">Ngày xử lý</span><span class="val">{{ProcessedAt}}</span></div>
+        <div class="info-row"><span class="lbl">Trạng thái</span><span class="val">{{RefundStatus}}</span></div>
+      </div>
+
+      {{AdminNoteBlock}}
+
+      <p style="font-size:14px;color:#777;">Nếu có thắc mắc, liên hệ: <a href="mailto:ducchung782004@gmail.com" style="color:#7c4dff;">ducchung782004@gmail.com</a></p>
+    </div>
+    <div class="footer">
+      <p>© 2026 TicketHub. Email này được gửi tự động, vui lòng không trả lời trực tiếp.</p>
+    </div>
+  </div>
+</body>
+</html>

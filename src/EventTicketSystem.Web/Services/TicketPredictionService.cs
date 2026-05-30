@@ -15,8 +15,9 @@ public class TicketPredictionService(IServiceScopeFactory scopeFactory)
     private readonly object _lock = new();
     private volatile bool _trained;
 
-    public RegressionMetrics? ModelMetrics => _metrics;
-    public bool IsTrained => _trained;
+    public RegressionMetrics? ModelMetrics    => _metrics;
+    public bool               IsTrained       => _trained;
+    public int                TrainingSampleCount { get; private set; }
 
     // Maps category strings (Vietnamese or English, any case) → float ID
     private static readonly Dictionary<string, float> CategoryMap =
@@ -46,6 +47,7 @@ public class TicketPredictionService(IServiceScopeFactory scopeFactory)
         lock (_lock)
         {
             if (_trained) return;   // double-check after acquiring lock
+            TrainingSampleCount = allData.Count;
             FitModel(allData);
             _trained = true;
         }
@@ -83,6 +85,111 @@ public class TicketPredictionService(IServiceScopeFactory scopeFactory)
             DanhMucId     = MapCategory(evt.Category)
         };
         return MathF.Min(Predict(input), tt.TotalQuantity);
+    }
+
+    // ── Dynamic Pricing ───────────────────────────────────────────────────────
+
+    /// <summary>Sync variant — call after EnsureTrainedAsync, event already loaded.</summary>
+    public List<PricingSuggestion> SuggestPricingForEvent(Event evt)
+    {
+        float confidence = TrainingSampleCount >= 60 ? 0.8f : 0.4f;
+        return ComputeSuggestions(evt, confidence);
+    }
+
+    /// <summary>Async variant for API use — loads event from DB internally.</summary>
+    public async Task<List<PricingSuggestion>> SuggestPricingAsync(int eventId)
+    {
+        await EnsureTrainedAsync();
+
+        using var scope = scopeFactory.CreateScope();
+        var db  = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var evt = await db.Events
+            .Include(e => e.TicketTypes)
+            .FirstOrDefaultAsync(e => e.Id == eventId);
+
+        if (evt == null) return [];
+
+        float confidence = TrainingSampleCount >= 60 ? 0.8f : 0.4f;
+        return ComputeSuggestions(evt, confidence);
+    }
+
+    private List<PricingSuggestion> ComputeSuggestions(Event evt, float confidence)
+    {
+        var suggestions = new List<PricingSuggestion>();
+
+        foreach (var tt in evt.TicketTypes)
+        {
+            if (tt.TotalQuantity == 0) continue;
+
+            // Free tickets: skip pricing logic
+            if (tt.Price == 0)
+            {
+                suggestions.Add(new PricingSuggestion
+                {
+                    EventId           = evt.Id,
+                    TicketTypeId      = tt.Id,
+                    TicketTypeName    = tt.Name,
+                    CurrentPrice      = 0,
+                    SuggestedPrice    = 0,
+                    ChangePercent     = 0,
+                    Reason            = "Vé miễn phí – không áp dụng điều chỉnh giá.",
+                    Confidence        = confidence,
+                    PredictedFillRate = 0,
+                    PredictedSold     = 0
+                });
+                continue;
+            }
+
+            var predicted = PredictForEvent(evt, tt);
+            var fillRate  = MathF.Min(predicted / tt.TotalQuantity, 1f);
+            int predictedInt = (int)MathF.Round(predicted);
+
+            decimal factor;
+            string  reason;
+
+            if (fillRate < 0.30f)
+            {
+                factor = 0.85m;
+                reason = $"Dự đoán lấp đầy {fillRate * 100:F0}% ({predictedInt}/{tt.TotalQuantity} ghế) — nhu cầu thấp, giảm 15% để kích cầu.";
+            }
+            else if (fillRate < 0.70f)
+            {
+                factor = 1.00m;
+                reason = $"Dự đoán lấp đầy {fillRate * 100:F0}% ({predictedInt}/{tt.TotalQuantity} ghế) — nhu cầu ổn định, giữ nguyên giá.";
+            }
+            else if (fillRate < 0.90f)
+            {
+                factor = 1.10m;
+                reason = $"Dự đoán lấp đầy {fillRate * 100:F0}% ({predictedInt}/{tt.TotalQuantity} ghế) — nhu cầu cao, tăng 10%.";
+            }
+            else
+            {
+                factor = 1.20m;
+                reason = $"Dự đoán lấp đầy {fillRate * 100:F0}% ({predictedInt}/{tt.TotalQuantity} ghế) — nhu cầu rất cao, tăng 20%.";
+            }
+
+            // Round to nearest 1 000 VND
+            var suggested = Math.Round(tt.Price * factor / 1000m, 0, MidpointRounding.AwayFromZero) * 1000m;
+            if (suggested <= 0) suggested = 1000m;
+
+            var changePct = (float)((suggested - tt.Price) / tt.Price * 100m);
+
+            suggestions.Add(new PricingSuggestion
+            {
+                EventId           = evt.Id,
+                TicketTypeId      = tt.Id,
+                TicketTypeName    = tt.Name,
+                CurrentPrice      = tt.Price,
+                SuggestedPrice    = suggested,
+                ChangePercent     = changePct,
+                Reason            = reason,
+                Confidence        = confidence,
+                PredictedFillRate = fillRate,
+                PredictedSold     = predictedInt
+            });
+        }
+
+        return suggestions;
     }
 
     // ── Data loading ──────────────────────────────────────────────────────────

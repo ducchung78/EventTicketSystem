@@ -20,3 +20,17 @@ public class SalesPrediction
     [ColumnName("Score")]
     public float SoVeDuBao { get; set; }
 }
+
+public class PricingSuggestion
+{
+    public int     EventId           { get; set; }
+    public int     TicketTypeId      { get; set; }
+    public string  TicketTypeName    { get; set; } = string.Empty;
+    public decimal CurrentPrice      { get; set; }
+    public decimal SuggestedPrice    { get; set; }
+    public float   ChangePercent     { get; set; }
+    public string  Reason            { get; set; } = string.Empty;
+    public float   Confidence        { get; set; }
+    public float   PredictedFillRate { get; set; }
+    public int     PredictedSold     { get; set; }
+}

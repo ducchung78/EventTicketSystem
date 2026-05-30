@@ -1,112 +1,422 @@
 @page
 @model EventTicketSystem.Web.Pages.AI.AIPredictionModel
+@using EventTicketSystem.Web.Models
 @{
-    ViewData["Title"] = "Dự Đoán AI - Nhu Cầu Vé";
+    ViewData["Title"] = "Phân Tích AI";
 }
 
-<div class="container">
-    <h1 class="mb-2">Dự Đoán AI Nhu Cầu Bán Vé</h1>
-    <p class="text-muted mb-4">Sử dụng ML.NET (SDCA Regression) để dự báo số vé bán dựa trên lịch sử.</p>
+<style>
+    /* ── page shell ── */
+    .ai-wrap { padding: 2rem 0 3rem; }
+    .ai-title { font-size: 1.45rem; font-weight: 800; color: #ede0ff; margin-bottom: .2rem; }
+    .ai-sub   { color: rgba(210,195,255,.45); font-size: .88rem; margin-bottom: 1.5rem; }
 
-    <!-- Model Metrics -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header fw-bold d-flex justify-content-between align-items-center">
-            <span>📊 Chỉ Số Mô Hình</span>
-            @if (Model.IsTrained)
-            {
-                <span class="badge bg-success">Đã Huấn Luyện</span>
-            }
-            else
-            {
-                <span class="badge bg-warning text-dark">Chưa Huấn Luyện</span>
-            }
+    /* ── metric cards ── */
+    .metric-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .metric-card {
+        background: rgba(20,10,52,.82); border: 1px solid rgba(124,77,255,.25);
+        border-radius: 14px; padding: 1.1rem 1.4rem; flex: 1; min-width: 130px; text-align: center;
+    }
+    .metric-num { font-size: 1.75rem; font-weight: 800; line-height: 1; }
+    .metric-lbl { font-size: .7rem; color: rgba(210,195,255,.4); text-transform: uppercase; letter-spacing: .06em; margin-top: 5px; }
+
+    /* ── tabs ── */
+    .ai-tabs { display: flex; gap: 0; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(124,77,255,.2); }
+    .ai-tab {
+        padding: 10px 22px; font-size: .88rem; font-weight: 600;
+        color: rgba(210,195,255,.5); background: none; border: none;
+        border-bottom: 2px solid transparent; cursor: pointer; transition: all .15s;
+    }
+    .ai-tab:hover  { color: rgba(210,195,255,.8); }
+    .ai-tab.active { color: #ede0ff; border-bottom-color: #7c4dff; }
+
+    .ai-tab-pane { display: none; }
+    .ai-tab-pane.active { display: block; }
+
+    /* ── event cards ── */
+    .evt-card {
+        background: rgba(20,10,52,.82); border: 1px solid rgba(124,77,255,.22);
+        border-radius: 14px; margin-bottom: 1rem; overflow: hidden;
+    }
+    .evt-card-hdr {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 12px 18px; border-bottom: 1px solid rgba(124,77,255,.15);
+        flex-wrap: wrap; gap: 8px;
+    }
+    .evt-card-title { font-size: .95rem; font-weight: 700; color: #ede0ff; }
+    .evt-cat-badge  {
+        font-size: .68rem; font-weight: 700; padding: 3px 9px; border-radius: 20px;
+        background: rgba(124,77,255,.2); border: 1px solid rgba(124,77,255,.35); color: #b388ff;
+    }
+    .evt-date       { font-size: .78rem; color: rgba(210,195,255,.4); }
+
+    /* ── forecast table ── */
+    table.ai-table { width: 100%; border-collapse: collapse; }
+    table.ai-table thead th {
+        padding: 9px 14px; font-size: .7rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .06em; color: rgba(124,77,255,.7);
+        border-bottom: 1px solid rgba(124,77,255,.15);
+    }
+    table.ai-table tbody td {
+        padding: 10px 14px; font-size: .84rem;
+        color: rgba(210,195,255,.75); border-bottom: 1px solid rgba(124,77,255,.07);
+        vertical-align: middle;
+    }
+    table.ai-table tbody tr:last-child td { border-bottom: none; }
+
+    .fill-bar { height: 16px; border-radius: 4px; background: rgba(255,255,255,.06); overflow: hidden; min-width: 80px; }
+    .fill-bar-inner { height: 100%; border-radius: 4px; font-size: .65rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+
+    /* ── pricing table ── */
+    .price-change-pos { color: #ef9a9a; font-weight: 700; }
+    .price-change-neg { color: #69f0ae; font-weight: 700; }
+    .price-change-neu { color: rgba(210,195,255,.4); }
+
+    .confidence-bar { height: 8px; border-radius: 4px; background: rgba(255,255,255,.06); overflow: hidden; min-width: 60px; }
+    .confidence-bar-inner { height: 100%; border-radius: 4px; }
+
+    .btn-apply {
+        padding: 5px 14px; border-radius: 8px; font-size: .78rem; font-weight: 600;
+        background: rgba(124,77,255,.15); border: 1px solid rgba(124,77,255,.35);
+        color: #b388ff; cursor: pointer; transition: background .15s, color .15s;
+        white-space: nowrap;
+    }
+    .btn-apply:hover   { background: rgba(124,77,255,.3); color: #ede0ff; }
+    .btn-apply.applied { background: rgba(0,200,83,.12); border-color: rgba(0,200,83,.3); color: #69f0ae; cursor: default; }
+    .btn-apply.loading { opacity: .5; cursor: wait; }
+
+    .btn-apply-all {
+        padding: 7px 20px; border-radius: 10px; font-size: .82rem; font-weight: 700;
+        background: linear-gradient(90deg, #7c4dff, #448aff); border: none;
+        color: #fff; cursor: pointer; box-shadow: 0 3px 12px rgba(124,77,255,.3);
+        transition: opacity .15s;
+    }
+    .btn-apply-all:hover { opacity: .88; }
+
+    .ai-info-box {
+        background: rgba(124,77,255,.06); border: 1px solid rgba(124,77,255,.18);
+        border-radius: 10px; padding: 10px 16px; font-size: .8rem;
+        color: rgba(210,195,255,.55); margin-bottom: 1rem;
+    }
+
+    .no-events { text-align: center; padding: 3rem; color: rgba(210,195,255,.3); }
+    .badge-trained   { background: rgba(0,200,83,.15); border: 1px solid rgba(0,200,83,.3); color: #69f0ae; }
+    .badge-untrained { background: rgba(255,167,38,.12); border: 1px solid rgba(255,167,38,.3); color: #ffa726; }
+    .badge-model {
+        display: inline-block; padding: 3px 12px; border-radius: 20px;
+        font-size: .72rem; font-weight: 700;
+    }
+
+    .toast-ok  { position:fixed; bottom:24px; right:24px; background:#1b5e20; color:#a5d6a7; padding:12px 20px; border-radius:10px; font-size:.85rem; font-weight:600; z-index:9999; animation:fadeIn .2s; }
+    .toast-err { position:fixed; bottom:24px; right:24px; background:#b71c1c; color:#ffcdd2; padding:12px 20px; border-radius:10px; font-size:.85rem; font-weight:600; z-index:9999; animation:fadeIn .2s; }
+    @@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+</style>
+
+<div class="container-xl px-3 px-md-4 ai-wrap">
+
+    <div class="ai-title">🤖 Phân Tích AI</div>
+    <div class="ai-sub">ML.NET SDCA Regression · Dự báo nhu cầu &amp; định giá vé động</div>
+
+    @* ── Model Metrics ── *@
+    <div class="metric-row">
+        <div class="metric-card">
+            <div class="metric-num" style="color:@(Model.IsTrained ? "#69f0ae" : "#ffa726");">
+                @(Model.IsTrained ? "OK" : "—")
+            </div>
+            <div class="metric-lbl">Trạng thái</div>
+            <div class="mt-1">
+                <span class="badge-model @(Model.IsTrained ? "badge-trained" : "badge-untrained")">
+                    @(Model.IsTrained ? "Đã huấn luyện" : "Chưa huấn luyện")
+                </span>
+            </div>
         </div>
-        <div class="card-body">
-            <div class="row text-center g-3">
-                <div class="col-md-4">
-                    <div class="border rounded p-3">
-                        <div class="text-muted small">R² (Độ Chính Xác)</div>
-                        <div class="fs-3 fw-bold text-primary">@Model.R2.ToString("F4")</div>
-                        <div class="text-muted small">Càng gần 1.0 càng tốt</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="border rounded p-3">
-                        <div class="text-muted small">MAE (Sai Số Tuyệt Đối TB)</div>
-                        <div class="fs-3 fw-bold text-warning">@Model.Mae.ToString("F2")</div>
-                        <div class="text-muted small">Sai lệch trung bình (vé)</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="border rounded p-3">
-                        <div class="text-muted small">RMSE (Căn Sai Số Bình Phương)</div>
-                        <div class="fs-3 fw-bold text-danger">@Model.Rmse.ToString("F2")</div>
-                        <div class="text-muted small">Sai lệch toàn phần (vé)</div>
-                    </div>
-                </div>
-            </div>
-            <div class="mt-3 alert alert-info py-2 mb-0">
-                <small>
-                    <strong>Ghi chú:</strong> Mô hình được huấn luyện trên dữ liệu tổng hợp (800 mẫu).
-                    Các đặc trưng: tháng tổ chức, ngày trong tuần, số ngày còn lại, giá vé, sức chứa, danh mục sự kiện.
-                </small>
-            </div>
+        <div class="metric-card">
+            <div class="metric-num" style="color:#448aff;">@Model.R2.ToString("F3")</div>
+            <div class="metric-lbl">R² (Độ chính xác)</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-num" style="color:#ffd740;">@Model.Mae.ToString("F1")</div>
+            <div class="metric-lbl">MAE (sai số TB)</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-num" style="color:#ef9a9a;">@Model.Rmse.ToString("F1")</div>
+            <div class="metric-lbl">RMSE</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-num" style="color:rgba(210,195,255,.7);">@Model.TrainSamples</div>
+            <div class="metric-lbl">Mẫu training</div>
         </div>
     </div>
 
-    <!-- Predictions per event -->
-    <h4 class="mb-3">Dự Báo Cho Từng Sự Kiện</h4>
+    @* ── Tabs ── *@
+    <div class="ai-tabs">
+        <button class="ai-tab active" onclick="switchTab('forecast', this)">📊 Dự Báo Nhu Cầu</button>
+        <button class="ai-tab"       onclick="switchTab('pricing',  this)">💰 Đề Xuất Giá Động</button>
+    </div>
 
-    @foreach (var evt in Model.Predictions)
-    {
-        <div class="card shadow-sm mb-3">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <div>
-                    <span class="badge bg-secondary me-2">@evt.Category</span>
-                    <strong>@evt.EventTitle</strong>
+    @* ══════════════════════════════════════════════════════════════════════════
+       TAB 1 — Forecast
+       ══════════════════════════════════════════════════════════════════════ *@
+    <div class="ai-tab-pane active" id="tab-forecast">
+
+        @if (!Model.Predictions.Any())
+        {
+            <div class="no-events">Không có sự kiện nào đang hoạt động.</div>
+        }
+
+        @foreach (var evt in Model.Predictions)
+        {
+            <div class="evt-card">
+                <div class="evt-card-hdr">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="evt-cat-badge">@evt.Category</span>
+                        <span class="evt-card-title">@evt.EventTitle</span>
+                    </div>
+                    <span class="evt-date">📅 @evt.StartDate.ToLocalTime().ToString("dd/MM/yyyy")</span>
                 </div>
-                <small class="text-muted">📅 @evt.StartDate.ToLocalTime().ToString("dd/MM/yyyy")</small>
-            </div>
-            <div class="card-body p-0">
-                <table class="table table-sm mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Loại Vé</th>
-                            <th class="text-end">Giá</th>
-                            <th class="text-center">Tổng Chỗ</th>
-                            <th class="text-center">Đã Bán</th>
-                            <th class="text-center">AI Dự Báo</th>
-                            <th class="text-center">Tỉ Lệ Dự Báo</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var t in evt.Tickets)
-                        {
-                            var pct = t.TotalQuantity > 0 ? (double)t.Predicted / t.TotalQuantity * 100 : 0;
+                <div style="overflow-x:auto;">
+                    <table class="ai-table">
+                        <thead>
                             <tr>
-                                <td>@t.TicketName</td>
-                                <td class="text-end">@t.Price.ToString("N0") đ</td>
-                                <td class="text-center">@t.TotalQuantity</td>
-                                <td class="text-center">@t.SoldQuantity</td>
-                                <td class="text-center fw-bold text-primary">@t.Predicted</td>
-                                <td class="text-center">
-                                    <div class="progress" style="height:18px">
-                                        <div class="progress-bar @(pct >= 80 ? "bg-danger" : pct >= 50 ? "bg-warning" : "bg-success")"
-                                             style="width:@pct.ToString("F0")%">
-                                            @pct.ToString("F0")%
-                                        </div>
-                                    </div>
-                                </td>
+                                <th>Loại Vé</th>
+                                <th style="text-align:right;">Giá</th>
+                                <th style="text-align:center;">Tổng</th>
+                                <th style="text-align:center;">Đã bán</th>
+                                <th style="text-align:center;">AI Dự báo</th>
+                                <th style="text-align:center;">Tỉ lệ lấp đầy dự báo</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach (var t in evt.Tickets)
+                            {
+                                var pct = t.TotalQuantity > 0 ? (double)t.Predicted / t.TotalQuantity * 100 : 0;
+                                var barColor = pct >= 80 ? "#e53935" : pct >= 50 ? "#ffa726" : "#00c853";
+                                <tr>
+                                    <td style="color:#ede0ff;font-weight:600;">@t.TicketName</td>
+                                    <td style="text-align:right;">@t.Price.ToString("N0") đ</td>
+                                    <td style="text-align:center;">@t.TotalQuantity</td>
+                                    <td style="text-align:center;">@t.SoldQuantity</td>
+                                    <td style="text-align:center;color:#448aff;font-weight:700;">@t.Predicted</td>
+                                    <td>
+                                        <div class="fill-bar">
+                                            <div class="fill-bar-inner" style="width:@pct.ToString("F0", System.Globalization.CultureInfo.InvariantCulture)%;background:@barColor;">
+                                                @pct.ToString("F0")%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
-    }
+        }
+    </div>
 
-    @if (!Model.Predictions.Any())
-    {
-        <div class="alert alert-warning">Không có sự kiện nào đang hoạt động.</div>
-    }
+    @* ══════════════════════════════════════════════════════════════════════════
+       TAB 2 — Dynamic Pricing
+       ══════════════════════════════════════════════════════════════════════ *@
+    <div class="ai-tab-pane" id="tab-pricing">
+
+        <div class="ai-info-box">
+            🤖 Giá đề xuất được tính dựa trên tỉ lệ lấp đầy dự báo: &lt;30% → giảm 15% · 30-70% → giữ nguyên · 70-90% → tăng 10% · &gt;90% → tăng 20%.
+            Làm tròn đến 1.000đ. Độ tin cậy phụ thuộc số mẫu training (@Model.TrainSamples mẫu).
+        </div>
+
+        @if (!Model.Predictions.Any())
+        {
+            <div class="no-events">Không có sự kiện nào đang hoạt động.</div>
+        }
+
+        @foreach (var evt in Model.Predictions)
+        {
+            var hasDiff = evt.Pricing.Any(p => p.ChangePercent != 0);
+            <div class="evt-card">
+                <div class="evt-card-hdr">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="evt-cat-badge">@evt.Category</span>
+                        <span class="evt-card-title">@evt.EventTitle</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="evt-date">📅 @evt.StartDate.ToLocalTime().ToString("dd/MM/yyyy")</span>
+                        @if (hasDiff)
+                        {
+                            <button class="btn-apply-all"
+                                    onclick="applyAll(@evt.EventId, this)"
+                                    data-event-id="@evt.EventId">
+                                ⚡ Áp dụng tất cả
+                            </button>
+                        }
+                    </div>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="ai-table">
+                        <thead>
+                            <tr>
+                                <th>Loại Vé</th>
+                                <th style="text-align:right;">Giá Hiện Tại</th>
+                                <th style="text-align:right;">Giá Đề Xuất</th>
+                                <th style="text-align:center;">% Thay Đổi</th>
+                                <th>Lý Do</th>
+                                <th style="text-align:center;">Độ Tin Cậy</th>
+                                <th style="text-align:center;">Áp Dụng</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in evt.Pricing)
+                            {
+                                var changeCls = p.ChangePercent > 0 ? "price-change-pos"
+                                             : p.ChangePercent < 0 ? "price-change-neg"
+                                             : "price-change-neu";
+                                var changeSign = p.ChangePercent > 0 ? "+" : "";
+                                var confPct    = (int)(p.Confidence * 100);
+                                var confColor  = confPct >= 70 ? "#00c853" : "#ffa726";
+                                var noChange   = p.ChangePercent == 0;
+                                <tr id="row-@p.TicketTypeId">
+                                    <td style="color:#ede0ff;font-weight:600;">@p.TicketTypeName</td>
+                                    <td style="text-align:right;" id="cur-@p.TicketTypeId">
+                                        @p.CurrentPrice.ToString("N0") đ
+                                    </td>
+                                    <td style="text-align:right;color:#ffd740;font-weight:700;">
+                                        @p.SuggestedPrice.ToString("N0") đ
+                                    </td>
+                                    <td style="text-align:center;">
+                                        <span class="@changeCls">@changeSign@p.ChangePercent.ToString("F0")%</span>
+                                    </td>
+                                    <td style="font-size:.78rem;max-width:260px;">@p.Reason</td>
+                                    <td>
+                                        <div class="confidence-bar">
+                                            <div class="confidence-bar-inner"
+                                                 style="width:@confPct%;background:@confColor;"
+                                                 title="@confPct%"></div>
+                                        </div>
+                                        <div style="font-size:.68rem;color:rgba(210,195,255,.4);margin-top:2px;text-align:center;">@confPct%</div>
+                                    </td>
+                                    <td style="text-align:center;">
+                                        @if (noChange)
+                                        {
+                                            <span style="font-size:.75rem;color:rgba(210,195,255,.3);">—</span>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn-apply"
+                                                    id="btn-@p.TicketTypeId"
+                                                    onclick="applyOne(@p.TicketTypeId, @p.SuggestedPrice.ToString("0", System.Globalization.CultureInfo.InvariantCulture), this)">
+                                                Áp dụng
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        @* JSON data for JS batch apply *@
+        <script id="pricingData" type="application/json">
+        @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+            Model.Predictions.ToDictionary(
+                e => e.EventId,
+                e => e.Pricing
+                    .Where(p => p.ChangePercent != 0)
+                    .Select(p => new { p.TicketTypeId, suggestedPrice = p.SuggestedPrice })
+                    .ToList()
+            )
+        ))
+        </script>
+    </div>
+
 </div>
+
+<script>
+// ── Tab switch ────────────────────────────────────────────────────────────────
+function switchTab(name, btn) {
+    document.querySelectorAll('.ai-tab-pane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.ai-tab').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+}
+
+// ── Pricing data ──────────────────────────────────────────────────────────────
+const pricingData = JSON.parse(document.getElementById('pricingData').textContent);
+
+// ── Apply single ──────────────────────────────────────────────────────────────
+async function applyOne(ticketTypeId, newPrice, btn) {
+    if (btn.classList.contains('applied') || btn.classList.contains('loading')) return;
+    btn.classList.add('loading');
+    btn.textContent = '...';
+
+    try {
+        const res = await fetch('/api/ai/apply-pricing', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ticketTypeId, newPrice })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            btn.classList.remove('loading');
+            btn.classList.add('applied');
+            btn.textContent = '✓ Đã áp dụng';
+
+            const curEl = document.getElementById('cur-' + ticketTypeId);
+            if (curEl) curEl.textContent = Number(data.newPrice).toLocaleString('vi') + ' đ';
+
+            showToast('✅ Đã cập nhật giá thành công!', 'ok');
+        } else {
+            throw new Error(data.error || 'Unknown error');
+        }
+    } catch (e) {
+        btn.classList.remove('loading');
+        btn.textContent = 'Áp dụng';
+        showToast('❌ Lỗi: ' + e.message, 'err');
+    }
+}
+
+// ── Apply all for event ───────────────────────────────────────────────────────
+async function applyAll(eventId, masterBtn) {
+    const items = pricingData[eventId];
+    if (!items || items.length === 0) return;
+
+    masterBtn.disabled = true;
+    masterBtn.textContent = '⏳ Đang áp dụng...';
+
+    try {
+        const res = await fetch('/api/ai/apply-pricing/batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(items.map(i => ({ ticketTypeId: i.ticketTypeId, newPrice: i.suggestedPrice })))
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            // Update each row's current price and button
+            for (const r of data.results) {
+                const curEl = document.getElementById('cur-' + r.ticketTypeId);
+                if (curEl) curEl.textContent = Number(r.newPrice).toLocaleString('vi') + ' đ';
+                const btn = document.getElementById('btn-' + r.ticketTypeId);
+                if (btn) { btn.classList.add('applied'); btn.textContent = '✓ Đã áp dụng'; }
+            }
+            masterBtn.textContent = '✓ Đã áp dụng tất cả';
+            showToast(`✅ Đã cập nhật ${data.applied} loại vé!`, 'ok');
+        } else {
+            throw new Error('Batch apply failed');
+        }
+    } catch (e) {
+        masterBtn.disabled = false;
+        masterBtn.textContent = '⚡ Áp dụng tất cả';
+        showToast('❌ Lỗi khi áp dụng hàng loạt.', 'err');
+    }
+}
+
+// ── Toast notification ────────────────────────────────────────────────────────
+function showToast(msg, type) {
+    const el = document.createElement('div');
+    el.className = type === 'ok' ? 'toast-ok' : 'toast-err';
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+}
+</script>

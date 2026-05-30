@@ -1,0 +1,248 @@
+@page
+@model EventTicketSystem.Web.Pages.Admin.RefundRequests.RefundRequestsIndexModel
+@{
+    ViewData["Title"] = "Quản Lý Hoàn Vé";
+}
+@using EventTicketSystem.Web.Models
+
+<style>
+    .rr-wrap { padding: 2rem 0 3rem; }
+    .rr-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:1.5rem; }
+    .rr-title { font-size:1.45rem; font-weight:800; color:#ede0ff; }
+
+    .rr-stat-row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:1.5rem; }
+    .rr-stat {
+        background:rgba(20,10,52,.75); border:1px solid rgba(124,77,255,.22);
+        border-radius:12px; padding:14px 20px; min-width:120px; text-align:center;
+        cursor:pointer; text-decoration:none; transition:border-color .15s;
+    }
+    .rr-stat:hover, .rr-stat.active { border-color:rgba(124,77,255,.55); }
+    .rr-stat-num { font-size:1.8rem; font-weight:800; color:#ede0ff; line-height:1; }
+    .rr-stat-lbl { font-size:.72rem; color:rgba(210,195,255,.45); text-transform:uppercase; letter-spacing:.05em; margin-top:4px; }
+
+    .rr-table-wrap {
+        background:rgba(20,10,52,.82); border:1px solid rgba(124,77,255,.22);
+        border-radius:14px; overflow:hidden;
+    }
+    table.rr-table { width:100%; border-collapse:collapse; }
+    table.rr-table thead th {
+        padding:12px 14px; font-size:.72rem; font-weight:700;
+        text-transform:uppercase; letter-spacing:.06em;
+        color:rgba(124,77,255,.75); border-bottom:1px solid rgba(124,77,255,.2);
+        white-space:nowrap;
+    }
+    table.rr-table tbody tr { border-bottom:1px solid rgba(124,77,255,.08); transition:background .15s; }
+    table.rr-table tbody tr:last-child { border-bottom:none; }
+    table.rr-table tbody tr:hover { background:rgba(124,77,255,.06); }
+    table.rr-table td { padding:12px 14px; font-size:.84rem; color:rgba(210,195,255,.75); vertical-align:middle; }
+
+    .badge-pending  { background:rgba(255,167,38,.15); color:#ffa726; border:1px solid rgba(255,167,38,.3); border-radius:50px; padding:3px 10px; font-size:.72rem; font-weight:700; }
+    .badge-auto     { background:linear-gradient(90deg,rgba(124,77,255,.2),rgba(68,138,255,.2)); color:#b388ff; border:1px solid rgba(124,77,255,.35); border-radius:50px; padding:3px 10px; font-size:.72rem; font-weight:700; }
+    .badge-approved { background:rgba(0,200,83,.15); color:#69f0ae; border:1px solid rgba(0,200,83,.3); border-radius:50px; padding:3px 10px; font-size:.72rem; font-weight:700; }
+    .badge-rejected { background:rgba(229,57,53,.1); color:#ef9a9a; border:1px solid rgba(229,57,53,.25); border-radius:50px; padding:3px 10px; font-size:.72rem; font-weight:700; }
+
+    .btn-approve { padding:5px 14px; border-radius:8px; font-size:.78rem; font-weight:600; background:rgba(0,200,83,.12); border:1px solid rgba(0,200,83,.3); color:#69f0ae; cursor:pointer; transition:background .15s; }
+    .btn-approve:hover { background:rgba(0,200,83,.25); }
+    .btn-reject  { padding:5px 14px; border-radius:8px; font-size:.78rem; font-weight:600; background:rgba(229,57,53,.08); border:1px solid rgba(229,57,53,.25); color:#ef9a9a; cursor:pointer; transition:background .15s; }
+    .btn-reject:hover  { background:rgba(229,57,53,.2); }
+
+    .detail-panel { background:rgba(10,4,30,.55); border-top:1px solid rgba(124,77,255,.12); padding:14px 18px 16px; display:none; }
+    .detail-panel.open { display:block; }
+    .dp-label { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:rgba(124,77,255,.7); margin-bottom:4px; }
+    .dp-value { font-size:.85rem; color:rgba(210,195,255,.8); margin-bottom:10px; line-height:1.5; }
+    .ai-reason-box { background:rgba(124,77,255,.07); border:1px solid rgba(124,77,255,.2); border-radius:8px; padding:10px 14px; font-size:.82rem; color:rgba(185,170,255,.85); margin-bottom:12px; }
+
+    .note-input { width:100%; background:rgba(255,255,255,.05); border:1.5px solid rgba(124,77,255,.25); border-radius:8px; color:#ede0ff; font-size:.84rem; padding:8px 12px; margin-bottom:10px; resize:vertical; min-height:60px; }
+    .note-input:focus { outline:none; border-color:rgba(124,77,255,.55); }
+    .action-row { display:flex; gap:8px; flex-wrap:wrap; }
+
+    .rr-empty { text-align:center; padding:3rem 2rem; color:rgba(210,195,255,.3); }
+    .rr-empty-icon { font-size:2.5rem; margin-bottom:.75rem; display:block; }
+
+    .alert-admin { background:rgba(0,200,83,.1); border:1px solid rgba(0,200,83,.25); border-radius:10px; padding:10px 16px; color:#69f0ae; font-size:.88rem; margin-bottom:1rem; }
+</style>
+
+@* Hidden form for antiforgery tokens *@
+<form id="__afForm" method="post" style="display:none;"></form>
+
+<div class="container-xl px-3 px-md-4 rr-wrap">
+
+    <div class="rr-header">
+        <span class="rr-title">🔄 Quản Lý Hoàn Vé</span>
+        <a href="/Contact" class="btn-approve" style="text-decoration:none;">→ Trang liên hệ</a>
+    </div>
+
+    @if (TempData["AdminMsg"] is string adminMsg)
+    {
+        <div class="alert-admin">✅ @adminMsg</div>
+    }
+
+    @* Stats / filter tabs *@
+    <div class="rr-stat-row">
+        <a href="?filter=All" class="rr-stat @(Model.Filter == "All" ? "active" : "")" style="text-decoration:none;">
+            <div class="rr-stat-num">@(Model.PendingCount + Model.AutoApprovedCount + Model.ApprovedCount + Model.RejectedCount)</div>
+            <div class="rr-stat-lbl">Tất Cả</div>
+        </a>
+        <a href="?filter=Pending" class="rr-stat @(Model.Filter == "Pending" ? "active" : "")" style="text-decoration:none;">
+            <div class="rr-stat-num" style="color:#ffa726;">@Model.PendingCount</div>
+            <div class="rr-stat-lbl">Chờ Duyệt</div>
+        </a>
+        <a href="?filter=AutoApproved" class="rr-stat @(Model.Filter == "AutoApproved" ? "active" : "")" style="text-decoration:none;">
+            <div class="rr-stat-num" style="color:#b388ff;">@Model.AutoApprovedCount</div>
+            <div class="rr-stat-lbl">AI Tự Duyệt</div>
+        </a>
+        <a href="?filter=Approved" class="rr-stat @(Model.Filter == "Approved" ? "active" : "")" style="text-decoration:none;">
+            <div class="rr-stat-num" style="color:#69f0ae;">@Model.ApprovedCount</div>
+            <div class="rr-stat-lbl">Đã Duyệt</div>
+        </a>
+        <a href="?filter=Rejected" class="rr-stat @(Model.Filter == "Rejected" ? "active" : "")" style="text-decoration:none;">
+            <div class="rr-stat-num" style="color:#ef9a9a;">@Model.RejectedCount</div>
+            <div class="rr-stat-lbl">Đã Từ Chối</div>
+        </a>
+    </div>
+
+    @if (!Model.Requests.Any())
+    {
+        <div class="rr-table-wrap">
+            <div class="rr-empty">
+                <span class="rr-empty-icon">📭</span>
+                Không có yêu cầu hoàn vé nào.
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="rr-table-wrap">
+            <table class="rr-table">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Mã Đơn</th>
+                        <th>Email Khách</th>
+                        <th>Lý Do</th>
+                        <th>Thời Gian</th>
+                        <th>Trạng Thái</th>
+                        <th>Hành Động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @{int stt = 1;}
+                @foreach (var r in Model.Requests)
+                {
+                    var reasonLabel = r.Reason switch
+                    {
+                        RefundReason.WrongTicket      => "Mua nhầm vé",
+                        RefundReason.ScheduleConflict => "Trùng lịch",
+                        RefundReason.EventChanged     => "SK thay đổi",
+                        RefundReason.HealthReason     => "Sức khỏe",
+                        RefundReason.PersonalReason   => "Cá nhân",
+                        _                             => "Khác"
+                    };
+
+                    <tr onclick="toggleDetail(@r.Id)" id="row-@r.Id" style="cursor:pointer;">
+                        <td style="color:rgba(210,195,255,.35);width:40px;">@(stt++)</td>
+                        <td><strong style="color:#ede0ff;font-family:monospace;">@r.Order.ConfirmationCode</strong></td>
+                        <td style="font-size:.82rem;">@r.Email</td>
+                        <td>@reasonLabel</td>
+                        <td style="white-space:nowrap;font-size:.8rem;">@r.CreatedAt.ToLocalTime().ToString("HH:mm – dd/MM/yy")</td>
+                        <td>
+                            @switch (r.Status)
+                            {
+                                case RefundStatus.Pending:
+                                    <span class="badge-pending">⏳ Chờ duyệt</span>
+                                    break;
+                                case RefundStatus.AutoApproved:
+                                    <span class="badge-auto" title="@r.AIDecisionReason">🤖 AI Tự Duyệt</span>
+                                    break;
+                                case RefundStatus.Approved:
+                                    <span class="badge-approved">✅ Đã duyệt</span>
+                                    break;
+                                case RefundStatus.Rejected:
+                                    <span class="badge-rejected">❌ Từ chối</span>
+                                    break;
+                            }
+                        </td>
+                        <td onclick="event.stopPropagation()">
+                            @if (r.Status == RefundStatus.Pending)
+                            {
+                                <button class="btn-approve me-1" onclick="showActions(@r.Id)">Xử lý ▼</button>
+                            }
+                            else
+                            {
+                                <span style="font-size:.78rem;color:rgba(210,195,255,.3);">—</span>
+                            }
+                        </td>
+                    </tr>
+                    <tr id="detail-row-@r.Id">
+                        <td colspan="7" style="padding:0;">
+                            <div class="detail-panel" id="detail-@r.Id">
+                                @if (!string.IsNullOrEmpty(r.Description))
+                                {
+                                    <div class="dp-label">Mô tả chi tiết</div>
+                                    <div class="dp-value">@r.Description</div>
+                                }
+                                @if (r.AutoProcessed && !string.IsNullOrEmpty(r.AIDecisionReason))
+                                {
+                                    <div class="ai-reason-box">🤖 <strong>AI:</strong> @r.AIDecisionReason</div>
+                                }
+                                @if (!string.IsNullOrEmpty(r.AdminNote))
+                                {
+                                    <div class="dp-label">Ghi chú Admin</div>
+                                    <div class="dp-value">@r.AdminNote</div>
+                                }
+                                @if (r.ProcessedAt.HasValue)
+                                {
+                                    <div class="dp-label">Xử lý lúc</div>
+                                    <div class="dp-value">@r.ProcessedAt.Value.ToLocalTime().ToString("HH:mm – dd/MM/yyyy")</div>
+                                }
+                                @if (r.Status == RefundStatus.Pending)
+                                {
+                                    <div id="actions-@r.Id" style="display:none;margin-top:10px;">
+                                        <div class="dp-label">Ghi chú (tùy chọn)</div>
+                                        <textarea class="note-input" id="note-@r.Id" placeholder="Nhập lý do duyệt hoặc từ chối..."></textarea>
+                                        <div class="action-row">
+                                            <form method="post" asp-page-handler="Approve" style="display:inline;">
+                                                <input type="hidden" name="id" value="@r.Id" />
+                                                <input type="hidden" name="note" id="noteApprove-@r.Id" />
+                                                <button type="submit" class="btn-approve"
+                                                        onclick="document.getElementById('noteApprove-@r.Id').value=document.getElementById('note-@r.Id').value"
+                                                        onsubmit="return confirm('Duyệt yêu cầu hoàn vé này?')">
+                                                    ✅ Duyệt
+                                                </button>
+                                            </form>
+                                            <form method="post" asp-page-handler="Reject" style="display:inline;">
+                                                <input type="hidden" name="id" value="@r.Id" />
+                                                <input type="hidden" name="note" id="noteReject-@r.Id" />
+                                                <button type="submit" class="btn-reject"
+                                                        onclick="document.getElementById('noteReject-@r.Id').value=document.getElementById('note-@r.Id').value">
+                                                    ❌ Từ Chối
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<script>
+function toggleDetail(id) {
+    const panel = document.getElementById('detail-' + id);
+    if (!panel) return;
+    const isOpen = panel.classList.contains('open');
+    document.querySelectorAll('.detail-panel.open').forEach(el => el.classList.remove('open'));
+    if (!isOpen) panel.classList.add('open');
+}
+function showActions(id) {
+    const panel = document.getElementById('detail-' + id);
+    if (panel) panel.classList.add('open');
+    const actions = document.getElementById('actions-' + id);
+    if (actions) actions.style.display = 'block';
+}
+</script>

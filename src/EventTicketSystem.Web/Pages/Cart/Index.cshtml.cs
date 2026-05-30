@@ -101,13 +101,13 @@ public class CartIndexModel(
                 .Include(t => t.Event)
                 .FirstOrDefaultAsync(t => t.Id == item.TicketTypeId);
 
-            if (ticketType == null || ticketType.AvailableQuantity < item.Quantity)
+            if (ticketType == null)
             {
-                TempData["Error"] = $"Vé '{item.TicketTypeName}' không còn đủ số lượng.";
+                TempData["Error"] = $"Vé '{item.TicketTypeName}' không hợp lệ.";
                 return RedirectToPage();
             }
 
-            var itemTotal = item.Price * item.Quantity;
+            var itemTotal    = item.Price * item.Quantity;
             var itemDiscount = Math.Round(itemTotal * discountRatio, 0);
 
             var order = new Order
@@ -123,14 +123,49 @@ public class CartIndexModel(
                 CouponId          = coupon?.Id
             };
 
-            order.OrderItems.Add(new OrderItem
+            if (item.HasSeats)
             {
-                TicketTypeId = ticketType.Id,
-                Quantity     = item.Quantity,
-                UnitPrice    = item.Price
-            });
+                // Seat-based: validate and lock each seat
+                var seats = await db.Seats
+                    .Where(s => item.SeatIds.Contains(s.Id) && s.EventId == item.EventId)
+                    .ToListAsync();
 
-            ticketType.SoldQuantity += item.Quantity;
+                if (seats.Count != item.SeatIds.Count || seats.Any(s => s.Status != SeatStatus.Available))
+                {
+                    TempData["Error"] = $"Một hoặc nhiều ghế cho '{item.TicketTypeName}' đã bị đặt. Vui lòng chọn lại.";
+                    return RedirectToPage();
+                }
+
+                foreach (var seat in seats)
+                {
+                    order.OrderItems.Add(new OrderItem
+                    {
+                        TicketTypeId = ticketType.Id,
+                        Quantity     = 1,
+                        UnitPrice    = item.Price,
+                        SeatId       = seat.Id
+                    });
+                    seat.Status = SeatStatus.Sold;
+                }
+                ticketType.SoldQuantity += seats.Count;
+            }
+            else
+            {
+                if (ticketType.AvailableQuantity < item.Quantity)
+                {
+                    TempData["Error"] = $"Vé '{item.TicketTypeName}' không còn đủ số lượng.";
+                    return RedirectToPage();
+                }
+
+                order.OrderItems.Add(new OrderItem
+                {
+                    TicketTypeId = ticketType.Id,
+                    Quantity     = item.Quantity,
+                    UnitPrice    = item.Price
+                });
+                ticketType.SoldQuantity += item.Quantity;
+            }
+
             db.Orders.Add(order);
             await db.SaveChangesAsync();
             orderIds.Add(order.Id);

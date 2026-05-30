@@ -6,7 +6,8 @@ public enum OrderStatus
 {
     Pending,
     Confirmed,
-    Cancelled
+    Cancelled,
+    Refunded
 }
 
 public class Order

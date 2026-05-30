@@ -50,4 +50,13 @@ public class CartService
     public void ClearCart(ISession session) => session.Remove(CartKey);
 
     public int GetCartCount(ISession session) => GetCart(session).Sum(c => c.Quantity);
+
+    // For seat-based items: replace same TicketType+Event entry with new seat selection
+    public void AddSeatedItemToCart(ISession session, CartItem newItem)
+    {
+        var cart = GetCart(session);
+        cart.RemoveAll(c => c.TicketTypeId == newItem.TicketTypeId && c.EventId == newItem.EventId && c.HasSeats);
+        cart.Add(newItem);
+        SaveCart(session, cart);
+    }
 }

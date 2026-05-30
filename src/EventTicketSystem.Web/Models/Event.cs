@@ -31,6 +31,8 @@ public class Event
 
     public bool IsSpecial { get; set; } = false;
 
+    public bool HasSeatMap { get; set; } = false;
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<TicketType> TicketTypes { get; set; } = new List<TicketType>();

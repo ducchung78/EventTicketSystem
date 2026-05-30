@@ -64,6 +64,7 @@ public class EventsApiController(AppDbContext db) : ControllerBase
             evt.Venue,
             evt.Category,
             evt.IsActive,
+            evt.HasSeatMap,
             TicketTypes = evt.TicketTypes.Select(t => new
             {
                 t.Id,
@@ -75,5 +76,43 @@ public class EventsApiController(AppDbContext db) : ControllerBase
                 t.AvailableQuantity
             })
         });
+    }
+
+    [HttpGet("{id:int}/seats")]
+    public async Task<IActionResult> GetSeats(int id)
+    {
+        var evt = await db.Events.FindAsync(id);
+        if (evt == null) return NotFound();
+        if (!evt.HasSeatMap) return Ok(new { eventId = id, hasMap = false, zones = Array.Empty<object>() });
+
+        var seats = await db.Seats
+            .Include(s => s.TicketType)
+            .Where(s => s.EventId == id)
+            .OrderBy(s => s.Zone).ThenBy(s => s.RowLabel).ThenBy(s => s.SeatNumber)
+            .ToListAsync();
+
+        var zones = seats
+            .GroupBy(s => s.Zone)
+            .Select(zg => new
+            {
+                zone          = zg.Key,
+                ticketTypeId  = zg.First().TicketTypeId,
+                ticketTypeName= zg.First().TicketType?.Name,
+                price         = zg.First().TicketType?.Price ?? 0,
+                rows          = zg.GroupBy(s => s.RowLabel)
+                    .Select(rg => new
+                    {
+                        row   = rg.Key,
+                        seats = rg.Select(s => new
+                        {
+                            s.Id,
+                            s.SeatNumber,
+                            label  = s.Label,
+                            status = s.Status.ToString()
+                        })
+                    })
+            });
+
+        return Ok(new { eventId = id, hasMap = true, zones });
     }
 }

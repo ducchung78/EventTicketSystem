@@ -15,4 +15,7 @@ public class OrderItem
     public decimal UnitPrice { get; set; }
 
     public decimal Subtotal => UnitPrice * Quantity;
+
+    public int? SeatId { get; set; }
+    public Seat? Seat { get; set; }
 }
