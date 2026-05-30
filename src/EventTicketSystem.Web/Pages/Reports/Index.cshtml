@@ -1,125 +1,220 @@
 @page
 @model EventTicketSystem.Web.Pages.Reports.ReportsIndexModel
 @{
-    ViewData["Title"] = "Báo Cáo Doanh Thu";
-    var fromVal = Model.FromDate?.ToString("yyyy-MM-dd") ?? "";
-    var toVal   = Model.ToDate?.ToString("yyyy-MM-dd") ?? "";
+    ViewData["Title"] = "Báo Cáo";
+    var fromVal    = Model.FromDate?.ToString("yyyy-MM-dd") ?? "";
+    var toVal      = Model.ToDate?.ToString("yyyy-MM-dd")   ?? "";
     bool isFiltered = Model.FromDate.HasValue || Model.ToDate.HasValue;
 }
 
 <div class="container-fluid px-2">
-    <h1 class="mb-4">Báo Cáo Doanh Thu</h1>
+    <h1 class="mb-3">📊 Báo Cáo &amp; Phân Tích</h1>
 
-    <!-- Date Filter -->
-    <form method="get" class="card shadow-sm mb-4">
-        <div class="card-body py-3">
-            <div class="row g-3 align-items-end">
-                <div class="col-sm-4">
-                    <label class="form-label fw-semibold mb-1">Từ ngày</label>
-                    <input type="date" name="fromDate" class="form-control" value="@fromVal" />
-                </div>
-                <div class="col-sm-4">
-                    <label class="form-label fw-semibold mb-1">Đến ngày</label>
-                    <input type="date" name="toDate" class="form-control" value="@toVal" />
-                </div>
-                <div class="col-sm-4 d-flex gap-2">
-                    <button type="submit" class="btn btn-success flex-fill">Áp dụng</button>
+    @* ── Tab nav ── *@
+    <ul class="nav nav-tabs mb-4" id="reportTabs">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-revenue" type="button">
+                💰 Doanh Thu
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-ai" type="button" id="aiTabBtn">
+                🤖 So Sánh AI
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+
+        @* ══════════════════ TAB 1 — Revenue ══════════════════ *@
+        <div class="tab-pane fade show active" id="tab-revenue">
+
+            <!-- Date Filter -->
+            <form method="get" class="card shadow-sm mb-4">
+                <div class="card-body py-3">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-sm-4">
+                            <label class="form-label fw-semibold mb-1">Từ ngày</label>
+                            <input type="date" name="fromDate" class="form-control" value="@fromVal" />
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label fw-semibold mb-1">Đến ngày</label>
+                            <input type="date" name="toDate" class="form-control" value="@toVal" />
+                        </div>
+                        <div class="col-sm-4 d-flex gap-2">
+                            <button type="submit" class="btn btn-success flex-fill">Áp dụng</button>
+                            @if (isFiltered)
+                            {
+                                <a href="/Reports" class="btn btn-outline-secondary flex-fill">Reset</a>
+                            }
+                        </div>
+                    </div>
                     @if (isFiltered)
                     {
-                        <a href="/Reports" class="btn btn-outline-secondary flex-fill">Reset</a>
+                        <div class="mt-2">
+                            <span class="badge bg-success">Khoảng: @Model.PeriodLabel</span>
+                        </div>
                     }
                 </div>
-            </div>
-            @if (isFiltered)
-            {
-                <div class="mt-2">
-                    <span class="badge bg-success">Khoảng: @Model.PeriodLabel</span>
-                </div>
-            }
-        </div>
-    </form>
+            </form>
 
-    <!-- Summary Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="card text-white bg-success shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-white-50 small">Tổng Doanh Thu</div>
-                            <div class="fs-4 fw-bold">@Model.TongDoanhThu.ToString("N0") đ</div>
+            <!-- Summary Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="card text-white bg-success shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-white-50 small">Tổng Doanh Thu</div>
+                                    <div class="fs-4 fw-bold">@Model.TongDoanhThu.ToString("N0") đ</div>
+                                </div>
+                                <span class="display-6 opacity-50">💰</span>
+                            </div>
                         </div>
-                        <span class="display-6 opacity-50">💰</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-white bg-primary shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-white-50 small">Tổng Đơn Hàng</div>
+                                    <div class="fs-4 fw-bold">@Model.TongDonHang</div>
+                                </div>
+                                <span class="display-6 opacity-50">📋</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-white bg-warning shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-dark small">Tổng Vé Bán Ra</div>
+                                    <div class="fs-4 fw-bold text-dark">@Model.TongVeBan</div>
+                                </div>
+                                <span class="display-6 opacity-50">🎟</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts row 1 -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-8">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header fw-bold">
+                            Doanh Thu Theo Ngày
+                            <small class="text-muted fw-normal ms-1">(@Model.PeriodLabel)</small>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartDay" height="120"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header fw-bold">
+                            Doanh Thu Theo Tháng
+                            <small class="text-muted fw-normal ms-1">(@Model.PeriodLabel)</small>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartMonth" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart row 2 -->
+            <div class="row g-4">
+                <div class="col-md-8">
+                    <div class="card shadow-sm">
+                        <div class="card-header fw-bold">
+                            Doanh Thu Theo Sự Kiện (Top 8)
+                            <small class="text-muted fw-normal ms-1">(@Model.PeriodLabel)</small>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartEvent" height="120"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-primary shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-white-50 small">Tổng Đơn Hàng</div>
-                            <div class="fs-4 fw-bold">@Model.TongDonHang</div>
+
+        @* ══════════════════ TAB 2 — AI Comparison ══════════════════ *@
+        <div class="tab-pane fade" id="tab-ai">
+
+            <!-- Date filter for AI tab -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body py-3">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-sm-4">
+                            <label class="form-label fw-semibold mb-1">Từ ngày dự báo</label>
+                            <input type="date" id="aiFrom" class="form-control"
+                                   value="@DateTime.Now.AddMonths(-6).ToString("yyyy-MM-dd")" />
                         </div>
-                        <span class="display-6 opacity-50">📋</span>
+                        <div class="col-sm-4">
+                            <label class="form-label fw-semibold mb-1">Đến ngày</label>
+                            <input type="date" id="aiTo" class="form-control"
+                                   value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                        </div>
+                        <div class="col-sm-4">
+                            <button class="btn btn-primary w-100" onclick="loadAIData()">🔍 Áp dụng</button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-warning shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-dark small">Tổng Vé Bán Ra</div>
-                            <div class="fs-4 fw-bold text-dark">@Model.TongVeBan</div>
-                        </div>
-                        <span class="display-6 opacity-50">🎟</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Charts row 1 -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-8">
-            <div class="card shadow-sm h-100">
-                <div class="card-header fw-bold">
-                    Doanh Thu Theo Ngày
-                    <small class="text-muted fw-normal ms-1">(@Model.PeriodLabel)</small>
-                </div>
-                <div class="card-body">
-                    <canvas id="chartDay" height="120"></canvas>
-                </div>
+            <!-- Loading spinner -->
+            <div id="aiLoading" class="text-center py-5" style="display:none;">
+                <div class="spinner-border text-primary" role="status"></div>
+                <div class="mt-2 text-muted small">Đang tải dữ liệu dự báo...</div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-header fw-bold">
-                    Doanh Thu Theo Tháng
-                    <small class="text-muted fw-normal ms-1">(@Model.PeriodLabel)</small>
-                </div>
-                <div class="card-body">
-                    <canvas id="chartMonth" height="200"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Chart row 2 -->
-    <div class="row g-4">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-header fw-bold">
-                    Doanh Thu Theo Sự Kiện (Top 8)
-                    <small class="text-muted fw-normal ms-1">(@Model.PeriodLabel)</small>
+            <!-- Error -->
+            <div id="aiError" class="alert alert-danger" style="display:none;"></div>
+
+            <!-- Chart -->
+            <div id="aiChartWrap" class="card shadow-sm mb-4" style="display:none;">
+                <div class="card-header fw-bold d-flex justify-content-between align-items-center">
+                    <span>📊 Biểu Đồ So Sánh Vé Bán: Thực Tế vs AI Dự Báo</span>
+                    <small class="text-muted fw-normal" id="aiChartSubtitle"></small>
                 </div>
                 <div class="card-body">
-                    <canvas id="chartEvent" height="120"></canvas>
+                    <canvas id="chartAI" height="100"></canvas>
                 </div>
             </div>
+
+            <!-- Table -->
+            <div id="aiTableWrap" class="card shadow-sm" style="display:none;">
+                <div class="card-header fw-bold">📋 Chi Tiết So Sánh</div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="aiTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Sự Kiện</th>
+                                <th>Ngày</th>
+                                <th class="text-center">Vé Thực Tế</th>
+                                <th class="text-center">Vé Dự Báo</th>
+                                <th class="text-center">Sai Lệch</th>
+                                <th class="text-end">DT Thực Tế</th>
+                                <th class="text-end">DT Dự Báo</th>
+                                <th class="text-center">Trạng Thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="aiTableBody"></tbody>
+                        <tfoot id="aiTableFoot" class="table-light fw-bold"></tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <div id="aiEmpty" class="text-center text-muted py-5" style="display:none;">
+                <div style="font-size:2.5rem;margin-bottom:.5rem;">🤖</div>
+                Chưa có dữ liệu dự báo nào. Hãy để trang chạy một lúc để hệ thống ghi log.
+            </div>
+
         </div>
     </div>
 </div>
@@ -127,61 +222,157 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
-        const dayLabels   = @Html.Raw(Model.DayLabels);
-        const dayData     = @Html.Raw(Model.DayData);
-        const monthLabels = @Html.Raw(Model.MonthLabels);
-        const monthData   = @Html.Raw(Model.MonthData);
-        const eventLabels = @Html.Raw(Model.EventLabels);
-        const eventData   = @Html.Raw(Model.EventData);
+    // ── Revenue charts ─────────────────────────────────────────────────────────
+    const dayLabels   = @Html.Raw(Model.DayLabels);
+    const dayData     = @Html.Raw(Model.DayData);
+    const monthLabels = @Html.Raw(Model.MonthLabels);
+    const monthData   = @Html.Raw(Model.MonthData);
+    const eventLabels = @Html.Raw(Model.EventLabels);
+    const eventData   = @Html.Raw(Model.EventData);
 
-        new Chart(document.getElementById('chartDay'), {
-            type: 'line',
-            data: {
-                labels: dayLabels,
-                datasets: [{
-                    label: 'Doanh thu (đ)',
-                    data: dayData,
-                    borderColor: 'rgb(25,135,84)',
-                    backgroundColor: 'rgba(25,135,84,0.1)',
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { display: false } } }
-        });
+    new Chart(document.getElementById('chartDay'), {
+        type: 'line',
+        data: {
+            labels: dayLabels,
+            datasets: [{ label: 'Doanh thu (đ)', data: dayData, borderColor: 'rgb(25,135,84)', backgroundColor: 'rgba(25,135,84,0.1)', fill: true, tension: 0.4 }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } } }
+    });
 
-        new Chart(document.getElementById('chartMonth'), {
+    new Chart(document.getElementById('chartMonth'), {
+        type: 'bar',
+        data: {
+            labels: monthLabels,
+            datasets: [{ label: 'Doanh thu (đ)', data: monthData, backgroundColor: 'rgba(13,110,253,0.7)' }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+
+    new Chart(document.getElementById('chartEvent'), {
+        type: 'bar',
+        data: {
+            labels: eventLabels,
+            datasets: [{ label: 'Doanh thu (đ)', data: eventData, backgroundColor: ['rgba(255,99,132,0.7)','rgba(54,162,235,0.7)','rgba(255,205,86,0.7)','rgba(75,192,192,0.7)','rgba(153,102,255,0.7)','rgba(255,159,64,0.7)','rgba(25,135,84,0.7)','rgba(220,53,69,0.7)'] }]
+        },
+        options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false } } }
+    });
+
+    // ── AI Comparison ──────────────────────────────────────────────────────────
+    let aiChart = null;
+    let aiLoaded = false;
+
+    // Auto-load when tab is shown
+    document.getElementById('aiTabBtn').addEventListener('shown.bs.tab', () => {
+        if (!aiLoaded) loadAIData();
+    });
+
+    async function loadAIData() {
+        const from = document.getElementById('aiFrom').value;
+        const to   = document.getElementById('aiTo').value;
+
+        show('aiLoading');
+        hide('aiError'); hide('aiChartWrap'); hide('aiTableWrap'); hide('aiEmpty');
+
+        try {
+            const url = `/api/reports/ai-comparison?from=${from}&to=${to}`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(await res.text());
+            const { items } = await res.json();
+
+            if (!items || items.length === 0) { show('aiEmpty'); hide('aiLoading'); return; }
+
+            renderChart(items);
+            renderTable(items);
+            show('aiChartWrap'); show('aiTableWrap');
+            document.getElementById('aiChartSubtitle').textContent = `${items.length} sự kiện`;
+            aiLoaded = true;
+        } catch(e) {
+            document.getElementById('aiError').textContent = '❌ Lỗi tải dữ liệu: ' + e.message;
+            show('aiError');
+        } finally {
+            hide('aiLoading');
+        }
+    }
+
+    function renderChart(items) {
+        const labels    = items.map(i => shortTitle(i.eventTitle));
+        const predicted = items.map(i => i.predictedTickets);
+        const actual    = items.map(i => i.actualTickets ?? null);
+
+        if (aiChart) aiChart.destroy();
+        aiChart = new Chart(document.getElementById('chartAI'), {
             type: 'bar',
             data: {
-                labels: monthLabels,
-                datasets: [{
-                    label: 'Doanh thu (đ)',
-                    data: monthData,
-                    backgroundColor: 'rgba(13,110,253,0.7)'
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { display: false } } }
-        });
-
-        new Chart(document.getElementById('chartEvent'), {
-            type: 'bar',
-            data: {
-                labels: eventLabels,
-                datasets: [{
-                    label: 'Doanh thu (đ)',
-                    data: eventData,
-                    backgroundColor: [
-                        'rgba(255,99,132,0.7)','rgba(54,162,235,0.7)','rgba(255,205,86,0.7)',
-                        'rgba(75,192,192,0.7)','rgba(153,102,255,0.7)','rgba(255,159,64,0.7)',
-                        'rgba(25,135,84,0.7)','rgba(220,53,69,0.7)'
-                    ]
-                }]
+                labels,
+                datasets: [
+                    { label: 'Thực Tế', data: actual,    backgroundColor: 'rgba(25,135,84,0.75)',  borderColor: 'rgba(25,135,84,1)',  borderWidth: 1 },
+                    { label: 'AI Dự Báo', data: predicted, backgroundColor: 'rgba(255,109,0,0.65)', borderColor: 'rgba(255,109,0,1)', borderWidth: 1 }
+                ]
             },
             options: {
-                indexAxis: 'y',
                 responsive: true,
-                plugins: { legend: { display: false } }
+                plugins: { legend: { position: 'top' }, tooltip: {
+                    callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw?.toLocaleString('vi') ?? 'N/A'} vé` }
+                }},
+                scales: { y: { beginAtZero: true, title: { display: true, text: 'Số vé' } } }
             }
         });
+    }
+
+    function renderTable(items) {
+        const tbody = document.getElementById('aiTableBody');
+        const tfoot = document.getElementById('aiTableFoot');
+        tbody.innerHTML = '';
+
+        let sumActual = 0, sumPredicted = 0, sumActualRev = 0, sumPredRev = 0;
+
+        items.forEach(i => {
+            const hasActual  = i.actualTickets !== null;
+            const err        = i.errorPct;
+            const errClass   = !err ? '' : Math.abs(err) <= 10 ? 'text-success' : Math.abs(err) <= 25 ? 'text-warning' : 'text-danger';
+            const errSign    = err > 0 ? '+' : '';
+            const errLabel   = err !== null ? `${errSign}${err.toFixed(1)}%` : '—';
+
+            sumPredicted += i.predictedTickets;
+            if (hasActual) sumActual += i.actualTickets;
+            if (i.actualRevenue) sumActualRev += i.actualRevenue;
+            if (i.predictedRevenue) sumPredRev += i.predictedRevenue;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="fw-semibold">${esc(i.eventTitle)}</td>
+                <td class="text-muted small">${i.eventDate}</td>
+                <td class="text-center fw-bold ${hasActual ? 'text-success' : 'text-muted'}">${hasActual ? i.actualTickets.toLocaleString('vi') : '—'}</td>
+                <td class="text-center" style="color:#ff6d00;">${i.predictedTickets.toLocaleString('vi')}</td>
+                <td class="text-center fw-bold ${errClass}">${errLabel}</td>
+                <td class="text-end">${i.actualRevenue !== null ? fmtMoney(i.actualRevenue) : '—'}</td>
+                <td class="text-end" style="color:#ff6d00;">${fmtMoney(i.predictedRevenue)}</td>
+                <td class="text-center">${i.hasEnded
+                    ? '<span class="badge bg-secondary">Đã kết thúc</span>'
+                    : '<span class="badge bg-success">Đang mở</span>'}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        const hasAnyActual = items.some(i => i.actualTickets !== null);
+        tfoot.innerHTML = `
+            <tr>
+                <td colspan="2">Tổng cộng</td>
+                <td class="text-center">${hasAnyActual ? sumActual.toLocaleString('vi') : '—'}</td>
+                <td class="text-center" style="color:#ff6d00;">${sumPredicted.toLocaleString('vi')}</td>
+                <td></td>
+                <td class="text-end">${hasAnyActual ? fmtMoney(sumActualRev) : '—'}</td>
+                <td class="text-end" style="color:#ff6d00;">${fmtMoney(sumPredRev)}</td>
+                <td></td>
+            </tr>`;
+    }
+
+    function fmtMoney(v) {
+        return v > 0 ? Number(v).toLocaleString('vi') + ' đ' : '0 đ';
+    }
+    function shortTitle(t) { return t.length > 20 ? t.slice(0, 18) + '…' : t; }
+    function esc(s) { return s.replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function show(id) { document.getElementById(id).style.display = ''; }
+    function hide(id) { document.getElementById(id).style.display = 'none'; }
     </script>
 }

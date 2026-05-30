@@ -18,6 +18,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<RefundRequest> RefundRequests   { get; set; }
     public DbSet<Seat>          Seats            { get; set; }
     public DbSet<AIConfig>      AIConfigs        { get; set; }
+    public DbSet<PredictionLog> PredictionLogs   { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -98,6 +99,16 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 
         // Single-row config with default values seeded at migration time
         modelBuilder.Entity<AIConfig>().HasData(new AIConfig { Id = 1 });
+
+        modelBuilder.Entity<PredictionLog>()
+            .Property(p => p.PredictedRevenue).HasPrecision(18, 2);
+        modelBuilder.Entity<PredictionLog>()
+            .Property(p => p.ActualRevenue).HasPrecision(18, 2);
+        modelBuilder.Entity<PredictionLog>()
+            .HasOne(p => p.Event).WithMany()
+            .HasForeignKey(p => p.EventId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<PredictionLog>()
+            .HasIndex(p => new { p.EventId, p.PredictedAt });
 
         modelBuilder.Entity<Coupon>()
             .Property(c => c.DiscountPercent).HasPrecision(5, 2);

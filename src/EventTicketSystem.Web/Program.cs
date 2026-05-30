@@ -50,6 +50,7 @@ builder.Services.AddScoped<EventTicketSystem.Web.Services.CartService>();
 builder.Services.AddScoped<EventTicketSystem.Web.Services.EmailService>();
 builder.Services.AddScoped<EventTicketSystem.Web.Services.GroqService>();
 builder.Services.AddScoped<EventTicketSystem.Web.Services.RefundService>();
+builder.Services.AddScoped<EventTicketSystem.Web.Services.PredictionLogService>();
 
 // Password reset token valid for 1 hour
 builder.Services.Configure<Microsoft.AspNetCore.Identity.DataProtectionTokenProviderOptions>(o =>
