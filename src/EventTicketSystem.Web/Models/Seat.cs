@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace EventTicketSystem.Web.Models;
 
 public enum SeatStatus { Available, Sold, Disabled, Reserved }
+public enum SeatType   { Normal, VIP, Couple, Empty }
 
 public class Seat
 {
@@ -22,9 +23,15 @@ public class Seat
 
     public int SeatNumber { get; set; }
 
-    public SeatStatus Status { get; set; } = SeatStatus.Available;
+    public SeatStatus Status       { get; set; } = SeatStatus.Available;
+    public SeatType   SeatType     { get; set; } = SeatType.Normal;
+    public int        GridRow      { get; set; }
+    public int        GridCol      { get; set; }
+    public DateTime?  ReservedUntil { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    public string Label => $"{Zone}-{RowLabel}{SeatNumber}";
+    public string Label => SeatType == SeatType.Couple
+        ? $"{RowLabel}{SeatNumber}-{RowLabel}{SeatNumber + 1}"
+        : $"{RowLabel}{SeatNumber}";
 }

@@ -3,84 +3,122 @@
 @using EventTicketSystem.Web.Models
 @{
     ViewData["Title"] = $"Sơ Đồ Ghế – {Model.Event?.Title}";
-    var evt     = Model.Event!;
+    var evt      = Model.Event!;
     var hasSeats = Model.Seats.Count > 0;
+    var imgUrl   = evt.ImageUrl ?? "";
 }
 
 <style>
-    .sm-wrap { padding: 2rem 0 3rem; }
-    .sm-back { color:rgba(210,195,255,.5); font-size:.85rem; text-decoration:none; margin-bottom:1rem; display:inline-flex; align-items:center; gap:6px; }
-    .sm-back:hover { color:#ede0ff; }
-    .sm-header { font-size:1.45rem; font-weight:800; color:#ede0ff; margin-bottom:.25rem; }
-    .sm-sub { color:rgba(210,195,255,.5); font-size:.88rem; margin-bottom:1.5rem; }
+/* ── Layout ── */
+.sm-wrap  { padding: 2rem 0 4rem; }
+.sm-back  { color:rgba(210,195,255,.5); font-size:.85rem; text-decoration:none; margin-bottom:1rem; display:inline-flex; align-items:center; gap:6px; }
+.sm-back:hover { color:#ede0ff; }
+.sm-header { font-size:1.4rem; font-weight:800; color:#ede0ff; margin-bottom:.2rem; }
+.sm-sub   { color:rgba(210,195,255,.4); font-size:.85rem; margin-bottom:1.5rem; }
 
-    /* Config card */
-    .sm-card {
-        background:rgba(20,10,52,.82); border:1px solid rgba(124,77,255,.28);
-        border-radius:16px; padding:1.75rem 2rem; margin-bottom:1.5rem;
-    }
-    .sm-card-title { font-size:1rem; font-weight:700; color:#ede0ff; margin-bottom:1.25rem; padding-bottom:.75rem; border-bottom:1px solid rgba(124,77,255,.18); }
+.sm-card {
+    background:rgba(20,10,52,.82);
+    border:1px solid rgba(124,77,255,.28);
+    border-radius:16px; padding:1.5rem 1.75rem; margin-bottom:1.25rem;
+}
+.sm-card-title { font-size:1rem; font-weight:700; color:#ede0ff; margin-bottom:1.25rem; padding-bottom:.75rem; border-bottom:1px solid rgba(124,77,255,.18); }
 
-    /* Zone table */
-    .zone-table { width:100%; border-collapse:collapse; margin-bottom:1rem; }
-    .zone-table th { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:rgba(124,77,255,.75); padding:8px 10px; text-align:left; border-bottom:1px solid rgba(124,77,255,.2); }
-    .zone-table td { padding:7px 8px; vertical-align:middle; }
-    .zone-table input, .zone-table select {
-        background:rgba(255,255,255,.05); border:1.5px solid rgba(124,77,255,.25); border-radius:8px;
-        color:#ede0ff; font-size:.88rem; padding:6px 10px; width:100%;
-    }
-    .zone-table input:focus, .zone-table select:focus { outline:none; border-color:rgba(124,77,255,.55); }
-    .zone-table select option { background:#1a0a40; }
-    .zone-table .td-del { width:40px; text-align:center; }
-    .btn-del-zone { background:none; border:none; color:rgba(239,154,154,.6); font-size:1.1rem; cursor:pointer; padding:4px 8px; border-radius:6px; }
-    .btn-del-zone:hover { background:rgba(229,57,53,.12); color:#ef9a9a; }
+/* ── Alert ── */
+.sm-ok  { background:rgba(0,200,83,.1); border:1px solid rgba(0,200,83,.25); border-radius:10px; padding:10px 16px; color:#69f0ae; font-size:.88rem; margin-bottom:1rem; }
+.sm-err { background:rgba(229,57,53,.1); border:1px solid rgba(229,57,53,.25); border-radius:10px; padding:10px 16px; color:#ef9a9a; font-size:.88rem; margin-bottom:1rem; }
 
-    .btn-add-zone { background:rgba(124,77,255,.1); border:1px solid rgba(124,77,255,.3); border-radius:8px; color:rgba(179,136,255,.9); font-size:.84rem; font-weight:600; padding:7px 16px; cursor:pointer; transition:background .15s; }
-    .btn-add-zone:hover { background:rgba(124,77,255,.22); }
+/* ── Config row ── */
+.cfg-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:12px; margin-bottom:1.25rem; }
+.cfg-item label { display:block; font-size:.72rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:rgba(124,77,255,.8); margin-bottom:5px; }
+.cfg-item input, .cfg-item select {
+    width:100%; background:rgba(255,255,255,.05); border:1.5px solid rgba(124,77,255,.25);
+    border-radius:8px; color:#ede0ff; font-size:.88rem; padding:7px 10px; outline:none;
+}
+.cfg-item input:focus, .cfg-item select:focus { border-color:rgba(124,77,255,.55); }
+.cfg-item select option { background:#1a0a40; }
 
-    .btn-generate { background:linear-gradient(90deg,#7c4dff,#448aff); border:none; border-radius:10px; color:#fff; font-weight:700; font-size:.92rem; padding:10px 28px; cursor:pointer; box-shadow:0 3px 14px rgba(124,77,255,.35); transition:opacity .15s; }
-    .btn-generate:hover { opacity:.88; }
+.btn-generate {
+    background:linear-gradient(90deg,#7c4dff,#448aff); border:none; border-radius:10px;
+    color:#fff; font-weight:700; font-size:.9rem; padding:9px 24px; cursor:pointer;
+    box-shadow:0 3px 14px rgba(124,77,255,.35); transition:opacity .15s;
+}
+.btn-generate:hover { opacity:.88; }
+.btn-save {
+    background:linear-gradient(90deg,#00c853,#00bfa5); border:none; border-radius:10px;
+    color:#fff; font-weight:700; font-size:.9rem; padding:9px 24px; cursor:pointer;
+    box-shadow:0 3px 14px rgba(0,200,83,.3); transition:opacity .15s;
+}
+.btn-save:hover { opacity:.88; }
+.btn-reset-sm {
+    background:rgba(229,57,53,.1); border:1px solid rgba(229,57,53,.3); border-radius:8px;
+    color:#ef9a9a; font-size:.82rem; font-weight:600; padding:7px 18px; cursor:pointer;
+}
+.btn-reset-sm:hover { background:rgba(229,57,53,.2); }
 
-    /* Seat grid */
-    .legend-row { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:1.25rem; align-items:center; }
-    .legend-item { display:flex; align-items:center; gap:6px; font-size:.78rem; color:rgba(210,195,255,.65); }
-    .legend-dot { width:16px; height:16px; border-radius:4px; }
-    .ld-avail   { background:#00c853; }
-    .ld-sold    { background:rgba(255,255,255,.15); }
-    .ld-dis     { background:rgba(229,57,53,.5); border:1px solid rgba(229,57,53,.4); }
+/* ── Legend ── */
+.legend-row { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:1.25rem; align-items:center; }
+.legend-item { display:flex; align-items:center; gap:7px; font-size:.78rem; color:rgba(210,195,255,.65); }
+.l-dot { width:22px; height:22px; border-radius:5px; flex-shrink:0; }
+.l-normal { background:rgba(149,117,205,.3); border:2px solid rgba(149,117,205,.65); }
+.l-vip    { background:rgba(233,30,99,.2);   border:2px solid rgba(233,30,99,.55); }
+.l-couple { background:rgba(149,117,205,.3); border:2px solid rgba(149,117,205,.65); width:46px; border-radius:5px; }
+.l-empty  { background:transparent; border:2px dashed rgba(255,255,255,.2); }
 
-    .zone-tab-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1.25rem; }
-    .zone-tab { padding:6px 16px; border-radius:20px; font-size:.82rem; font-weight:600; cursor:pointer; border:1px solid rgba(124,77,255,.3); background:rgba(124,77,255,.08); color:rgba(210,195,255,.7); transition:all .15s; }
-    .zone-tab.active { background:rgba(124,77,255,.25); border-color:rgba(124,77,255,.55); color:#ede0ff; }
+/* ── Screen bar (curved arc) ── */
+.screen-wrap { text-align:center; margin-bottom:1.75rem; }
+.screen-arc {
+    display:inline-block; width:60%; max-width:480px; height:14px;
+    background:linear-gradient(90deg, transparent 0%, rgba(68,138,255,.4) 25%, rgba(68,138,255,.8) 50%, rgba(68,138,255,.4) 75%, transparent 100%);
+    border-radius:50% 50% 0 0 / 100% 100% 0 0;
+}
+.screen-label { display:block; font-size:.7rem; font-weight:700; letter-spacing:.18em; color:rgba(210,195,255,.3); text-transform:uppercase; margin-top:8px; }
 
-    .stage-bar { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1); border-radius:8px; text-align:center; padding:8px; font-size:.75rem; font-weight:700; letter-spacing:.12em; color:rgba(210,195,255,.35); text-transform:uppercase; margin-bottom:1.25rem; }
+/* ── Seat grid ── */
+.grid-scroll { overflow-x:auto; padding-bottom:8px; }
+.grid-rows   { display:inline-flex; flex-direction:column; gap:4px; min-width:max-content; }
+.grid-row    { display:flex; align-items:center; gap:4px; }
+.row-lbl     { width:22px; font-size:.68rem; font-weight:700; color:rgba(210,195,255,.4); text-align:center; flex-shrink:0; }
 
-    .seat-zone-panel { display:none; }
-    .seat-zone-panel.active { display:block; }
+/* ── Seat cell ── */
+.sc {
+    width:36px; height:36px; border-radius:6px; position:relative; overflow:hidden;
+    flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    border:2px solid transparent; cursor:pointer; user-select:none;
+    transition:transform .1s, opacity .1s;
+}
+.sc:hover:not(.sc-empty) { transform:scale(1.12); }
+.sc.couple   { width:76px; }
+.sc-normal   { background:rgba(149,117,205,.25); border-color:rgba(149,117,205,.6); }
+.sc-vip      { background:rgba(233,30,99,.18); border-color:rgba(233,30,99,.55); }
+.sc-couple   { background:rgba(149,117,205,.25); border-color:rgba(149,117,205,.6); }
+.sc-empty    { background:transparent; border-color:rgba(255,255,255,.1); border-style:dashed; cursor:default; }
+.sc-avail    { background:rgba(0,200,83,.2); border-color:rgba(0,200,83,.4); }
+.sc-sold     { background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.06); cursor:default; }
+.sc-disabled { background:rgba(229,57,53,.18); border-color:rgba(229,57,53,.35); }
+.sc-reserved { background:rgba(255,167,38,.18); border-color:rgba(255,167,38,.35); cursor:default; }
 
-    .seat-row { display:flex; align-items:center; margin-bottom:6px; gap:5px; }
-    .seat-row-label { width:24px; font-size:.72rem; font-weight:700; color:rgba(210,195,255,.4); text-align:center; flex-shrink:0; }
-    .seat {
-        width:32px; height:32px; border-radius:5px; font-size:.65rem; font-weight:700;
-        display:flex; align-items:center; justify-content:center; cursor:pointer;
-        transition:transform .12s, opacity .12s; user-select:none; flex-shrink:0;
-        border:1px solid transparent;
-    }
-    .seat:hover:not(.seat-sold):not(.seat-reserved) { transform:scale(1.15); }
-    .seat-avail   { background:rgba(0,200,83,.25); border-color:rgba(0,200,83,.4); color:#69f0ae; }
-    .seat-avail:hover { background:rgba(0,200,83,.4); }
-    .seat-sold    { background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.08); color:rgba(210,195,255,.3); cursor:default; }
-    .seat-disabled{ background:rgba(229,57,53,.2); border-color:rgba(229,57,53,.35); color:rgba(239,154,154,.6); }
-    .seat-disabled:hover { background:rgba(229,57,53,.35); }
-    .seat-reserved{ background:rgba(255,167,38,.2); border-color:rgba(255,167,38,.35); color:#ffa726; cursor:default; }
+.sc-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:.32; pointer-events:none; }
+.sc-lbl {
+    position:relative; z-index:1; font-size:.52rem; font-weight:800;
+    color:#fff; text-shadow:0 1px 4px rgba(0,0,0,.9); text-align:center; line-height:1.1;
+    pointer-events:none;
+}
+.sc-badge {
+    position:absolute; top:2px; right:3px; z-index:2;
+    font-size:.6rem; line-height:1; pointer-events:none;
+}
 
-    .zone-info-bar { font-size:.8rem; color:rgba(210,195,255,.5); margin-bottom:1rem; }
+/* ── Stats bar ── */
+.stats-row { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:1rem; font-size:.78rem; color:rgba(210,195,255,.5); }
+.stats-item strong { color:rgba(210,195,255,.9); }
 
-    .btn-reset { background:rgba(229,57,53,.1); border:1px solid rgba(229,57,53,.3); border-radius:8px; color:#ef9a9a; font-size:.82rem; font-weight:600; padding:7px 18px; cursor:pointer; transition:background .15s; }
-    .btn-reset:hover { background:rgba(229,57,53,.2); }
+/* ── Zone info bar (State B viewer) ── */
+.zone-info { font-size:.8rem; color:rgba(210,195,255,.45); margin-bottom:.75rem; }
 
-    .sm-alert-ok  { background:rgba(0,200,83,.1); border:1px solid rgba(0,200,83,.25); border-radius:10px; padding:10px 16px; color:#69f0ae; font-size:.88rem; margin-bottom:1rem; }
-    .sm-alert-err { background:rgba(229,57,53,.1); border:1px solid rgba(229,57,53,.25); border-radius:10px; padding:10px 16px; color:#ef9a9a; font-size:.88rem; margin-bottom:1rem; }
+.info-band {
+    background:rgba(255,167,38,.08); border:1px solid rgba(255,167,38,.25);
+    border-radius:8px; padding:10px 14px; font-size:.82rem; color:#ffa726; margin-bottom:1rem;
+}
 </style>
 
 <form id="__afForm" method="post" style="display:none;"></form>
@@ -88,110 +126,226 @@
 <div class="container-xl px-3 px-md-4 sm-wrap">
 
     <a href="/Events/Details/@evt.Id" class="sm-back">← Quay lại sự kiện</a>
-
     <div class="sm-header">🗺️ Sơ Đồ Ghế</div>
     <div class="sm-sub">@evt.Title</div>
 
-    @if (TempData["Success"] is string ok)  { <div class="sm-alert-ok">✅ @ok</div> }
-    @if (TempData["Error"]   is string err) { <div class="sm-alert-err">⚠️ @err</div> }
+    @if (TempData["Success"] is string ok)  { <div class="sm-ok">✅ @ok</div> }
+    @if (TempData["Error"]   is string err) { <div class="sm-err">⚠️ @err</div> }
 
-    @* ── State A: No seats yet → Configuration form ── *@
+    @* ══════════════════ STATE A: EDITOR ══════════════════ *@
     @if (!hasSeats)
     {
         <div class="sm-card">
-            <div class="sm-card-title">⚙️ Cấu Hình Khu Vực</div>
-            <p style="font-size:.85rem;color:rgba(210,195,255,.5);margin-bottom:1.25rem;">
-                Thêm các khu vực (zone), chỉ định loại vé và số hàng × ghế/hàng. Tối đa 26 hàng (A–Z), 99 ghế/hàng.
-            </p>
+            <div class="sm-card-title">⚙️ Cấu Hình Sơ Đồ</div>
 
-            <table class="zone-table" id="zoneTable">
-                <thead>
-                    <tr>
-                        <th>Tên khu</th>
-                        <th>Loại vé</th>
-                        <th>Số hàng</th>
-                        <th>Ghế/hàng</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody id="zoneTbody"></tbody>
-            </table>
-
-            <div class="d-flex align-items-center gap-3 flex-wrap">
-                <button type="button" class="btn-add-zone" onclick="addZoneRow()">+ Thêm khu vực</button>
-                <button type="button" class="btn-generate" onclick="generateSeats()">🪑 Tạo Sơ Đồ</button>
+            <div class="cfg-grid">
+                <div class="cfg-item">
+                    <label>Ghế thường → loại vé</label>
+                    <select id="normalTt">
+                        <option value="0">-- Không gán --</option>
+                        @foreach (var tt in evt.TicketTypes.OrderBy(t => t.Price))
+                        {
+                            <option value="@tt.Id">@tt.Name (@tt.Price.ToString("N0")đ)</option>
+                        }
+                    </select>
+                </div>
+                <div class="cfg-item">
+                    <label>Ghế VIP → loại vé</label>
+                    <select id="vipTt">
+                        <option value="0">-- Không gán --</option>
+                        @foreach (var tt in evt.TicketTypes.OrderByDescending(t => t.Price))
+                        {
+                            <option value="@tt.Id">@tt.Name (@tt.Price.ToString("N0")đ)</option>
+                        }
+                    </select>
+                </div>
+                <div class="cfg-item">
+                    <label>Số hàng (1–26)</label>
+                    <input type="number" id="numRows" value="5" min="1" max="26"
+                           oninput="onDimChange()" />
+                </div>
+                <div class="cfg-item">
+                    <label>Số cột (1–50)</label>
+                    <input type="number" id="numCols" value="10" min="1" max="50"
+                           oninput="onDimChange()" />
+                </div>
             </div>
 
-            @* Hidden form to submit config *@
-            <form id="configForm" method="post" asp-page-handler="Configure">
-                <input type="hidden" name="eventId" value="@evt.Id" />
-                <input type="hidden" name="zonesJson" id="zonesJson" />
-            </form>
+            <div class="d-flex gap-2 flex-wrap">
+                <button type="button" class="btn-generate" onclick="generateGrid()">🪑 Tạo Sơ Đồ</button>
+            </div>
         </div>
 
+        @* Legend *@
+        <div class="legend-row">
+            <span style="font-size:.78rem;color:rgba(210,195,255,.5);font-weight:600;">Click để đổi loại:</span>
+            <div class="legend-item"><div class="l-dot l-normal"></div>Ghế thường</div>
+            <div class="legend-item"><div class="l-dot l-vip"></div>Ghế VIP</div>
+            <div class="legend-item"><div class="l-dot l-couple"></div>Ghế đôi (2 chỗ)</div>
+            <div class="legend-item"><div class="l-dot l-empty"></div>Lối đi / trống</div>
+        </div>
+
+        @* Grid container (hidden until generated) *@
+        <div id="editorCard" class="sm-card" style="display:none;">
+            <div class="screen-wrap">
+                <div class="screen-arc"></div>
+                <span class="screen-label">Màn Hình / Sân Khấu</span>
+            </div>
+            <div class="grid-scroll">
+                <div class="grid-rows" id="seatGrid"></div>
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap mt-3">
+                <button type="button" class="btn-save" onclick="saveGrid()">💾 Lưu Sơ Đồ</button>
+            </div>
+        </div>
+
+        @* Hidden form for save *@
+        <form id="saveGridForm" method="post" asp-page-handler="SaveGrid">
+            <input type="hidden" name="eventId" value="@evt.Id" />
+            <input type="hidden" name="gridJson" id="gridJsonInput" />
+        </form>
+
         <script>
-        const ticketTypes = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
-            evt.TicketTypes.Select(t => new { id = t.Id, name = t.Name, price = t.Price })
-        ));
+        const eventId   = @evt.Id;
+        const imgUrl    = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(imgUrl));
 
-        let zoneRowId = 0;
-        function addZoneRow(zone='', ttId=0, rows=5, cols=10) {
-            zoneRowId++;
-            const rid = zoneRowId;
-            const ttOptions = ticketTypes.map(t =>
-                `<option value="${t.id}" ${t.id===ttId?'selected':''}>${t.name} (${t.price.toLocaleString('vi')}đ)</option>`
-            ).join('');
-            const tr = document.createElement('tr');
-            tr.id = 'zr-' + rid;
-            tr.innerHTML = `
-                <td><input type="text" value="${zone}" placeholder="VD: VIP, A, B1" id="zzn-${rid}" maxlength="20" /></td>
-                <td><select id="ztt-${rid}"><option value="0">-- Không gán --</option>${ttOptions}</select></td>
-                <td><input type="number" value="${rows}" min="1" max="26" id="zrw-${rid}" /></td>
-                <td><input type="number" value="${cols}" min="1" max="99" id="zcl-${rid}" /></td>
-                <td class="td-del"><button type="button" class="btn-del-zone" onclick="document.getElementById('zr-${rid}').remove()">✕</button></td>
-            `;
-            document.getElementById('zoneTbody').appendChild(tr);
+        let numRows = 5, numCols = 10;
+        // grid[r][c]: 'normal' | 'vip' | 'couple' | 'empty' | 'partner'
+        let grid = [];
+
+        function onDimChange() {
+            // Don't auto-regenerate (would lose edits); just update vars
+            const r = parseInt(document.getElementById('numRows').value) || 5;
+            const c = parseInt(document.getElementById('numCols').value) || 10;
+            document.getElementById('numRows').value = Math.max(1, Math.min(26, r));
+            document.getElementById('numCols').value = Math.max(1, Math.min(50, c));
         }
 
-        function generateSeats() {
-            const rows = document.querySelectorAll('#zoneTbody tr');
-            if (rows.length === 0) { alert('Vui lòng thêm ít nhất 1 khu vực.'); return; }
-            const zones = [];
-            let valid = true;
-            rows.forEach(tr => {
-                const rid = tr.id.replace('zr-','');
-                const zoneName = document.getElementById('zzn-'+rid)?.value?.trim();
-                if (!zoneName) { valid = false; return; }
-                zones.push({
-                    Zone: zoneName,
-                    TicketTypeId: parseInt(document.getElementById('ztt-'+rid)?.value || '0'),
-                    Rows: parseInt(document.getElementById('zrw-'+rid)?.value || '5'),
-                    SeatsPerRow: parseInt(document.getElementById('zcl-'+rid)?.value || '10')
-                });
-            });
-            if (!valid || zones.length === 0) { alert('Vui lòng điền tên khu vực cho tất cả các hàng.'); return; }
-            document.getElementById('zonesJson').value = JSON.stringify(zones);
-            document.getElementById('configForm').submit();
+        function generateGrid() {
+            numRows = Math.max(1, Math.min(26, parseInt(document.getElementById('numRows').value) || 5));
+            numCols = Math.max(1, Math.min(50, parseInt(document.getElementById('numCols').value) || 10));
+            grid = Array.from({length: numRows}, () => Array(numCols).fill('normal'));
+            renderGrid();
+            document.getElementById('editorCard').style.display = 'block';
         }
 
-        // Auto-add 2 default rows
-        addZoneRow('VIP', @(evt.TicketTypes.OrderByDescending(t => t.Price).FirstOrDefault()?.Id ?? 0), 3, 10);
-        addZoneRow('A',   @(evt.TicketTypes.OrderBy(t => t.Price).FirstOrDefault()?.Id ?? 0), 5, 20);
+        function renderGrid() {
+            const container = document.getElementById('seatGrid');
+            container.innerHTML = '';
+
+            for (let r = 0; r < numRows; r++) {
+                const rowEl = document.createElement('div');
+                rowEl.className = 'grid-row';
+
+                // Row label
+                const lbl = document.createElement('div');
+                lbl.className = 'row-lbl';
+                lbl.textContent = String.fromCharCode(65 + r);
+                rowEl.appendChild(lbl);
+
+                for (let c = 0; c < numCols; c++) {
+                    const type = grid[r][c];
+                    if (type === 'partner') continue;
+
+                    const cell = document.createElement('div');
+                    cell.className = 'sc sc-' + type + (type === 'couple' ? ' couple' : '');
+                    cell.dataset.row = r;
+                    cell.dataset.col = c;
+
+                    // Event image
+                    if (imgUrl && type !== 'empty') {
+                        const img = document.createElement('img');
+                        img.src     = imgUrl;
+                        img.alt     = '';
+                        img.className = 'sc-img';
+                        cell.appendChild(img);
+                    }
+
+                    // Seat label
+                    const seatLbl = document.createElement('span');
+                    seatLbl.className = 'sc-lbl';
+                    if (type === 'couple') {
+                        seatLbl.textContent = `${String.fromCharCode(65+r)}${c+1}–${c+2}`;
+                    } else if (type !== 'empty') {
+                        seatLbl.textContent = `${String.fromCharCode(65+r)}${c+1}`;
+                    }
+                    cell.appendChild(seatLbl);
+
+                    cell.addEventListener('click', () => cycleCell(r, c));
+                    rowEl.appendChild(cell);
+                }
+
+                container.appendChild(rowEl);
+            }
+        }
+
+        function cycleCell(r, c) {
+            const cur = grid[r][c];
+            if (cur === 'partner') return;
+
+            const cycle = ['normal', 'vip', 'couple', 'empty'];
+            let nextIdx = (cycle.indexOf(cur) + 1) % cycle.length;
+            let next    = cycle[nextIdx];
+
+            // Free old partner if switching from couple
+            if (cur === 'couple' && c + 1 < numCols && grid[r][c + 1] === 'partner')
+                grid[r][c + 1] = 'normal';
+
+            if (next === 'couple') {
+                // Need a free right neighbour
+                if (c + 1 >= numCols || grid[r][c + 1] === 'couple' || grid[r][c + 1] === 'partner') {
+                    next = 'empty'; // skip couple
+                    grid[r][c] = next;
+                } else {
+                    grid[r][c]     = 'couple';
+                    grid[r][c + 1] = 'partner';
+                }
+            } else {
+                grid[r][c] = next;
+            }
+
+            renderGrid();
+        }
+
+        async function saveGrid() {
+            const cells = [];
+            for (let r = 0; r < numRows; r++) {
+                for (let c = 0; c < numCols; c++) {
+                    const t = grid[r][c];
+                    if (t === 'empty' || t === 'partner') continue;
+                    cells.push({ row: r, col: c, type: t });
+                }
+            }
+            if (cells.length === 0) { alert('Sơ đồ chưa có ghế nào.'); return; }
+
+            const payload = {
+                eventId,
+                rows: numRows,
+                cols: numCols,
+                normalTicketTypeId: parseInt(document.getElementById('normalTt').value) || 0,
+                vipTicketTypeId:    parseInt(document.getElementById('vipTt').value)    || 0,
+                cells
+            };
+            document.getElementById('gridJsonInput').value = JSON.stringify(payload);
+            document.getElementById('saveGridForm').submit();
+        }
         </script>
     }
 
-    @* ── State B: Seats exist → Grid management ── *@
+    @* ══════════════════ STATE B: VIEWER ══════════════════ *@
     else
     {
         <div class="sm-card">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                 <div class="sm-card-title mb-0">🪑 Quản Lý Ghế</div>
-                <div class="d-flex gap-2 flex-wrap">
+                <div class="d-flex gap-2">
                     @if (!Model.HasSoldSeats)
                     {
-                        <form method="post" asp-page-handler="Reset" onsubmit="return confirm('Xóa toàn bộ sơ đồ ghế? Hành động này không thể hoàn tác.')">
+                        <form method="post" asp-page-handler="Reset"
+                              onsubmit="return confirm('Xóa toàn bộ sơ đồ? Hành động này không thể hoàn tác.')">
                             <input type="hidden" name="eventId" value="@evt.Id" />
-                            <button class="btn-reset" type="submit">🗑 Xóa & Tạo Lại</button>
+                            <button class="btn-reset-sm" type="submit">🗑 Xóa & Tạo Lại</button>
                         </form>
                     }
                 </div>
@@ -199,111 +353,124 @@
 
             @if (Model.HasSoldSeats)
             {
-                <div style="background:rgba(255,167,38,.08);border:1px solid rgba(255,167,38,.25);border-radius:8px;padding:10px 14px;font-size:.82rem;color:#ffa726;margin-bottom:1rem;">
-                    ⚠️ Đã có ghế được bán — cấu trúc bị khóa. Bạn chỉ có thể bật/tắt ghế trống.
-                </div>
+                <div class="info-band">⚠️ Đã có ghế được bán — chỉ có thể bật/tắt ghế trống.</div>
             }
 
+            @* Stats *@
+            <div class="stats-row">
+                <span>Tổng: <strong>@Model.Seats.Count</strong></span>
+                <span>Trống: <strong style="color:#69f0ae;">@Model.Seats.Count(s => s.Status == SeatStatus.Available)</strong></span>
+                <span>Đã bán: <strong style="color:#ef9a9a;">@Model.Seats.Count(s => s.Status == SeatStatus.Sold)</strong></span>
+                <span>Vô hiệu: <strong style="color:rgba(210,195,255,.5);">@Model.Seats.Count(s => s.Status == SeatStatus.Disabled)</strong></span>
+                <span>Đặt trước: <strong style="color:#ffa726;">@Model.Seats.Count(s => s.Status == SeatStatus.Reserved)</strong></span>
+            </div>
+
             @* Legend *@
-            <div class="legend-row">
-                <div class="legend-item"><div class="legend-dot ld-avail"></div>Trống (click để vô hiệu)</div>
-                <div class="legend-item"><div class="legend-dot ld-sold"></div>Đã bán</div>
-                <div class="legend-item"><div class="legend-dot ld-dis"></div>Vô hiệu (click để mở)</div>
-                <div style="margin-left:auto;font-size:.78rem;color:rgba(210,195,255,.4);">
-                    Tổng: @Model.Seats.Count | Trống: @Model.Seats.Count(s => s.Status == SeatStatus.Available) | Bán: @Model.Seats.Count(s => s.Status == SeatStatus.Sold) | Vô hiệu: @Model.Seats.Count(s => s.Status == SeatStatus.Disabled)
-                </div>
+            <div class="legend-row mb-3">
+                <div class="legend-item"><div class="l-dot" style="background:rgba(0,200,83,.25);border:2px solid rgba(0,200,83,.5);"></div>Trống (click bật/tắt)</div>
+                <div class="legend-item"><div class="l-dot" style="background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.1);"></div>Đã bán</div>
+                <div class="legend-item"><div class="l-dot" style="background:rgba(229,57,53,.2);border:2px solid rgba(229,57,53,.4);"></div>Vô hiệu</div>
+                <div class="legend-item"><div class="l-dot" style="background:rgba(255,167,38,.2);border:2px solid rgba(255,167,38,.4);"></div>Đặt trước</div>
             </div>
 
-            @* Zone tabs *@
-            <div class="zone-tab-row">
-                @{int zi = 0;}
-                @foreach (var zone in Model.SeatsByZone.Keys)
-                {
-                    var zoneSeats = Model.SeatsByZone[zone];
-                    var tt = zoneSeats.First().TicketType;
-                    <button class="zone-tab @(zi == 0 ? "active" : "")" onclick="switchZone('@zone', this)">
-                        @zone @(tt != null ? $"({tt.Name})" : "")
-                    </button>
-                    zi++;
-                }
+            @* Grid *@
+            <div class="screen-wrap">
+                <div class="screen-arc"></div>
+                <span class="screen-label">Màn Hình / Sân Khấu</span>
             </div>
 
-            @* Seat grids per zone *@
-            @{int zIdx = 0;}
-            @foreach (var (zone, zoneSeats) in Model.SeatsByZone)
-            {
-                var rows = zoneSeats.GroupBy(s => s.RowLabel).OrderBy(g => g.Key).ToList();
-                var tt = zoneSeats.First().TicketType;
-                <div class="seat-zone-panel @(zIdx == 0 ? "active" : "")" id="zone-panel-@zone">
-                    <div class="zone-info-bar">
-                        @zone
-                        @if (tt != null) { <span>· @tt.Name · @tt.Price.ToString("N0")đ/ghế</span> }
-                        · @zoneSeats.Count ghế
-                    </div>
-                    <div class="stage-bar">— Sân Khấu / Màn Hình —</div>
-                    @foreach (var rowGrp in rows)
+            <div class="grid-scroll">
+                <div class="grid-rows">
+                    @for (int r = 0; r < Model.GridRows; r++)
                     {
-                        <div class="seat-row">
-                            <div class="seat-row-label">@rowGrp.Key</div>
-                            @foreach (var seat in rowGrp.OrderBy(s => s.SeatNumber))
+                        <div class="grid-row">
+                            <div class="row-lbl">@((char)('A' + r))</div>
+                            @for (int c = 0; c < Model.GridCols; c++)
                             {
-                                var cls = seat.Status switch
+                                @* Skip partner column *@
+                                bool isPartner = c > 0
+                                    && Model.SeatGrid.TryGetValue((r, c - 1), out var leftSeat)
+                                    && leftSeat.SeatType == SeatType.Couple;
+                                if (isPartner) continue;
+
+                                Model.SeatGrid.TryGetValue((r, c), out var seat);
+                                if (seat == null)
                                 {
-                                    SeatStatus.Sold     => "seat-sold",
-                                    SeatStatus.Disabled => "seat-disabled",
-                                    SeatStatus.Reserved => "seat-reserved",
-                                    _                   => "seat-avail"
-                                };
-                                var clickable = seat.Status == SeatStatus.Available || seat.Status == SeatStatus.Disabled;
-                                <div class="seat @cls"
-                                     id="seat-@seat.Id"
-                                     title="@seat.Label · @seat.Status"
-                                     @(clickable ? $"onclick=\"toggleSeat({seat.Id})\"" : "")>
-                                    @seat.SeatNumber
-                                </div>
+                                    @* Empty slot (aisle) *@
+                                    <div class="sc sc-empty"
+                                         style="width:36px;height:36px;"></div>
+                                }
+                                else
+                                {
+                                    bool isCouple    = seat.SeatType == SeatType.Couple;
+                                    bool clickable   = seat.Status == SeatStatus.Available || seat.Status == SeatStatus.Disabled;
+                                    string statusCss = seat.Status switch
+                                    {
+                                        SeatStatus.Sold     => "sc-sold",
+                                        SeatStatus.Disabled => "sc-disabled",
+                                        SeatStatus.Reserved => "sc-reserved",
+                                        _                   => "sc-avail"
+                                    };
+
+                                    <div class="sc @statusCss @(isCouple ? "couple" : "")"
+                                         id="s-@seat.Id"
+                                         title="@seat.Label · @seat.Status"
+                                         @(clickable ? $"onclick=\"toggleSeat({seat.Id})\"" : "")
+                                         style="cursor:@(clickable ? "pointer" : "default")">
+                                        @if (!string.IsNullOrEmpty(imgUrl))
+                                        {
+                                            <img src="@imgUrl" alt="" class="sc-img" />
+                                        }
+                                        <span class="sc-lbl">@seat.Label</span>
+                                        @if (seat.Status == SeatStatus.Sold)
+                                        {
+                                            <span class="sc-badge">🔒</span>
+                                        }
+                                        @if (seat.Status == SeatStatus.Disabled)
+                                        {
+                                            <span class="sc-badge" style="color:rgba(239,154,154,.7);">✕</span>
+                                        }
+                                    </div>
+                                }
                             }
                         </div>
                     }
                 </div>
-                zIdx++;
-            }
+            </div>
         </div>
 
         <script>
         const eventId = @evt.Id;
-        const afToken = () => document.querySelector('#__afForm input[name="__RequestVerificationToken"]')?.value ?? '';
-
-        function switchZone(zone, btn) {
-            document.querySelectorAll('.seat-zone-panel').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.zone-tab').forEach(b => b.classList.remove('active'));
-            document.getElementById('zone-panel-' + zone)?.classList.add('active');
-            btn.classList.add('active');
-        }
+        const afToken = () =>
+            document.querySelector('#__afForm input[name="__RequestVerificationToken"]')?.value ?? '';
 
         async function toggleSeat(seatId) {
-            const el = document.getElementById('seat-' + seatId);
+            const el = document.getElementById('s-' + seatId);
             if (!el) return;
 
             const fd = new FormData();
             fd.append('eventId', eventId);
-            fd.append('seatId', seatId);
+            fd.append('seatId',  seatId);
             fd.append('__RequestVerificationToken', afToken());
 
             try {
-                const res = await fetch(`/Events/SeatMap/${eventId}?handler=ToggleSeat`, { method: 'POST', body: fd });
+                const res  = await fetch(`/Events/SeatMap/${eventId}?handler=ToggleSeat`, { method:'POST', body:fd });
                 const data = await res.json();
                 if (data.status === 'Available') {
-                    el.className = 'seat seat-avail';
+                    el.className = el.className.replace(/sc-(sold|disabled|reserved|avail)/g, 'sc-avail');
                     el.setAttribute('onclick', `toggleSeat(${seatId})`);
-                    el.title = el.title.replace(/·.*$/, '· Available');
+                    el.style.cursor = 'pointer';
+                    el.querySelector('.sc-badge')?.remove();
                 } else if (data.status === 'Disabled') {
-                    el.className = 'seat seat-disabled';
-                    el.setAttribute('onclick', `toggleSeat(${seatId})`);
-                    el.title = el.title.replace(/·.*$/, '· Disabled');
+                    el.className = el.className.replace(/sc-(sold|disabled|reserved|avail)/g, 'sc-disabled');
+                    el.querySelector('.sc-badge')?.remove();
+                    const badge = document.createElement('span');
+                    badge.className = 'sc-badge';
+                    badge.style.color = 'rgba(239,154,154,.7)';
+                    badge.textContent = '✕';
+                    el.appendChild(badge);
                 }
-            } catch (e) {
-                console.error('Toggle failed', e);
-            }
+            } catch(e) { console.error('Toggle failed', e); }
         }
         </script>
     }

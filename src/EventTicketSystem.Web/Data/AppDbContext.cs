@@ -76,6 +76,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             .Property(s => s.Status).HasConversion<string>();
 
         modelBuilder.Entity<Seat>()
+            .Property(s => s.SeatType).HasConversion<string>().HasDefaultValue(SeatType.Normal);
+
+        modelBuilder.Entity<Seat>()
             .HasOne(s => s.Event)
             .WithMany()
             .HasForeignKey(s => s.EventId)
