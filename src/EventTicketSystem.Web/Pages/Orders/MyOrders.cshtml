@@ -5,7 +5,26 @@
 }
 
 <div class="container">
-    <h1 class="mb-4">Vé Của Tôi</h1>
+    @* Header row with title + quick search *@
+    <div class="row align-items-center mb-4 g-3">
+        <div class="col">
+            <h1 class="mb-0">Vé Của Tôi</h1>
+        </div>
+        <div class="col-lg-auto">
+            <form method="get" action="/tra-cuu-don-hang" class="d-flex gap-2">
+                <input name="code"
+                       class="form-control"
+                       placeholder="Nhập mã xác nhận..."
+                       autocomplete="off"
+                       maxlength="20"
+                       style="min-width:190px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;" />
+                <button type="submit" class="btn btn-outline-primary text-nowrap">🔍 Tra cứu</button>
+            </form>
+            <div class="text-muted small mt-1">
+                Tìm đơn đặt ẩn danh bằng mã xác nhận + email
+            </div>
+        </div>
+    </div>
 
     @if (!Model.Orders.Any())
     {
@@ -22,6 +41,7 @@
                 <thead class="table-dark">
                     <tr>
                         <th>Mã Xác Nhận</th>
+                        <th>Sự Kiện</th>
                         <th>Ngày Đặt</th>
                         <th class="text-center">Số Vé</th>
                         <th class="text-end">Tổng Tiền</th>
@@ -32,8 +52,10 @@
                 <tbody>
                     @foreach (var order in Model.Orders)
                     {
+                        var eventTitle = order.OrderItems.FirstOrDefault()?.TicketType?.Event?.Title ?? "—";
                         <tr>
                             <td><code class="fs-6">@order.ConfirmationCode</code></td>
+                            <td class="text-truncate" style="max-width:200px;" title="@eventTitle">@eventTitle</td>
                             <td>@order.OrderDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                             <td class="text-center">@order.OrderItems.Sum(i => i.Quantity)</td>
                             <td class="text-end fw-bold">@order.TotalAmount.ToString("N0") đ</td>

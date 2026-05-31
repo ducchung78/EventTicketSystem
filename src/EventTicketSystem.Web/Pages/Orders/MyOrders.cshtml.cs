@@ -19,6 +19,8 @@ public class MyOrdersModel(AppDbContext db, UserManager<ApplicationUser> userMan
 
         Orders = await db.Orders
             .Include(o => o.OrderItems)
+                .ThenInclude(i => i.TicketType)
+                    .ThenInclude(t => t!.Event)
             .Where(o => o.ApplicationUserId == userId || o.CustomerEmail == email)
             .OrderByDescending(o => o.OrderDate)
             .ToListAsync();

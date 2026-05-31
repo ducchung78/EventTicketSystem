@@ -18,6 +18,9 @@ public class OrderDetailsModel(AppDbContext db) : PageModel
             .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.TicketType)
                     .ThenInclude(tt => tt.Event)
+            .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Seat)
+            .Include(o => o.Coupon)
             .FirstOrDefaultAsync(o => o.Id == id);
     }
 

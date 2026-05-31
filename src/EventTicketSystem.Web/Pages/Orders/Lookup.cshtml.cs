@@ -1,6 +1,7 @@
 using EventTicketSystem.Web.Data;
 using EventTicketSystem.Web.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -8,22 +9,39 @@ using Microsoft.EntityFrameworkCore;
 namespace EventTicketSystem.Web.Pages.Orders;
 
 [AllowAnonymous]
-public class LookupModel(AppDbContext db) : PageModel
+public class LookupModel(AppDbContext db, UserManager<ApplicationUser> userManager) : PageModel
 {
     [BindProperty]
     public string Code { get; set; } = string.Empty;
 
-    public Order?  Order     { get; set; }
-    public bool    Searched  { get; set; }
-    public bool    NotFound  { get; set; }
+    [BindProperty]
+    public string? Email { get; set; }
 
-    public void OnGet(string? code)
+    public Order?  Order                  { get; set; }
+    public bool    Searched               { get; set; }
+    public new bool NotFound              { get; set; }
+    public bool    NeedsEmailVerification { get; set; }
+    public string? EmailError             { get; set; }
+
+    public async Task<IActionResult> OnGetAsync(string? code)
     {
-        if (!string.IsNullOrWhiteSpace(code))
+        if (string.IsNullOrWhiteSpace(code)) return Page();
+
+        Code     = code.Trim().ToUpper();
+        Searched = true;
+
+        var order = await FindOrderAsync(Code);
+        if (order == null) { NotFound = true; return Page(); }
+
+        if (User.Identity?.IsAuthenticated == true)
         {
-            Code     = code.Trim().ToUpper();
-            Searched = true;
+            var userId = userManager.GetUserId(User);
+            if (order.ApplicationUserId == userId)
+                return RedirectToPage("/Orders/Details", new { id = order.Id });
         }
+
+        NeedsEmailVerification = true;
+        return Page();
     }
 
     public async Task<IActionResult> OnPostAsync()
@@ -37,7 +55,36 @@ public class LookupModel(AppDbContext db) : PageModel
             return Page();
         }
 
-        Order = await db.Orders
+        Code = key;
+        var order = await FindOrderAsync(key);
+
+        if (order == null) { NotFound = true; return Page(); }
+
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            var userId = userManager.GetUserId(User);
+            if (order.ApplicationUserId == userId)
+                return RedirectToPage("/Orders/Details", new { id = order.Id });
+        }
+
+        NeedsEmailVerification = true;
+        var email = (Email ?? "").Trim();
+
+        if (string.IsNullOrEmpty(email))
+            return Page();
+
+        if (!order.CustomerEmail.Equals(email, StringComparison.OrdinalIgnoreCase))
+        {
+            EmailError = "Email không khớp với đơn hàng này. Vui lòng kiểm tra lại.";
+            return Page();
+        }
+
+        Order = order;
+        return Page();
+    }
+
+    private Task<Order?> FindOrderAsync(string key) =>
+        db.Orders
             .Include(o => o.OrderItems)
                 .ThenInclude(i => i.TicketType)
                     .ThenInclude(t => t!.Event)
@@ -45,11 +92,4 @@ public class LookupModel(AppDbContext db) : PageModel
                 .ThenInclude(i => i.Seat)
             .Include(o => o.Coupon)
             .FirstOrDefaultAsync(o => o.ConfirmationCode == key);
-
-        NotFound = Order == null;
-
-        // Keep the typed code visible
-        Code = key;
-        return Page();
-    }
 }

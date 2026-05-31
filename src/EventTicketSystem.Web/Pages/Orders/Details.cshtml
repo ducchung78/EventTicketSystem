@@ -1,106 +1,185 @@
 @page "{id:int}"
 @model EventTicketSystem.Web.Pages.Orders.OrderDetailsModel
+@using EventTicketSystem.Web.Models
 @{
     ViewData["Title"] = "Chi Tiết Đơn Hàng";
+    var order = Model.Order;
 }
 
-@if (Model.Order == null)
+@if (order == null)
 {
     <div class="container">
         <div class="alert alert-danger">Không tìm thấy đơn hàng.</div>
-        <a href="/Orders" class="btn btn-secondary">Quay Lại</a>
+        @if (User.IsInRole("Admin"))
+        {
+            <a href="/Orders" class="btn btn-secondary">Quay Lại Danh Sách</a>
+        }
+        else
+        {
+            <a href="/Orders/MyOrders" class="btn btn-secondary">Quay Lại Vé Của Tôi</a>
+        }
     </div>
     return;
 }
 
-<div class="container" style="max-width:700px">
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb">
-            @if (User.IsInRole("Admin"))
-            {
-                <li class="breadcrumb-item"><a href="/Orders">Tất Cả Đơn Hàng</a></li>
-            }
-            else
-            {
-                <li class="breadcrumb-item"><a href="/Orders/MyOrders">Vé Của Tôi</a></li>
-            }
-            <li class="breadcrumb-item active">Đơn #@Model.Order.Id</li>
-        </ol>
-    </nav>
+@{
+    var firstItem = order.OrderItems.FirstOrDefault();
+    var evt       = firstItem?.TicketType?.Event;
+}
 
+<div class="container" style="max-width:760px">
+    @* Back button *@
+    <div class="mb-3">
+        @if (User.IsInRole("Admin"))
+        {
+            <a href="/Orders" class="btn btn-outline-secondary btn-sm">
+                ← Tất Cả Đơn Hàng
+            </a>
+        }
+        else
+        {
+            <a href="/Orders/MyOrders" class="btn btn-outline-secondary btn-sm">
+                ← Vé Của Tôi
+            </a>
+        }
+    </div>
+
+    @* Order header card *@
     <div class="card shadow mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Đơn Hàng #@Model.Order.Id</h5>
-            <span class="badge fs-6 @Model.Order.Status.ToBadgeClass()">
-                @Model.Order.Status.ToVietnamese()
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h5 class="mb-0">Đơn Hàng #@order.Id</h5>
+                <small class="text-muted">Đặt lúc @order.OrderDate.ToLocalTime().ToString("HH:mm – dd/MM/yyyy")</small>
+            </div>
+            <span class="badge fs-6 @order.Status.ToBadgeClass()">
+                @order.Status.ToVietnamese()
             </span>
         </div>
         <div class="card-body">
-            <div class="row mb-3">
+            <div class="row mb-2">
                 <div class="col-sm-4 text-muted">Mã Xác Nhận</div>
-                <div class="col-sm-8"><code class="fs-5">@Model.Order.ConfirmationCode</code></div>
+                <div class="col-sm-8"><code class="fs-5 fw-bold">@order.ConfirmationCode</code></div>
             </div>
-            <div class="row mb-3">
+            <div class="row mb-2">
                 <div class="col-sm-4 text-muted">Khách Hàng</div>
-                <div class="col-sm-8">@Model.Order.CustomerName</div>
+                <div class="col-sm-8">@order.CustomerName</div>
             </div>
-            <div class="row mb-3">
+            <div class="row mb-2">
                 <div class="col-sm-4 text-muted">Email</div>
-                <div class="col-sm-8">@Model.Order.CustomerEmail</div>
+                <div class="col-sm-8">@order.CustomerEmail</div>
             </div>
-            @if (!string.IsNullOrEmpty(Model.Order.CustomerPhone))
+            @if (!string.IsNullOrEmpty(order.CustomerPhone))
             {
-                <div class="row mb-3">
+                <div class="row mb-2">
                     <div class="col-sm-4 text-muted">Điện Thoại</div>
-                    <div class="col-sm-8">@Model.Order.CustomerPhone</div>
+                    <div class="col-sm-8">@order.CustomerPhone</div>
                 </div>
             }
-            <div class="row mb-3">
-                <div class="col-sm-4 text-muted">Ngày Đặt</div>
-                <div class="col-sm-8">@Model.Order.OrderDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+        </div>
+    </div>
+
+    @* Event info card *@
+    @if (evt != null)
+    {
+        <div class="card shadow mb-4">
+            <div class="card-header"><h6 class="mb-0">📅 Thông Tin Sự Kiện</h6></div>
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-sm-4 text-muted">Tên Sự Kiện</div>
+                    <div class="col-sm-8 fw-semibold">@evt.Title</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-4 text-muted">Bắt Đầu</div>
+                    <div class="col-sm-8">@evt.StartDate.ToLocalTime().ToString("dddd, dd/MM/yyyy · HH:mm")</div>
+                </div>
+                @if (evt.EndDate.HasValue)
+                {
+                    <div class="row mb-2">
+                        <div class="col-sm-4 text-muted">Kết Thúc</div>
+                        <div class="col-sm-8">@evt.EndDate.Value.ToLocalTime().ToString("HH:mm · dd/MM/yyyy")</div>
+                    </div>
+                }
+                <div class="row mb-0">
+                    <div class="col-sm-4 text-muted">Địa Điểm</div>
+                    <div class="col-sm-8">@evt.Venue</div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @* Ticket items card *@
+    <div class="card shadow mb-4">
+        <div class="card-header"><h6 class="mb-0">🎟️ Danh Sách Vé</h6></div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Loại Vé</th>
+                            <th>Ghế</th>
+                            <th class="text-center">SL</th>
+                            <th class="text-end">Đơn Giá</th>
+                            <th class="text-end">Thành Tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in order.OrderItems)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@item.TicketType.Name</td>
+                                <td>
+                                    @if (item.Seat != null)
+                                    {
+                                        <span class="badge bg-secondary">🪑 @item.Seat.Label</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">—</span>
+                                    }
+                                </td>
+                                <td class="text-center">@item.Quantity</td>
+                                <td class="text-end">@item.UnitPrice.ToString("N0") đ</td>
+                                <td class="text-end fw-semibold">@item.Subtotal.ToString("N0") đ</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot class="table-light">
+                        @if (order.DiscountAmount > 0)
+                        {
+                            <tr>
+                                <td colspan="4" class="text-end text-muted">Tạm tính</td>
+                                <td class="text-end">@order.OriginalAmount.ToString("N0") đ</td>
+                            </tr>
+                            <tr>
+                                <td colspan="4" class="text-end text-success">
+                                    Giảm giá @(order.Coupon != null ? $"({order.Coupon.Code})" : "")
+                                </td>
+                                <td class="text-end text-success">–@order.DiscountAmount.ToString("N0") đ</td>
+                            </tr>
+                        }
+                        <tr>
+                            <td colspan="4" class="text-end fw-bold">Tổng Thanh Toán</td>
+                            <td class="text-end fw-bold fs-5 text-success">@order.TotalAmount.ToString("N0") đ</td>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
         </div>
     </div>
 
-    <div class="card shadow mb-4">
-        <div class="card-header"><h6 class="mb-0">Danh Sách Vé</h6></div>
-        <div class="card-body p-0">
-            <table class="table mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Sự Kiện</th>
-                        <th>Loại Vé</th>
-                        <th class="text-center">SL</th>
-                        <th class="text-end">Đơn Giá</th>
-                        <th class="text-end">Thành Tiền</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model.Order.OrderItems)
-                    {
-                        <tr>
-                            <td>@item.TicketType.Event.Title</td>
-                            <td>@item.TicketType.Name</td>
-                            <td class="text-center">@item.Quantity</td>
-                            <td class="text-end">@item.UnitPrice.ToString("N0") đ</td>
-                            <td class="text-end">@item.Subtotal.ToString("N0") đ</td>
-                        </tr>
-                    }
-                </tbody>
-                <tfoot class="table-light">
-                    <tr>
-                        <td colspan="4" class="text-end fw-bold">Tổng Cộng</td>
-                        <td class="text-end fw-bold fs-5">@Model.Order.TotalAmount.ToString("N0") đ</td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-    </div>
+    @* Actions *@
+    <div class="d-flex gap-2 flex-wrap">
+        @if (!User.IsInRole("Admin"))
+        {
+            <a href="/Orders/MyOrders" class="btn btn-outline-secondary">← Quay Lại Vé Của Tôi</a>
+        }
 
-    @if (Model.Order.Status == EventTicketSystem.Web.Models.OrderStatus.Confirmed)
-    {
-        <form method="post" asp-page-handler="Cancel" onsubmit="return confirm('Bạn có chắc muốn hủy đơn hàng này không?')">
-            <button type="submit" class="btn btn-outline-danger">Hủy Đơn Hàng</button>
-        </form>
-    }
+        @if (order.Status == OrderStatus.Confirmed)
+        {
+            <form method="post" asp-page-handler="Cancel"
+                  onsubmit="return confirm('Bạn có chắc muốn hủy đơn hàng này không?')">
+                <button type="submit" class="btn btn-outline-danger">Hủy Đơn Hàng</button>
+            </form>
+        }
+    </div>
 </div>
