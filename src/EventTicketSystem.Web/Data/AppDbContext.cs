@@ -122,6 +122,92 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         modelBuilder.Entity<Coupon>()
             .HasIndex(c => c.Code).IsUnique();
 
+        // ===== PERFORMANCE INDEXES =====
+
+        // ===== EVENT =====
+        modelBuilder.Entity<Event>()
+            .HasIndex(e => e.StartDate)
+            .HasDatabaseName("IX_Event_StartDate");
+        modelBuilder.Entity<Event>()
+            .HasIndex(e => e.Category)
+            .HasDatabaseName("IX_Event_Category");
+        modelBuilder.Entity<Event>()
+            .HasIndex(e => e.Venue)
+            .HasDatabaseName("IX_Event_Venue");
+        modelBuilder.Entity<Event>()
+            .HasIndex(e => e.IsActive)
+            .HasDatabaseName("IX_Event_IsActive");
+        modelBuilder.Entity<Event>()
+            .HasIndex(e => new { e.Category, e.StartDate })
+            .HasDatabaseName("IX_Event_Category_StartDate");
+        modelBuilder.Entity<Event>()
+            .HasIndex(e => new { e.IsActive, e.StartDate })
+            .HasDatabaseName("IX_Event_IsActive_StartDate");
+
+        // ===== ORDER =====
+        modelBuilder.Entity<Order>()
+            .HasIndex(o => o.ApplicationUserId)
+            .HasDatabaseName("IX_Order_ApplicationUserId");
+        modelBuilder.Entity<Order>()
+            .HasIndex(o => o.OrderDate)
+            .HasDatabaseName("IX_Order_OrderDate");
+        modelBuilder.Entity<Order>()
+            .HasIndex(o => o.Status)
+            .HasDatabaseName("IX_Order_Status");
+        modelBuilder.Entity<Order>()
+            .HasIndex(o => new { o.ApplicationUserId, o.OrderDate })
+            .HasDatabaseName("IX_Order_ApplicationUserId_OrderDate");
+
+        // ===== ORDER ITEM =====
+        modelBuilder.Entity<OrderItem>()
+            .HasIndex(oi => oi.OrderId)
+            .HasDatabaseName("IX_OrderItem_OrderId");
+        modelBuilder.Entity<OrderItem>()
+            .HasIndex(oi => oi.TicketTypeId)
+            .HasDatabaseName("IX_OrderItem_TicketTypeId");
+
+        // ===== TICKET TYPE =====
+        modelBuilder.Entity<TicketType>()
+            .HasIndex(t => t.EventId)
+            .HasDatabaseName("IX_TicketType_EventId");
+
+        // ===== APPLICATION USER =====
+        modelBuilder.Entity<ApplicationUser>()
+            .HasIndex(u => u.PhoneNumber)
+            .HasDatabaseName("IX_ApplicationUser_PhoneNumber");
+
+        // ===== COUPON =====
+        modelBuilder.Entity<Coupon>()
+            .HasIndex(c => c.ExpiryDate)
+            .HasDatabaseName("IX_Coupon_ExpiryDate");
+
+        // ===== REFUND REQUEST =====
+        modelBuilder.Entity<RefundRequest>()
+            .HasIndex(r => r.OrderId)
+            .HasDatabaseName("IX_RefundRequest_OrderId");
+        modelBuilder.Entity<RefundRequest>()
+            .HasIndex(r => r.Status)
+            .HasDatabaseName("IX_RefundRequest_Status");
+        modelBuilder.Entity<RefundRequest>()
+            .HasIndex(r => r.CreatedAt)
+            .HasDatabaseName("IX_RefundRequest_CreatedAt");
+
+        // ===== CONTACT MESSAGE =====
+        modelBuilder.Entity<ContactMessage>()
+            .HasIndex(m => m.CreatedAt)
+            .HasDatabaseName("IX_ContactMessage_CreatedAt");
+        modelBuilder.Entity<ContactMessage>()
+            .HasIndex(m => m.IsRead)
+            .HasDatabaseName("IX_ContactMessage_IsRead");
+
+        // ===== SEAT =====
+        modelBuilder.Entity<Seat>()
+            .HasIndex(s => s.TicketTypeId)
+            .HasDatabaseName("IX_Seat_TicketTypeId");
+        modelBuilder.Entity<Seat>()
+            .HasIndex(s => new { s.EventId, s.Status })
+            .HasDatabaseName("IX_Seat_EventId_Status");
+
         SeedData(modelBuilder);
     }
 
