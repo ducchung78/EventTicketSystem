@@ -28,6 +28,11 @@ dist/
 .DS_Store
 Thumbs.db
 
+# SQLite database files
+*.db
+*.db-shm
+*.db-wal
+
 # Logs
 *.log
 npm-debug.log*
