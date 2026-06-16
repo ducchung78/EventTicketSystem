@@ -4,6 +4,7 @@ using EventTicketSystem.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EventTicketSystem.Web.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260530060804_AddPredictionLog")]
+    partial class AddPredictionLog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -117,7 +120,7 @@ namespace EventTicketSystem.Web.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
@@ -145,9 +148,6 @@ namespace EventTicketSystem.Web.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
-
-                    b.HasIndex("PhoneNumber")
-                        .HasDatabaseName("IX_ApplicationUser_PhoneNumber");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -225,12 +225,6 @@ namespace EventTicketSystem.Web.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatedAt")
-                        .HasDatabaseName("IX_ContactMessage_CreatedAt");
-
-                    b.HasIndex("IsRead")
-                        .HasDatabaseName("IX_ContactMessage_IsRead");
-
                     b.ToTable("ContactMessages");
                 });
 
@@ -279,9 +273,6 @@ namespace EventTicketSystem.Web.Migrations
 
                     b.HasIndex("Code")
                         .IsUnique();
-
-                    b.HasIndex("ExpiryDate")
-                        .HasDatabaseName("IX_Coupon_ExpiryDate");
 
                     b.ToTable("Coupons");
 
@@ -406,24 +397,6 @@ namespace EventTicketSystem.Web.Migrations
                         .HasColumnType("nvarchar(300)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Category")
-                        .HasDatabaseName("IX_Event_Category");
-
-                    b.HasIndex("IsActive")
-                        .HasDatabaseName("IX_Event_IsActive");
-
-                    b.HasIndex("StartDate")
-                        .HasDatabaseName("IX_Event_StartDate");
-
-                    b.HasIndex("Venue")
-                        .HasDatabaseName("IX_Event_Venue");
-
-                    b.HasIndex("Category", "StartDate")
-                        .HasDatabaseName("IX_Event_Category_StartDate");
-
-                    b.HasIndex("IsActive", "StartDate")
-                        .HasDatabaseName("IX_Event_IsActive_StartDate");
 
                     b.ToTable("Events");
 
@@ -585,7 +558,7 @@ namespace EventTicketSystem.Web.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("TotalAmount")
                         .HasPrecision(18, 2)
@@ -593,19 +566,9 @@ namespace EventTicketSystem.Web.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApplicationUserId")
-                        .HasDatabaseName("IX_Order_ApplicationUserId");
+                    b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("CouponId");
-
-                    b.HasIndex("OrderDate")
-                        .HasDatabaseName("IX_Order_OrderDate");
-
-                    b.HasIndex("Status")
-                        .HasDatabaseName("IX_Order_Status");
-
-                    b.HasIndex("ApplicationUserId", "OrderDate")
-                        .HasDatabaseName("IX_Order_ApplicationUserId_OrderDate");
 
                     b.ToTable("Orders");
                 });
@@ -636,50 +599,13 @@ namespace EventTicketSystem.Web.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrderId")
-                        .HasDatabaseName("IX_OrderItem_OrderId");
+                    b.HasIndex("OrderId");
 
                     b.HasIndex("SeatId");
 
-                    b.HasIndex("TicketTypeId")
-                        .HasDatabaseName("IX_OrderItem_TicketTypeId");
+                    b.HasIndex("TicketTypeId");
 
                     b.ToTable("OrderItems");
-                });
-
-            modelBuilder.Entity("EventTicketSystem.Web.Models.PaymentMethod", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("BankAccountInfo")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("LogoUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("QrCodeUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PaymentMethods");
                 });
 
             modelBuilder.Entity("EventTicketSystem.Web.Models.PredictionLog", b =>
@@ -767,21 +693,14 @@ namespace EventTicketSystem.Web.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatedAt")
-                        .HasDatabaseName("IX_RefundRequest_CreatedAt");
-
-                    b.HasIndex("OrderId")
-                        .HasDatabaseName("IX_RefundRequest_OrderId");
-
-                    b.HasIndex("Status")
-                        .HasDatabaseName("IX_RefundRequest_Status");
+                    b.HasIndex("OrderId");
 
                     b.HasIndex("UserId");
 
@@ -802,18 +721,6 @@ namespace EventTicketSystem.Web.Migrations
                     b.Property<int>("EventId")
                         .HasColumnType("int");
 
-                    b.Property<int>("GridCol")
-                        .HasColumnType("int");
-
-                    b.Property<int>("GridRow")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ReservedBySessionId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ReservedUntil")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("RowLabel")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -822,15 +729,9 @@ namespace EventTicketSystem.Web.Migrations
                     b.Property<int>("SeatNumber")
                         .HasColumnType("int");
 
-                    b.Property<string>("SeatType")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
-                        .HasDefaultValue("Normal");
-
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("TicketTypeId")
                         .HasColumnType("int");
@@ -842,11 +743,7 @@ namespace EventTicketSystem.Web.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TicketTypeId")
-                        .HasDatabaseName("IX_Seat_TicketTypeId");
-
-                    b.HasIndex("EventId", "Status")
-                        .HasDatabaseName("IX_Seat_EventId_Status");
+                    b.HasIndex("TicketTypeId");
 
                     b.HasIndex("EventId", "Zone", "RowLabel", "SeatNumber")
                         .IsUnique();
@@ -887,8 +784,7 @@ namespace EventTicketSystem.Web.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EventId")
-                        .HasDatabaseName("IX_TicketType_EventId");
+                    b.HasIndex("EventId");
 
                     b.ToTable("TicketTypes");
 

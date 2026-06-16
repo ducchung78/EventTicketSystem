@@ -52,7 +52,7 @@ builder.Services.AddControllers();
 
 // Connection string priority: env var ConnectionStrings__DefaultConnection > appsettings.json
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {

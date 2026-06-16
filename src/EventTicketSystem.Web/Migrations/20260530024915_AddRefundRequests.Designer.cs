@@ -4,6 +4,7 @@ using EventTicketSystem.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EventTicketSystem.Web.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260530024915_AddRefundRequests")]
+    partial class AddRefundRequests
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,57 +24,6 @@ namespace EventTicketSystem.Web.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("EventTicketSystem.Web.Models.AIConfig", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AutoRefundThresholdMinutes")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Iterations")
-                        .HasColumnType("int");
-
-                    b.Property<float>("L1Regularization")
-                        .HasColumnType("real");
-
-                    b.Property<float>("L2Regularization")
-                        .HasColumnType("real");
-
-                    b.Property<double?>("LastModelMAE")
-                        .HasColumnType("float");
-
-                    b.Property<double?>("LastModelR2")
-                        .HasColumnType("float");
-
-                    b.Property<double?>("LastModelRMSE")
-                        .HasColumnType("float");
-
-                    b.Property<DateTime?>("LastTrainedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("MinTrainingSamples")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AIConfigs");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            AutoRefundThresholdMinutes = 60,
-                            Iterations = 100,
-                            L1Regularization = 0f,
-                            L2Regularization = 0.1f,
-                            MinTrainingSamples = 60
-                        });
-                });
 
             modelBuilder.Entity("EventTicketSystem.Web.Models.ApplicationUser", b =>
                 {
@@ -117,7 +69,7 @@ namespace EventTicketSystem.Web.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
@@ -145,9 +97,6 @@ namespace EventTicketSystem.Web.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
-
-                    b.HasIndex("PhoneNumber")
-                        .HasDatabaseName("IX_ApplicationUser_PhoneNumber");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -225,12 +174,6 @@ namespace EventTicketSystem.Web.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatedAt")
-                        .HasDatabaseName("IX_ContactMessage_CreatedAt");
-
-                    b.HasIndex("IsRead")
-                        .HasDatabaseName("IX_ContactMessage_IsRead");
-
                     b.ToTable("ContactMessages");
                 });
 
@@ -279,9 +222,6 @@ namespace EventTicketSystem.Web.Migrations
 
                     b.HasIndex("Code")
                         .IsUnique();
-
-                    b.HasIndex("ExpiryDate")
-                        .HasDatabaseName("IX_Coupon_ExpiryDate");
 
                     b.ToTable("Coupons");
 
@@ -377,9 +317,6 @@ namespace EventTicketSystem.Web.Migrations
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("HasSeatMap")
-                        .HasColumnType("bit");
-
                     b.Property<string>("ImageUrl")
                         .HasColumnType("nvarchar(max)");
 
@@ -407,24 +344,6 @@ namespace EventTicketSystem.Web.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Category")
-                        .HasDatabaseName("IX_Event_Category");
-
-                    b.HasIndex("IsActive")
-                        .HasDatabaseName("IX_Event_IsActive");
-
-                    b.HasIndex("StartDate")
-                        .HasDatabaseName("IX_Event_StartDate");
-
-                    b.HasIndex("Venue")
-                        .HasDatabaseName("IX_Event_Venue");
-
-                    b.HasIndex("Category", "StartDate")
-                        .HasDatabaseName("IX_Event_Category_StartDate");
-
-                    b.HasIndex("IsActive", "StartDate")
-                        .HasDatabaseName("IX_Event_IsActive_StartDate");
-
                     b.ToTable("Events");
 
                     b.HasData(
@@ -435,7 +354,6 @@ namespace EventTicketSystem.Web.Migrations
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Đêm âm nhạc rock đầy kịch tính với sự tham gia của các ban nhạc nổi tiếng trong và ngoài nước. Một trải nghiệm âm nhạc không thể bỏ qua!",
                             EndDate = new DateTime(2026, 7, 15, 23, 0, 0, 0, DateTimeKind.Utc),
-                            HasSeatMap = false,
                             ImageUrl = "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800",
                             IsActive = true,
                             IsHot = true,
@@ -451,7 +369,6 @@ namespace EventTicketSystem.Web.Migrations
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Khám phá những đổi mới mới nhất về Trí Tuệ Nhân Tạo, điện toán đám mây và phát triển phần mềm. Cơ hội kết nối với hàng trăm chuyên gia công nghệ hàng đầu.",
                             EndDate = new DateTime(2026, 8, 21, 18, 0, 0, 0, DateTimeKind.Utc),
-                            HasSeatMap = false,
                             ImageUrl = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800",
                             IsActive = true,
                             IsHot = true,
@@ -467,7 +384,6 @@ namespace EventTicketSystem.Web.Migrations
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Bật cười thả ga cùng những diễn viên hài độc thoại xuất sắc nhất Việt Nam biểu diễn trực tiếp. Một đêm giải trí đáng nhớ cho cả gia đình.",
                             EndDate = new DateTime(2026, 6, 10, 22, 30, 0, 0, DateTimeKind.Utc),
-                            HasSeatMap = false,
                             ImageUrl = "https://images.unsplash.com/photo-1503095396549-807759245b35?w=800",
                             IsActive = true,
                             IsHot = false,
@@ -483,7 +399,6 @@ namespace EventTicketSystem.Web.Migrations
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Trải nghiệm hơn 200 tác phẩm nghệ thuật độc đáo từ 50 nghệ sĩ tài năng trong và ngoài nước. Không gian nghệ thuật sống động và đầy cảm hứng.",
                             EndDate = new DateTime(2026, 9, 7, 18, 0, 0, 0, DateTimeKind.Utc),
-                            HasSeatMap = false,
                             ImageUrl = "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800",
                             IsActive = true,
                             IsHot = false,
@@ -499,7 +414,6 @@ namespace EventTicketSystem.Web.Migrations
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Theo dõi những trận đấu bóng đá kịch tính và đầy cảm xúc giữa các đội bóng hàng đầu. Sân khấu thể thao không thể bỏ lỡ mùa hè này.",
                             EndDate = new DateTime(2026, 7, 25, 21, 0, 0, 0, DateTimeKind.Utc),
-                            HasSeatMap = false,
                             ImageUrl = "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800",
                             IsActive = true,
                             IsHot = true,
@@ -585,7 +499,7 @@ namespace EventTicketSystem.Web.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("TotalAmount")
                         .HasPrecision(18, 2)
@@ -593,19 +507,9 @@ namespace EventTicketSystem.Web.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApplicationUserId")
-                        .HasDatabaseName("IX_Order_ApplicationUserId");
+                    b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("CouponId");
-
-                    b.HasIndex("OrderDate")
-                        .HasDatabaseName("IX_Order_OrderDate");
-
-                    b.HasIndex("Status")
-                        .HasDatabaseName("IX_Order_Status");
-
-                    b.HasIndex("ApplicationUserId", "OrderDate")
-                        .HasDatabaseName("IX_Order_ApplicationUserId_OrderDate");
 
                     b.ToTable("Orders");
                 });
@@ -624,9 +528,6 @@ namespace EventTicketSystem.Web.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<int?>("SeatId")
-                        .HasColumnType("int");
-
                     b.Property<int>("TicketTypeId")
                         .HasColumnType("int");
 
@@ -636,88 +537,11 @@ namespace EventTicketSystem.Web.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrderId")
-                        .HasDatabaseName("IX_OrderItem_OrderId");
+                    b.HasIndex("OrderId");
 
-                    b.HasIndex("SeatId");
-
-                    b.HasIndex("TicketTypeId")
-                        .HasDatabaseName("IX_OrderItem_TicketTypeId");
+                    b.HasIndex("TicketTypeId");
 
                     b.ToTable("OrderItems");
-                });
-
-            modelBuilder.Entity("EventTicketSystem.Web.Models.PaymentMethod", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("BankAccountInfo")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("LogoUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("QrCodeUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PaymentMethods");
-                });
-
-            modelBuilder.Entity("EventTicketSystem.Web.Models.PredictionLog", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal?>("ActualRevenue")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int?>("ActualTicketsSold")
-                        .HasColumnType("int");
-
-                    b.Property<int>("EventId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("PredictedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("PredictedRevenue")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<float>("PredictedTicketsSold")
-                        .HasColumnType("real");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EventId", "PredictedAt");
-
-                    b.ToTable("PredictionLogs");
                 });
 
             modelBuilder.Entity("EventTicketSystem.Web.Models.RefundRequest", b =>
@@ -767,91 +591,18 @@ namespace EventTicketSystem.Web.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatedAt")
-                        .HasDatabaseName("IX_RefundRequest_CreatedAt");
-
-                    b.HasIndex("OrderId")
-                        .HasDatabaseName("IX_RefundRequest_OrderId");
-
-                    b.HasIndex("Status")
-                        .HasDatabaseName("IX_RefundRequest_Status");
+                    b.HasIndex("OrderId");
 
                     b.HasIndex("UserId");
 
                     b.ToTable("RefundRequests");
-                });
-
-            modelBuilder.Entity("EventTicketSystem.Web.Models.Seat", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("EventId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("GridCol")
-                        .HasColumnType("int");
-
-                    b.Property<int>("GridRow")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ReservedBySessionId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ReservedUntil")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RowLabel")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<int>("SeatNumber")
-                        .HasColumnType("int");
-
-                    b.Property<string>("SeatType")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
-                        .HasDefaultValue("Normal");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int?>("TicketTypeId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Zone")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TicketTypeId")
-                        .HasDatabaseName("IX_Seat_TicketTypeId");
-
-                    b.HasIndex("EventId", "Status")
-                        .HasDatabaseName("IX_Seat_EventId_Status");
-
-                    b.HasIndex("EventId", "Zone", "RowLabel", "SeatNumber")
-                        .IsUnique();
-
-                    b.ToTable("Seats");
                 });
 
             modelBuilder.Entity("EventTicketSystem.Web.Models.TicketType", b =>
@@ -887,8 +638,7 @@ namespace EventTicketSystem.Web.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EventId")
-                        .HasDatabaseName("IX_TicketType_EventId");
+                    b.HasIndex("EventId");
 
                     b.ToTable("TicketTypes");
 
@@ -1175,11 +925,6 @@ namespace EventTicketSystem.Web.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EventTicketSystem.Web.Models.Seat", "Seat")
-                        .WithMany()
-                        .HasForeignKey("SeatId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
                     b.HasOne("EventTicketSystem.Web.Models.TicketType", "TicketType")
                         .WithMany("OrderItems")
                         .HasForeignKey("TicketTypeId")
@@ -1188,20 +933,7 @@ namespace EventTicketSystem.Web.Migrations
 
                     b.Navigation("Order");
 
-                    b.Navigation("Seat");
-
                     b.Navigation("TicketType");
-                });
-
-            modelBuilder.Entity("EventTicketSystem.Web.Models.PredictionLog", b =>
-                {
-                    b.HasOne("EventTicketSystem.Web.Models.Event", "Event")
-                        .WithMany()
-                        .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Event");
                 });
 
             modelBuilder.Entity("EventTicketSystem.Web.Models.RefundRequest", b =>
@@ -1220,24 +952,6 @@ namespace EventTicketSystem.Web.Migrations
                     b.Navigation("Order");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("EventTicketSystem.Web.Models.Seat", b =>
-                {
-                    b.HasOne("EventTicketSystem.Web.Models.Event", "Event")
-                        .WithMany()
-                        .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("EventTicketSystem.Web.Models.TicketType", "TicketType")
-                        .WithMany()
-                        .HasForeignKey("TicketTypeId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.Navigation("Event");
-
-                    b.Navigation("TicketType");
                 });
 
             modelBuilder.Entity("EventTicketSystem.Web.Models.TicketType", b =>
