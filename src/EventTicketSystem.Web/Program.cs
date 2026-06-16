@@ -6,11 +6,46 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-// Dynamic port: Cloud Run sets PORT, Azure Container Apps uses 8080 by default
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+// Load .env file for local development (before CreateBuilder so env vars are visible to config)
+// Walk up from cwd so the file is found regardless of which directory dotnet run is invoked from.
+static string? FindEnvFile(string? dir)
+{
+    while (dir != null)
+    {
+        var candidate = Path.Combine(dir, ".env");
+        if (File.Exists(candidate)) return candidate;
+        dir = Path.GetDirectoryName(dir);
+    }
+    return null;
+}
+var envFilePath = FindEnvFile(Directory.GetCurrentDirectory());
+if (envFilePath != null)
+{
+    foreach (var line in File.ReadAllLines(envFilePath))
+    {
+        var trimmed = line.Trim();
+        if (string.IsNullOrEmpty(trimmed) || trimmed.StartsWith('#')) continue;
+        var eqIdx = trimmed.IndexOf('=');
+        if (eqIdx < 0) continue;
+        var key = trimmed[..eqIdx].Trim();
+        var val = trimmed[(eqIdx + 1)..].Trim().Trim('"').Trim('\'');
+        if (!string.IsNullOrEmpty(key))
+            Environment.SetEnvironmentVariable(key, val);
+    }
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.UseUrls($"http://+:{port}");
+// Map GROQ_API_KEY env var → AI:ApiKey (takes priority over appsettings when set)
+var groqApiKey = Environment.GetEnvironmentVariable("GROQ_API_KEY");
+if (!string.IsNullOrWhiteSpace(groqApiKey))
+    builder.Configuration["AI:ApiKey"] = groqApiKey;
+
+// Override URL only in cloud containers (Cloud Run / Azure Container Apps set PORT).
+// Locally, launchSettings.json's applicationUrl is used as-is.
+var cloudPort = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(cloudPort))
+    builder.WebHost.UseUrls($"http://+:{cloudPort}");
 
 builder.Services.AddRazorPages();
 builder.Services.AddControllers();
@@ -103,9 +138,10 @@ if (!app.Environment.IsDevelopment())
 }
 
 // In containers (PORT is set), TLS is terminated at the cloud load balancer — skip redirect
-var runningInContainer = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PORT"));
-if (!runningInContainer)
+if (string.IsNullOrEmpty(cloudPort))
     app.UseHttpsRedirection();
+
+app.UseStaticFiles();
 
 app.UseRouting();
 app.UseAuthentication();

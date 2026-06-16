@@ -1,0 +1,26 @@
+===== PACKAGE.JSON ===== 
+{
+  "name": "event-ticket-system-tests",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "mocha \"tests/selenium/**/*.test.js\" --reporter json --reporter-option output=test-results/results.json --timeout 60000"
+  },
+  "dependencies": {
+    "docx": "^9.7.0",
+    "form-data": "^4.0.0"
+  },
+  "devDependencies": {
+    "axios": "^1.7.9",
+    "mocha": "^10.8.2",
+    "selenium-webdriver": "^4.27.0"
+  }
+}
+ 
+===== CSPROJ FILES ===== 
+C:\Users\ASUS\EventTicketSystem\src\EventTicketSystem.Web\EventTicketSystem.Web.csproj
+ 
+===== SLN FILES ===== 
+C:\Users\ASUS\EventTicketSystem\EventTicketSystem.slnx
+C:\Users\ASUS\EventTicketSystem\.vs\EventTicketSystem.slnx
+ 
+===== APPSETTINGS ===== 

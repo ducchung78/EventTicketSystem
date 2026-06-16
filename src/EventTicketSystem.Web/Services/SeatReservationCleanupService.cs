@@ -37,8 +37,9 @@ public class SeatReservationCleanupService(IServiceScopeFactory scopeFactory, IL
 
         foreach (var seat in expired)
         {
-            seat.Status        = SeatStatus.Available;
-            seat.ReservedUntil = null;
+            seat.Status              = SeatStatus.Available;
+            seat.ReservedUntil       = null;
+            seat.ReservedBySessionId = null;
         }
 
         await db.SaveChangesAsync(ct);

@@ -17,6 +17,7 @@ public class EventDetailsModel(
     public Event?            Event         { get; set; }
     public ApplicationUser?  CurrentUser   { get; set; }
     public List<EventImage>  GalleryImages { get; set; } = [];
+    public List<Event>       RelatedEvents { get; set; } = [];
 
     public async Task OnGetAsync(int id)
     {
@@ -26,7 +27,17 @@ public class EventDetailsModel(
             .FirstOrDefaultAsync(e => e.Id == id);
 
         if (Event != null)
+        {
             GalleryImages = [.. Event.Images.OrderBy(i => i.SortOrder)];
+
+            RelatedEvents = await db.Events
+                .Include(e => e.TicketTypes)
+                .Where(e => e.Id != id && e.IsActive)
+                .OrderByDescending(e => e.Category == Event.Category)
+                .ThenBy(e => e.StartDate)
+                .Take(4)
+                .ToListAsync();
+        }
 
         if (signInManager.IsSignedIn(User))
             CurrentUser = await userManager.GetUserAsync(User);

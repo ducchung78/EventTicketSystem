@@ -3,320 +3,890 @@
 @using EventTicketSystem.Web.Models
 @{
     ViewData["Title"] = $"Chọn Ghế – {Model.Event?.Title}";
-    var evt    = Model.Event!;
-    var imgUrl = evt.ImageUrl ?? "";
+    var evt              = Model.Event!;
+    var imgUrl           = evt.ImageUrl ?? "";
+    var currentSessionId = Model.CurrentSessionId;
+    var now              = DateTime.UtcNow;
+
+    // Gán màu cho từng TicketType (theo thứ tự giá tăng dần)
+    var palette = new[] { "#448aff","#5c6bc0","#2DC275","#66bb6a","#ffd740","#ff8f00","#f06292","#ab47bc","#26c6da","#ef5350" };
+    var ttList  = evt.TicketTypes.OrderBy(t => t.Price).ToList();
+    var ttColorMap = ttList.Select((t, i) => new { t.Id, color = palette[i % palette.Length] })
+                           .ToDictionary(x => x.Id, x => x.color);
+    var ttColorPairs = string.Join(",", ttColorMap.Select(kvp => $"{kvp.Key}:'{kvp.Value}'"));
 }
 
 <style>
-/* ── Wrapper ── */
-.ss-wrap { padding: 1.5rem 0 8rem; }
-.ss-back { color:rgba(210,195,255,.5); font-size:.85rem; text-decoration:none; margin-bottom:.75rem; display:inline-flex; align-items:center; gap:6px; }
-.ss-back:hover { color:#ede0ff; }
-.ss-title { font-size:1.25rem; font-weight:800; color:#ede0ff; margin-bottom:.15rem; }
-.ss-sub   { color:rgba(210,195,255,.45); font-size:.83rem; margin-bottom:1.25rem; }
+/* ── Wrapper full-height 2 cột ── */
+.ss-wrap {
+    display: flex;
+    min-height: calc(100vh - 120px);
+    background: #12151F;
+    gap: 0;
+}
 
-.ss-card {
-    background:rgba(20,10,52,.82); border:1px solid rgba(124,77,255,.28);
-    border-radius:16px; padding:1.25rem 1.5rem; margin-bottom:1rem; overflow-x:auto;
+/* ── Cột trái: sơ đồ ghế ── */
+.ss-left {
+    flex: 1 1 70%;
+    padding: 28px 24px 40px;
+    overflow-y: auto;
+    min-width: 0;
+}
+
+/* ── Cột phải: sticky info panel ── */
+.ss-right {
+    flex: 0 0 320px;
+    background: #1E2130;
+    border-left: 1px solid rgba(255,255,255,.06);
+    position: sticky;
+    top: 0;
+    height: calc(100vh - 120px);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 28px 24px;
+}
+
+/* ── Left header ── */
+.ss-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #2DC275;
+    font-size: .88rem;
+    font-weight: 600;
+    text-decoration: none;
+    margin-bottom: 20px;
+    transition: opacity .15s;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+.ss-back:hover { opacity: .75; color: #2DC275; }
+
+.ss-heading {
+    text-align: center;
+    margin-bottom: 6px;
+}
+.ss-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #2DC275;
+    margin: 0;
+}
+.ss-sub {
+    font-size: .82rem;
+    color: rgba(255,255,255,.4);
+    margin-top: 4px;
 }
 
 /* ── Legend ── */
-.legend-row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:1.25rem; }
-.legend-item { display:flex; align-items:center; gap:7px; font-size:.76rem; color:rgba(210,195,255,.65); }
-.l-dot { width:20px; height:20px; border-radius:4px; flex-shrink:0; }
+.legend-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 20px 0 16px;
+    justify-content: center;
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: .75rem;
+    color: rgba(255,255,255,.55);
+}
+.l-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+/* ── Seat grid card ── */
+.ss-card {
+    background: #1E2130;
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: 14px;
+    padding: 24px;
+    overflow-x: auto;
+    position: relative;
+}
+
+/* ── Zoom controls ── */
+.ss-zoom {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 10;
+}
+.ss-zoom-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(45,194,117,.4);
+    background: rgba(45,194,117,.12);
+    color: #2DC275;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .15s;
+    line-height: 1;
+}
+.ss-zoom-btn:hover { background: rgba(45,194,117,.28); }
 
 /* ── Screen arc ── */
-.screen-wrap { text-align:center; margin-bottom:1.75rem; }
+.screen-wrap { text-align: center; margin-bottom: 20px; }
 .screen-arc {
-    display:inline-block; width:60%; max-width:480px; height:14px;
-    background:linear-gradient(90deg, transparent 0%, rgba(68,138,255,.4) 25%, rgba(68,138,255,.8) 50%, rgba(68,138,255,.4) 75%, transparent 100%);
-    border-radius:50% 50% 0 0 / 100% 100% 0 0;
+    display: inline-block;
+    width: 55%;
+    max-width: 420px;
+    height: 12px;
+    background: linear-gradient(90deg, transparent 0%, rgba(45,194,117,.3) 25%, rgba(45,194,117,.7) 50%, rgba(45,194,117,.3) 75%, transparent 100%);
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
 }
-.screen-label { display:block; font-size:.7rem; font-weight:700; letter-spacing:.18em; color:rgba(210,195,255,.3); text-transform:uppercase; margin-top:8px; }
+.screen-label {
+    display: block;
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .16em;
+    color: rgba(255,255,255,.3);
+    text-transform: uppercase;
+    margin-top: 7px;
+}
 
-/* ── Grid ── */
-.grid-rows { display:inline-flex; flex-direction:column; gap:4px; min-width:max-content; }
-.grid-row  { display:flex; align-items:center; gap:4px; }
-.row-lbl   { width:22px; font-size:.68rem; font-weight:700; color:rgba(210,195,255,.4); text-align:center; flex-shrink:0; }
+/* ── Seat grid ── */
+.grid-rows { display: inline-flex; flex-direction: column; gap: 4px; min-width: max-content; }
+.grid-row  { display: flex; align-items: center; gap: 4px; }
+.row-lbl   { width: 22px; font-size: .68rem; font-weight: 700; color: rgba(255,255,255,.35); text-align: center; flex-shrink: 0; }
 
-/* ── Seat cell ── */
+/* ── Seat cells ── */
 .ss-seat {
-    width:38px; height:38px; border-radius:7px; position:relative; overflow:hidden;
-    flex-shrink:0; display:flex; align-items:center; justify-content:center;
-    border:2px solid transparent; user-select:none; transition:transform .1s, border-color .15s;
+    width: 36px; height: 36px; border-radius: 7px; position: relative; overflow: hidden;
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    border: 2px solid transparent; user-select: none;
+    transition: transform .1s, border-color .15s, box-shadow .15s;
 }
-.ss-seat.couple { width:80px; }
-
-.ss-seat.available { border-color:rgba(124,77,255,.4); background:rgba(124,77,255,.12); cursor:pointer; }
-.ss-seat.available:hover { border-color:rgba(124,77,255,.75); transform:scale(1.1); }
-.ss-seat.vip-avail { border-color:rgba(233,30,99,.4); background:rgba(233,30,99,.1); cursor:pointer; }
-.ss-seat.vip-avail:hover { border-color:rgba(233,30,99,.7); transform:scale(1.1); }
+.ss-seat.couple { width: 76px; }
+.ss-seat.available { border-color: rgba(68,138,255,.45); background: rgba(68,138,255,.1); cursor: pointer; }
+.ss-seat.available:hover { border-color: rgba(68,138,255,.8); transform: scale(1.12); }
+.ss-seat.vip-avail { border-color: rgba(240,98,146,.45); background: rgba(240,98,146,.1); cursor: pointer; }
+.ss-seat.vip-avail:hover { border-color: rgba(240,98,146,.8); transform: scale(1.12); }
 .ss-seat.selected {
-    border-color:#448aff; background:rgba(68,138,255,.3);
-    transform:scale(1.08);
-    box-shadow:0 0 12px rgba(68,138,255,.5);
-    cursor:pointer;
+    border-color: #2DC275; background: rgba(45,194,117,.25);
+    transform: scale(1.1);
+    box-shadow: 0 0 14px rgba(45,194,117,.45);
+    cursor: pointer;
 }
-.ss-seat.sold     { cursor:default; }
-.ss-seat.disabled { cursor:default; }
-.ss-seat.empty    { background:transparent; border-color:rgba(255,255,255,.08); border-style:dashed; cursor:default; }
+/* Ghế đang có người KHÁC giữ: vàng/cam, không click được */
+.ss-seat.reserved-other {
+    cursor: default;
+    background: rgba(255,160,0,.12);
+    border-color: rgba(255,160,0,.55);
+}
+.ss-seat.sold    { cursor: default; }
+.ss-seat.disabled { cursor: default; }
+.ss-seat.empty   { background: transparent; border-color: rgba(255,255,255,.06); border-style: dashed; cursor: default; }
 
-.seat-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:.35; pointer-events:none; }
+.seat-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .28; pointer-events: none; }
 .seat-sold-overlay {
-    position:absolute; inset:0; background:rgba(0,0,0,.62); z-index:2;
-    display:flex; align-items:center; justify-content:center; font-size:.9rem;
+    position: absolute; inset: 0; background: rgba(0,0,0,.6); z-index: 2;
+    display: flex; align-items: center; justify-content: center; font-size: .85rem;
 }
-.seat-check {
-    position:absolute; top:2px; right:3px; z-index:3;
-    font-size:.7rem; color:#69f0ae; font-weight:900; display:none;
+.seat-reserved-overlay {
+    position: absolute; inset: 0; background: rgba(255,160,0,.15); z-index: 2;
+    display: flex; align-items: center; justify-content: center; font-size: .85rem;
 }
-.ss-seat.selected .seat-check { display:block; }
+.seat-check { position: absolute; top: 2px; right: 3px; z-index: 3; font-size: .68rem; color: #2DC275; font-weight: 900; display: none; }
+.ss-seat.selected .seat-check { display: block; }
 .seat-lbl {
-    position:relative; z-index:1; font-size:.52rem; font-weight:800;
-    color:#fff; text-shadow:0 1px 4px rgba(0,0,0,.9); text-align:center; line-height:1.2;
-    pointer-events:none;
+    position: relative; z-index: 1; font-size: .52rem; font-weight: 800;
+    color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.9); text-align: center; line-height: 1.2; pointer-events: none;
 }
-.seat-type-dot {
-    position:absolute; bottom:2px; left:50%; transform:translateX(-50%); z-index:3;
-    width:6px; height:6px; border-radius:50%;
-}
-.dot-vip { background:#f06292; }
+.seat-type-dot { position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); z-index: 3; width: 6px; height: 6px; border-radius: 50%; }
+.dot-vip { background: #f06292; }
 
-/* ── Sticky bottom panel ── */
-.ss-sticky {
-    position:fixed; bottom:0; left:0; right:0; z-index:200;
-    background:rgba(10,6,28,.96); backdrop-filter:blur(20px);
-    border-top:1px solid rgba(124,77,255,.35);
-    padding:12px 20px;
-    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+/* ── Filter dim ── */
+.ss-seat.dim { opacity: .28 !important; pointer-events: none !important; }
+
+/* ── Ticket type filter radio ── */
+.ss-filter-list { display: flex; flex-direction: column; gap: 2px; margin-bottom: 14px; }
+.ss-filter-item {
+    display: flex; align-items: center; gap: 8px;
+    font-size: .82rem; color: rgba(255,255,255,.65);
+    cursor: pointer; padding: 4px 2px; border-radius: 6px;
+    transition: color .15s;
 }
-.ss-sticky-left { flex:1; min-width:0; }
-.ss-sticky-chips { display:flex; gap:6px; flex-wrap:wrap; min-height:28px; align-items:center; }
+.ss-filter-item:hover { color: #fff; }
+.ss-filter-item input[type=radio] { accent-color: #2DC275; cursor: pointer; }
+
+/* ── Right info panel ── */
+.ss-right-header {
+    border-bottom: 1px solid rgba(255,255,255,.07);
+    padding-bottom: 18px;
+    margin-bottom: 18px;
+}
+.ss-event-name {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.35;
+    margin-bottom: 12px;
+}
+.ss-info-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: .82rem;
+    color: rgba(255,255,255,.6);
+    margin-bottom: 8px;
+}
+.ss-info-icon { color: #2DC275; font-size: .9rem; flex-shrink: 0; }
+
+.ss-price-title {
+    font-size: .78rem;
+    font-weight: 700;
+    color: rgba(255,255,255,.45);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: 12px;
+}
+.ss-tt-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,.05);
+    font-size: .83rem;
+}
+.ss-tt-item:last-child { border-bottom: none; }
+.ss-tt-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+.ss-tt-name { flex: 1; color: rgba(255,255,255,.75); }
+.ss-tt-price { font-weight: 700; color: #2DC275; white-space: nowrap; }
+
+/* ── Countdown timer ── */
+.ss-timer {
+    background: rgba(255,160,0,.07);
+    border: 1px solid rgba(255,160,0,.22);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+}
+.ss-timer-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+.ss-timer-label {
+    font-size: .72rem;
+    color: rgba(255,255,255,.45);
+}
+.ss-timer-count {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #ffd740;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: .04em;
+    transition: color .3s;
+}
+.ss-timer.warning .ss-timer-count { color: #ff7043; }
+.ss-timer.expired .ss-timer-count { color: #ef9a9a; }
+.btn-release-sm {
+    font-size: .7rem;
+    padding: 3px 9px;
+    border-radius: 6px;
+    border: 1px solid rgba(239,154,154,.4);
+    background: rgba(239,154,154,.08);
+    color: #ef9a9a;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .15s;
+}
+.btn-release-sm:hover { background: rgba(239,154,154,.2); }
+
+/* ── Selected seats chips in right panel ── */
+.ss-selected-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,.07);
+    flex: 1;
+}
+.ss-selected-title {
+    font-size: .75rem;
+    color: rgba(255,255,255,.35);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: 10px;
+}
+.ss-chips-wrap { display: flex; flex-wrap: wrap; gap: 6px; min-height: 30px; }
 .ss-chip {
-    display:inline-flex; align-items:center; gap:5px;
-    background:rgba(68,138,255,.15); border:1px solid rgba(68,138,255,.3);
-    border-radius:20px; padding:3px 10px; font-size:.76rem; color:#90caf9;
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(45,194,117,.12); border: 1px solid rgba(45,194,117,.3);
+    border-radius: 20px; padding: 3px 10px; font-size: .76rem; color: #2DC275;
 }
-.ss-chip-del { cursor:pointer; color:rgba(239,154,154,.7); font-size:.8rem; }
-.ss-chip-del:hover { color:#ef9a9a; }
-.ss-empty-note { font-size:.8rem; color:rgba(210,195,255,.3); }
-.ss-total-row { font-size:.78rem; color:rgba(210,195,255,.5); margin-top:4px; }
-.ss-total-amt { font-size:1rem; font-weight:800; color:#ffd740; }
+.ss-chip-del { cursor: pointer; color: rgba(239,154,154,.65); font-size: .8rem; }
+.ss-chip-del:hover { color: #ef9a9a; }
+.ss-empty-note { font-size: .8rem; color: rgba(255,255,255,.25); }
+.ss-total-row { font-size: .8rem; color: rgba(255,255,255,.45); margin-top: 8px; }
+.ss-total-amt { font-size: 1rem; font-weight: 800; color: #ffd740; }
 
+/* ── Continue button ── */
+.ss-continue-wrap { margin-top: auto; padding-top: 16px; }
 .btn-continue {
-    background:linear-gradient(90deg,#7c4dff,#448aff); border:none;
-    border-radius:12px; color:#fff; font-weight:700; font-size:.93rem;
-    padding:.7rem 1.5rem; cursor:pointer; white-space:nowrap; flex-shrink:0;
-    box-shadow:0 4px 16px rgba(124,77,255,.4); transition:opacity .15s;
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    background: #2DC275;
+    border: none;
+    color: #fff;
+    font-weight: 700;
+    font-size: .95rem;
+    cursor: pointer;
+    text-align: center;
+    transition: background .2s ease, opacity .15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
-.btn-continue:hover:not(:disabled) { opacity:.87; }
-.btn-continue:disabled { opacity:.35; cursor:default; }
+.btn-continue:hover:not(:disabled) { background: #25a863; }
+.btn-continue:disabled {
+    background: rgba(255,255,255,.08);
+    color: rgba(255,255,255,.3);
+    cursor: default;
+}
 
 /* ── Error banner ── */
-.ss-err { background:rgba(229,57,53,.1); border:1px solid rgba(229,57,53,.25); border-radius:10px; padding:10px 16px; color:#ef9a9a; font-size:.88rem; margin-bottom:1rem; }
+.ss-err {
+    background: rgba(229,57,53,.1);
+    border: 1px solid rgba(229,57,53,.25);
+    border-radius: 10px;
+    padding: 10px 16px;
+    color: #ef9a9a;
+    font-size: .88rem;
+    margin-bottom: 16px;
+}
+
+@@media (max-width: 900px) {
+    .ss-wrap { flex-direction: column; }
+    .ss-right {
+        position: static;
+        height: auto;
+        flex: none;
+        border-left: none;
+        border-top: 1px solid rgba(255,255,255,.07);
+    }
+    .ss-continue-wrap { padding-top: 12px; }
+}
 </style>
 
-<div class="container-xl px-3 px-md-4 ss-wrap">
+<div class="ss-wrap">
 
-    <a href="/Events/Details/@evt.Id" class="ss-back">← @evt.Title</a>
-    <div class="ss-title">🪑 Chọn Ghế</div>
-    <div class="ss-sub">Nhấp vào ghế để chọn · Tối đa 8 chỗ ngồi · Ghế giữ 10 phút sau khi đặt</div>
+    @* ── Cột trái: sơ đồ ghế ── *@
+    <div class="ss-left">
 
-    @if (TempData["SeatError"] is string seatErr)
-    {
-        <div class="ss-err">⚠️ @seatErr</div>
-    }
+        @* Nút "Trở về" — POST để tự động release ghế nếu đang giữ *@
+        <form method="post" asp-page-handler="Release" style="display:inline;">
+            <input type="hidden" name="eventId" value="@evt.Id" />
+            <button type="submit" class="ss-back">← Trở về</button>
+        </form>
 
-    @* ── Legend ── *@
-    <div class="legend-row">
-        <div class="legend-item"><div class="l-dot" style="background:rgba(124,77,255,.2);border:2px solid rgba(124,77,255,.5);"></div>Ghế thường</div>
-        <div class="legend-item"><div class="l-dot" style="background:rgba(233,30,99,.12);border:2px solid rgba(233,30,99,.45);"></div>Ghế VIP</div>
-        <div class="legend-item"><div class="l-dot" style="background:rgba(68,138,255,.3);border:2px solid #448aff;"></div>Đang chọn</div>
-        <div class="legend-item"><div class="l-dot" style="background:rgba(0,0,0,.5);border:2px solid rgba(255,255,255,.12);"></div>Đã đặt</div>
-    </div>
-
-    @* ── Seat Grid Card ── *@
-    <div class="ss-card">
-        <div class="screen-wrap">
-            <div class="screen-arc"></div>
-            <span class="screen-label">Màn Hình / Sân Khấu</span>
+        <div class="ss-heading">
+            <h1 class="ss-title">Chọn khu vực</h1>
+            <p class="ss-sub">Bấm vào ghế để chọn · Tối đa 8 chỗ ngồi</p>
         </div>
 
-        <div style="overflow-x:auto;">
-            <div class="grid-rows" id="seatGrid">
-                @for (int r = 0; r < Model.GridRows; r++)
-                {
-                    <div class="grid-row">
-                        <div class="row-lbl">@((char)('A' + r))</div>
-                        @for (int c = 0; c < Model.GridCols; c++)
-                        {
-                            @* Skip partner column *@
-                            bool isPartner = c > 0
-                                && Model.SeatGrid.TryGetValue((r, c - 1), out var leftSeat)
-                                && leftSeat.SeatType == SeatType.Couple;
-                            if (isPartner) continue;
+        @if (TempData["SeatError"] is string seatErr)
+        {
+            <div class="ss-err">⚠️ @seatErr</div>
+        }
 
-                            Model.SeatGrid.TryGetValue((r, c), out var seat);
-                            if (seat == null)
-                            {
-                                @* Empty aisle slot *@
-                                <div class="ss-seat empty"></div>
-                            }
-                            else
-                            {
-                                bool isCouple = seat.SeatType == SeatType.Couple;
-                                bool isVip    = seat.SeatType == SeatType.VIP;
-                                bool isSold   = seat.Status == SeatStatus.Sold || seat.Status == SeatStatus.Reserved;
-                                bool isDisabled = seat.Status == SeatStatus.Disabled;
-                                string availCss = isVip ? "vip-avail" : "available";
-
-                                if (isSold || isDisabled)
-                                {
-                                    <div class="ss-seat sold @(isCouple ? "couple" : "")"
-                                         title="@seat.Label – @(isSold ? "Đã đặt" : "Không khả dụng")"
-                                         style="background:rgba(30,20,60,.7);border-color:rgba(255,255,255,.1);">
-                                        @if (!string.IsNullOrEmpty(imgUrl))
-                                        { <img src="@imgUrl" alt="" class="seat-img" style="opacity:.12;filter:grayscale(100%);" /> }
-                                        <div class="seat-sold-overlay">@(isSold ? "🔒" : "—")</div>
-                                    </div>
-                                }
-                                else
-                                {
-                                    string priceStr = (seat.TicketType?.Price ?? 0).ToString("0", System.Globalization.CultureInfo.InvariantCulture);
-                                    <div class="ss-seat @availCss @(isCouple ? "couple" : "")"
-                                         id="cs-@seat.Id"
-                                         data-id="@seat.Id"
-                                         data-label="@seat.Label"
-                                         data-price="@priceStr"
-                                         data-couple="@(isCouple ? "true" : "false")"
-                                         title="@seat.Label · @(seat.TicketType?.Name ?? "") · @(seat.TicketType?.Price.ToString("N0") ?? "0")đ"
-                                         onclick="toggleSeat(this)">
-                                        @if (!string.IsNullOrEmpty(imgUrl))
-                                        { <img src="@imgUrl" alt="" class="seat-img" /> }
-                                        <span class="seat-lbl">@seat.Label</span>
-                                        <span class="seat-check">✓</span>
-                                        @if (isVip)
-                                        { <span class="seat-type-dot dot-vip"></span> }
-                                    </div>
-                                }
-                            }
-                        }
-                    </div>
-                }
+        @* Legend *@
+        <div class="legend-row">
+            @for (int li = 0; li < ttList.Count; li++)
+            {
+                var ltt = ttList[li];
+                var lc  = palette[li % palette.Length];
+                <div class="legend-item">
+                    <div class="l-dot" style="background:@lc;border:2px solid @lc;opacity:.55;"></div>@ltt.Name
+                </div>
+            }
+            @if (!ttList.Any())
+            {
+                <div class="legend-item">
+                    <div class="l-dot" style="background:rgba(68,138,255,.15);border:2px solid rgba(68,138,255,.5);"></div>Ghế trống
+                </div>
+            }
+            <div class="legend-item">
+                <div class="l-dot" style="background:rgba(255,160,0,.12);border:2px solid rgba(255,160,0,.55);"></div>Đang giữ
+            </div>
+            <div class="legend-item">
+                <div class="l-dot" style="background:rgba(45,194,117,.25);border:2px solid #2DC275;"></div>Đang chọn
+            </div>
+            <div class="legend-item">
+                <div class="l-dot" style="background:rgba(0,0,0,.5);border:2px solid rgba(255,255,255,.12);"></div>Đã bán
             </div>
         </div>
+
+        @* Seat Grid Card *@
+        <div class="ss-card">
+            @* Zoom controls *@
+            <div class="ss-zoom">
+                <button class="ss-zoom-btn" onclick="zoomGrid(0.1)" title="Zoom in">+</button>
+                <button class="ss-zoom-btn" onclick="zoomGrid(0)"   title="Reset">↺</button>
+                <button class="ss-zoom-btn" onclick="zoomGrid(-0.1)" title="Zoom out">−</button>
+            </div>
+
+            <div class="screen-wrap">
+                <div class="screen-arc"></div>
+                <span class="screen-label">Màn hình / Sân khấu</span>
+            </div>
+
+            <div style="overflow-x:auto;">
+                <div id="seatGridWrap" style="transform-origin:top center; transition:transform .2s ease;">
+                    <div class="grid-rows" id="seatGrid">
+                        @for (int r = 0; r < Model.GridRows; r++)
+                        {
+                            <div class="grid-row">
+                                <div class="row-lbl">@((char)('A' + r))</div>
+                                @for (int c = 0; c < Model.GridCols; c++)
+                                {
+                                    bool isPartner = c > 0
+                                        && Model.SeatGrid.TryGetValue((r, c - 1), out var leftSeat)
+                                        && leftSeat.SeatType == SeatType.Couple;
+                                    if (isPartner) continue;
+
+                                    Model.SeatGrid.TryGetValue((r, c), out var seat);
+                                    if (seat == null)
+                                    {
+                                        <div class="ss-seat empty"></div>
+                                    }
+                                    else
+                                    {
+                                        bool isCouple = seat.SeatType == SeatType.Couple;
+                                        bool isVip    = seat.SeatType == SeatType.VIP;
+                                        string availCss = isVip ? "vip-avail" : "available";
+
+                                        // Phân loại trạng thái ghế
+                                        bool isSold = seat.Status == SeatStatus.Sold || seat.Status == SeatStatus.Disabled;
+                                        bool isReservedMine = seat.Status == SeatStatus.Reserved
+                                            && seat.ReservedBySessionId == currentSessionId
+                                            && seat.ReservedUntil.HasValue
+                                            && seat.ReservedUntil.Value > now;
+                                        bool isReservedOther = seat.Status == SeatStatus.Reserved && !isReservedMine;
+
+                                        if (isSold)
+                                        {
+                                            // Đã bán: đen + khóa
+                                            <div class="ss-seat sold @(isCouple ? "couple" : "")"
+                                                 data-seat-id="@seat.Id"
+                                                 title="@seat.Label – Đã bán"
+                                                 style="background:rgba(30,20,60,.7);border-color:rgba(255,255,255,.1);">
+                                                @if (!string.IsNullOrEmpty(imgUrl))
+                                                { <img src="@imgUrl" alt="" class="seat-img" style="opacity:.1;filter:grayscale(100%);" /> }
+                                                <div class="seat-sold-overlay">🔒</div>
+                                            </div>
+                                        }
+                                        else if (isReservedOther)
+                                        {
+                                            // Đang có người KHÁC giữ: vàng/cam + đồng hồ
+                                            <div class="ss-seat reserved-other @(isCouple ? "couple" : "")"
+                                                 data-seat-id="@seat.Id"
+                                                 title="@seat.Label – Đang có người khác giữ">
+                                                @if (!string.IsNullOrEmpty(imgUrl))
+                                                { <img src="@imgUrl" alt="" class="seat-img" style="opacity:.08;filter:sepia(80%);" /> }
+                                                <div class="seat-reserved-overlay">🕐</div>
+                                            </div>
+                                        }
+                                        else if (isReservedMine)
+                                        {
+                                            // Ghế CHÍNH MÌNH đang giữ: hiển thị như đã chọn (selected)
+                                            string priceStr = (seat.TicketType?.Price ?? 0).ToString("0", System.Globalization.CultureInfo.InvariantCulture);
+                                            <div class="ss-seat @availCss selected @(isCouple ? "couple" : "")"
+                                                 id="cs-@seat.Id"
+                                                 data-seat-id="@seat.Id"
+                                                 data-id="@seat.Id"
+                                                 data-label="@seat.Label"
+                                                 data-price="@priceStr"
+                                                 data-couple="@(isCouple ? "true" : "false")"
+                                                 data-origcss="@availCss"
+                                                 data-tt-id="@(seat.TicketTypeId ?? 0)"
+                                                 title="@seat.Label – Đang giữ của bạn"
+                                                 onclick="toggleSeat(this)">
+                                                @if (!string.IsNullOrEmpty(imgUrl))
+                                                { <img src="@imgUrl" alt="" class="seat-img" /> }
+                                                <span class="seat-lbl">@seat.Label</span>
+                                                <span class="seat-check">✓</span>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            // Available: click được
+                                            string priceStr = (seat.TicketType?.Price ?? 0).ToString("0", System.Globalization.CultureInfo.InvariantCulture);
+                                            <div class="ss-seat @availCss @(isCouple ? "couple" : "")"
+                                                 id="cs-@seat.Id"
+                                                 data-seat-id="@seat.Id"
+                                                 data-id="@seat.Id"
+                                                 data-label="@seat.Label"
+                                                 data-price="@priceStr"
+                                                 data-couple="@(isCouple ? "true" : "false")"
+                                                 data-tt-id="@(seat.TicketTypeId ?? 0)"
+                                                 title="@seat.Label · @(seat.TicketType?.Name ?? "") · @(seat.TicketType?.Price.ToString("N0") ?? "0")đ"
+                                                 onclick="toggleSeat(this)">
+                                                @if (!string.IsNullOrEmpty(imgUrl))
+                                                { <img src="@imgUrl" alt="" class="seat-img" /> }
+                                                <span class="seat-lbl">@seat.Label</span>
+                                                <span class="seat-check">✓</span>
+                                                @if (isVip) { <span class="seat-type-dot dot-vip"></span> }
+                                            </div>
+                                        }
+                                    }
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-</div>
+    @* ── Cột phải: sticky info panel ── *@
+    <div class="ss-right">
 
-@* ── Sticky bottom panel ── *@
-<div class="ss-sticky">
-    <div class="ss-sticky-left">
-        <div class="ss-sticky-chips" id="seatChips">
-            <span class="ss-empty-note" id="emptyNote">Chưa chọn ghế nào</span>
+        <div class="ss-right-header">
+            <div class="ss-event-name">@evt.Title</div>
+            <div class="ss-info-row">
+                <i class="bi bi-calendar-event ss-info-icon"></i>
+                <span>
+                    @evt.StartDate.ToLocalTime().ToString("HH:mm")
+                    @if (evt.EndDate.HasValue) { <text>– @evt.EndDate.Value.ToLocalTime().ToString("HH:mm")</text> },
+                    @evt.StartDate.ToLocalTime().ToString("dd") Tháng @evt.StartDate.ToLocalTime().ToString("MM, yyyy")
+                </span>
+            </div>
+            <div class="ss-info-row">
+                <i class="bi bi-geo-alt ss-info-icon"></i>
+                <span>@evt.Venue</span>
+            </div>
         </div>
-        <div class="ss-total-row" id="totalRow" style="display:none;">
-            <span id="seatCountTxt"></span> · <span class="ss-total-amt" id="totalAmt"></span>
+
+        @* Danh sách loại vé + filter *@
+        @if (ttList.Any())
+        {
+            <div class="ss-price-title">Giá vé</div>
+            @for (int ti = 0; ti < ttList.Count; ti++)
+            {
+                var tt    = ttList[ti];
+                var color = palette[ti % palette.Length];
+                <div class="ss-tt-item">
+                    <div class="ss-tt-dot" style="background:@color;"></div>
+                    <div class="ss-tt-name">@tt.Name</div>
+                    <div class="ss-tt-price">
+                        @if (tt.Price == 0) { <text>Miễn phí</text> }
+                        else { @String.Format("{0:N0} đ", tt.Price) }
+                    </div>
+                </div>
+            }
+
+            @if (ttList.Count > 1)
+            {
+                <div class="ss-price-title" style="margin-top:16px;">Lọc theo loại vé</div>
+                <div class="ss-filter-list" id="ttFilterList">
+                    <label class="ss-filter-item">
+                        <input type="radio" name="ticketTypeFilter" value="0" id="filter-all"
+                               @(Model.PreSelectedTicketTypeId == null ? "checked" : "")>
+                        <span>Tất cả</span>
+                    </label>
+                    @for (int fi = 0; fi < ttList.Count; fi++)
+                    {
+                        var ftt  = ttList[fi];
+                        var fcol = palette[fi % palette.Length];
+                        <label class="ss-filter-item">
+                            <input type="radio" name="ticketTypeFilter" value="@ftt.Id" id="filter-@ftt.Id"
+                                   @(Model.PreSelectedTicketTypeId == ftt.Id ? "checked" : "")>
+                            <span style="width:10px;height:10px;border-radius:3px;background:@fcol;flex-shrink:0;opacity:.7;"></span>
+                            <span>@ftt.Name</span>
+                        </label>
+                    }
+                </div>
+            }
+        }
+
+        @* Countdown timer — chỉ hiện khi user đang giữ ghế *@
+        @if (Model.ReservationExpiresAt.HasValue)
+        {
+            <div class="ss-timer" id="seatTimer">
+                <div class="ss-timer-top">
+                    <span class="ss-timer-label">⏱ Còn lại để thanh toán:</span>
+                    <span class="ss-timer-count" id="timerCount">--:--</span>
+                </div>
+                <div style="display:flex;justify-content:flex-end;margin-top:4px;">
+                    <form method="post" asp-page-handler="Release" style="display:inline;">
+                        <input type="hidden" name="eventId" value="@evt.Id" />
+                        <button type="submit" class="btn-release-sm">Hủy chọn</button>
+                    </form>
+                </div>
+            </div>
+        }
+
+        @* Ghế đã chọn *@
+        <div class="ss-selected-section">
+            <div class="ss-selected-title">Ghế đã chọn</div>
+            <div class="ss-chips-wrap" id="seatChips">
+                <span class="ss-empty-note" id="emptyNote">Chưa chọn ghế nào</span>
+            </div>
+            <div class="ss-total-row" id="totalRow" style="display:none;">
+                <span id="seatCountTxt"></span> · <span class="ss-total-amt" id="totalAmt"></span>
+            </div>
         </div>
+
+        @* Nút tiếp tục *@
+        <div class="ss-continue-wrap">
+            <form method="post" asp-page-handler="AddToCart" id="addCartForm">
+                <input type="hidden" name="eventId" value="@evt.Id" />
+                <input type="hidden" name="selectedSeatIds" id="selectedSeatIds" />
+                <button type="submit" class="btn-continue" id="btnContinue" disabled>
+                    Vui lòng chọn vé »
+                </button>
+            </form>
+        </div>
+
     </div>
-
-    <form method="post" asp-page-handler="AddToCart" id="addCartForm">
-        <input type="hidden" name="eventId" value="@evt.Id" />
-        <input type="hidden" name="selectedSeatIds" id="selectedSeatIds" />
-        <button type="submit" class="btn-continue" id="btnContinue" disabled>
-            Tiếp tục →
-        </button>
-    </form>
 </div>
 
+@section Scripts {
 <script>
+/* ── Bootstrap Icons ── */
+(function() {
+    if (!document.querySelector('link[href*="bootstrap-icons"]')) {
+        var l = document.createElement('link');
+        l.rel = 'stylesheet';
+        l.href = 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css';
+        document.head.appendChild(l);
+    }
+})();
+
+/* ── Zoom ── */
+var zoomLevel = 1;
+function zoomGrid(delta) {
+    if (delta === 0) { zoomLevel = 1; }
+    else { zoomLevel = Math.min(Math.max(zoomLevel + delta, 0.5), 2); }
+    document.getElementById('seatGridWrap').style.transform = 'scale(' + zoomLevel + ')';
+}
+
+/* ── Seat selection logic ── */
 const MAX_PHYSICAL = 8;
-// Map: seatId → { label, price, isCouple }
 const selected = new Map();
 
 function physicalCount() {
-    let n = 0;
-    for (const v of selected.values()) n += v.isCouple ? 2 : 1;
+    var n = 0;
+    selected.forEach(function(v) { n += v.isCouple ? 2 : 1; });
     return n;
 }
 
+/* ── Ticket type colors (from server palette) ── */
+var ttColors = { @Html.Raw(ttColorPairs) };
+
+function applySeatColor(el) {
+    var ttId = parseInt(el.dataset.ttId || '0');
+    var hex  = ttColors[ttId];
+    if (!hex) return;
+    var r = parseInt(hex.slice(1,3), 16);
+    var g = parseInt(hex.slice(3,5), 16);
+    var b = parseInt(hex.slice(5,7), 16);
+    el.style.borderColor     = 'rgba(' + r + ',' + g + ',' + b + ',0.45)';
+    el.style.backgroundColor = 'rgba(' + r + ',' + g + ',' + b + ',0.1)';
+}
+
+function clearSeatColor(el) {
+    el.style.borderColor     = '';
+    el.style.backgroundColor = '';
+}
+
+function applyAllTicketColors() {
+    document.querySelectorAll('.ss-seat[data-tt-id]').forEach(function(el) {
+        if (el.classList.contains('sold') || el.classList.contains('reserved-other')) return;
+        if (!el.classList.contains('selected')) applySeatColor(el);
+    });
+}
+
+/* ── Filter ── */
+var activeFilterTtId = @(Model.PreSelectedTicketTypeId.HasValue ? Model.PreSelectedTicketTypeId.Value.ToString() : "0");
+
+function applyFilter(ttId) {
+    activeFilterTtId = ttId;
+    document.querySelectorAll('.ss-seat').forEach(function(el) {
+        if (el.classList.contains('sold') || el.classList.contains('reserved-other')) return;
+        if (ttId === 0) {
+            el.classList.remove('dim');
+        } else {
+            var seatTt = parseInt(el.dataset.ttId || '0');
+            if (seatTt !== ttId) el.classList.add('dim');
+            else                  el.classList.remove('dim');
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    applyAllTicketColors();
+    applyFilter(activeFilterTtId);
+
+    document.querySelectorAll('input[name="ticketTypeFilter"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            var newTtId = parseInt(this.value);
+            if (selected.size > 0 && newTtId !== activeFilterTtId) {
+                var ok = confirm('Bạn sẽ mất các ghế đã chọn. Tiếp tục?');
+                if (!ok) {
+                    var revertEl = document.getElementById(activeFilterTtId === 0 ? 'filter-all' : 'filter-' + activeFilterTtId);
+                    if (revertEl) revertEl.checked = true;
+                    return;
+                }
+                selected.forEach(function(v, id) {
+                    var seatEl = document.getElementById('cs-' + id);
+                    if (!seatEl) return;
+                    seatEl.classList.remove('selected');
+                    seatEl.classList.add(seatEl.getAttribute('data-origcss') || 'available');
+                    applySeatColor(seatEl);
+                });
+                selected.clear();
+                updatePanel();
+            }
+            applyFilter(newTtId);
+        });
+    });
+});
+
 function toggleSeat(el) {
-    const id      = parseInt(el.dataset.id);
-    const label   = el.dataset.label;
-    const price   = parseFloat(el.dataset.price) || 0;
-    const isCouple = el.dataset.couple === 'true';
-    const seats   = isCouple ? 2 : 1;
+    var id       = parseInt(el.dataset.id);
+    var label    = el.dataset.label;
+    var price    = parseFloat(el.dataset.price) || 0;
+    var isCouple = el.dataset.couple === 'true';
+    var seats    = isCouple ? 2 : 1;
 
     if (selected.has(id)) {
         selected.delete(id);
         el.classList.remove('selected');
-        const origCss = el.getAttribute('data-origcss') || 'available';
+        var origCss = el.getAttribute('data-origcss') || 'available';
         el.classList.add(origCss);
+        applySeatColor(el);
     } else {
         if (physicalCount() + seats > MAX_PHYSICAL) {
-            alert(`Bạn chỉ có thể chọn tối đa ${MAX_PHYSICAL} chỗ ngồi.`);
+            alert('Bạn chỉ có thể chọn tối đa ' + MAX_PHYSICAL + ' chỗ ngồi.');
             return;
         }
-        // Save original class before overwrite
         if (!el.getAttribute('data-origcss')) {
-            const origCss = el.classList.contains('vip-avail') ? 'vip-avail' : 'available';
-            el.setAttribute('data-origcss', origCss);
+            var origCss2 = el.classList.contains('vip-avail') ? 'vip-avail' : 'available';
+            el.setAttribute('data-origcss', origCss2);
         }
-        selected.set(id, { label, price, isCouple });
+        selected.set(id, { label: label, price: price, isCouple: isCouple });
         el.classList.remove('available', 'vip-avail');
         el.classList.add('selected');
+        clearSeatColor(el);
     }
     updatePanel();
 }
 
 function removeSeat(id) {
     selected.delete(id);
-    const el = document.getElementById('cs-' + id);
+    var el = document.getElementById('cs-' + id);
     if (el) {
         el.classList.remove('selected');
-        const orig = el.getAttribute('data-origcss') || 'available';
+        var orig = el.getAttribute('data-origcss') || 'available';
         el.classList.add(orig);
+        applySeatColor(el);
     }
     updatePanel();
 }
 
 function updatePanel() {
-    const chips   = document.getElementById('seatChips');
-    const empty   = document.getElementById('emptyNote');
-    const totalRow = document.getElementById('totalRow');
-    const countTxt = document.getElementById('seatCountTxt');
-    const amtEl   = document.getElementById('totalAmt');
-    const btn     = document.getElementById('btnContinue');
-    const hidden  = document.getElementById('selectedSeatIds');
+    var chips    = document.getElementById('seatChips');
+    var empty    = document.getElementById('emptyNote');
+    var totalRow = document.getElementById('totalRow');
+    var countTxt = document.getElementById('seatCountTxt');
+    var amtEl    = document.getElementById('totalAmt');
+    var btn      = document.getElementById('btnContinue');
+    var hidden   = document.getElementById('selectedSeatIds');
 
-    // Remove old chips
-    chips.querySelectorAll('.ss-chip').forEach(c => c.remove());
+    chips.querySelectorAll('.ss-chip').forEach(function(c) { c.remove(); });
 
-    const ids = [...selected.keys()];
+    var ids = Array.from(selected.keys());
     hidden.value = ids.join(',');
 
-    let total = 0;
-    ids.forEach(id => {
-        const { label, price, isCouple } = selected.get(id);
-        total += price * (isCouple ? 2 : 1);
+    var total = 0;
+    ids.forEach(function(id) {
+        var v = selected.get(id);
+        total += v.price * (v.isCouple ? 2 : 1);
 
-        const chip = document.createElement('span');
+        var chip = document.createElement('span');
         chip.className = 'ss-chip';
-        chip.innerHTML = `${label} <span class="ss-chip-del" onclick="removeSeat(${id})">✕</span>`;
+        chip.innerHTML = v.label + ' <span class="ss-chip-del" onclick="removeSeat(' + id + ')">✕</span>';
         chips.appendChild(chip);
     });
 
-    const pCount = physicalCount();
+    var pCount = physicalCount();
     if (pCount > 0) {
-        empty.style.display  = 'none';
+        empty.style.display    = 'none';
         totalRow.style.display = '';
-        countTxt.textContent = `${pCount} chỗ ngồi`;
-        amtEl.textContent    = total.toLocaleString('vi') + 'đ';
+        countTxt.textContent   = pCount + ' chỗ ngồi';
+        amtEl.textContent      = total.toLocaleString('vi') + 'đ';
+        btn.disabled = false;
+        btn.textContent = 'Tiếp tục »';
     } else {
-        empty.style.display  = '';
+        empty.style.display    = '';
         totalRow.style.display = 'none';
+        btn.disabled = true;
+        btn.textContent = 'Vui lòng chọn vé »';
     }
+}
 
-    btn.disabled = pCount === 0;
+/* ── Pre-populate ghế user đang giữ từ session ── */
+var _preReserved = @Html.Raw(Model.PreReservedSeatsJson);
+if (_preReserved && _preReserved.length > 0) {
+    _preReserved.forEach(function(s) {
+        selected.set(s.id, { label: s.label, price: s.price, isCouple: s.isCouple });
+    });
+    updatePanel();
+}
+
+/* ── Countdown timer ── */
+@if (Model.ReservationExpiresAt.HasValue)
+{
+    var expiresMs = new DateTimeOffset(Model.ReservationExpiresAt.Value, TimeSpan.Zero).ToUnixTimeMilliseconds();
+    @:(function() {
+    @:    var expiresAt = @expiresMs;
+    @:    var timerEl   = document.getElementById('seatTimer');
+    @:    var countEl   = document.getElementById('timerCount');
+    @:    function tick() {
+    @:        var remaining = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+    @:        var m = Math.floor(remaining / 60).toString().padStart(2, '0');
+    @:        var s = (remaining % 60).toString().padStart(2, '0');
+    @:        countEl.textContent = m + ':' + s;
+    @:        if (remaining <= 0) {
+    @:            timerEl.classList.add('expired');
+    @:            countEl.textContent = '00:00';
+    @:            clearInterval(_timerInterval);
+    @:            // Reload để thấy ghế đã hết hạn và trở về trạng thái trống
+    @:            setTimeout(function() { window.location.reload(); }, 2000);
+    @:        } else if (remaining <= 120) {
+    @:            timerEl.classList.add('warning');
+    @:        }
+    @:    }
+    @:    tick();
+    @:    var _timerInterval = setInterval(tick, 1000);
+    @:})();
 }
 </script>
+}

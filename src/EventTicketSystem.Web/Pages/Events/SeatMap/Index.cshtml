@@ -340,6 +340,14 @@
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                 <div class="sm-card-title mb-0">🪑 Quản Lý Ghế</div>
                 <div class="d-flex gap-2">
+                    @if (Model.Seats.Count > 0 && Model.Event?.TicketTypes.Count > 1)
+                    {
+                        <form method="post" asp-page-handler="AutoAssign"
+                              onsubmit="return confirm('Phân vùng lại ghế theo giá vé?\nHàng đầu → loại đắt nhất. Dữ liệu TicketTypeId hiện tại sẽ bị ghi đè.')">
+                            <input type="hidden" name="eventId" value="@evt.Id" />
+                            <button class="btn-save" type="submit" style="background:linear-gradient(90deg,#7c4dff,#9c27b0);font-size:.82rem;padding:7px 16px;">⚙ Phân Vùng Tự Động</button>
+                        </form>
+                    }
                     @if (!Model.HasSoldSeats)
                     {
                         <form method="post" asp-page-handler="Reset"

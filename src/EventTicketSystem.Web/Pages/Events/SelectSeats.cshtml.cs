@@ -11,17 +11,24 @@ namespace EventTicketSystem.Web.Pages.Events;
 [Authorize]
 public class SelectSeatsModel(AppDbContext db, CartService cartService) : PageModel
 {
-    private static readonly TimeSpan ReservationWindow = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan ReservationWindow = TimeSpan.FromMinutes(15);
 
-    public Event?  Event    { get; set; }
-    public int     GridRows { get; private set; }
-    public int     GridCols { get; private set; }
+    public Event?    Event                { get; set; }
+    public int       GridRows             { get; private set; }
+    public int       GridCols             { get; private set; }
     public Dictionary<(int row, int col), Seat> SeatGrid { get; private set; } = [];
-    public List<Seat> Seats { get; private set; } = [];
+    public List<Seat> Seats              { get; private set; } = [];
+
+    // Session tracking cho UI
+    public string    CurrentSessionId        { get; private set; } = string.Empty;
+    public DateTime? ReservationExpiresAt    { get; private set; }
+    public string    PreReservedSeatsJson    { get; private set; } = "[]";
+    public int?      PreSelectedTicketTypeId { get; private set; }
 
     // ── GET ──────────────────────────────────────────────────────────────────
-    public async Task<IActionResult> OnGetAsync(int id)
+    public async Task<IActionResult> OnGetAsync(int id, int? ticketTypeId)
     {
+        PreSelectedTicketTypeId = ticketTypeId;
         Event = await db.Events
             .Include(e => e.TicketTypes)
             .FirstOrDefaultAsync(e => e.Id == id && e.IsActive && e.HasSeatMap);
@@ -29,9 +36,35 @@ public class SelectSeatsModel(AppDbContext db, CartService cartService) : PageMo
         if (Event == null)
             return RedirectToPage("/Events/Details", new { id });
 
-        // Release expired reservations so grid shows correct availability
+        // ASP.NET Core session cookie độc lập với Identity auth cookie →
+        // Session ID giữ nguyên trước và sau khi đăng nhập (không bị reset)
+        await HttpContext.Session.CommitAsync();
+        CurrentSessionId = HttpContext.Session.Id;
+
         await ReleaseExpiredAsync(id);
         await LoadGridAsync(id);
+
+        // Ghế user đang giữ (pre-selected khi vào lại trang)
+        var myReserved = Seats.Where(s =>
+            s.Status == SeatStatus.Reserved &&
+            s.ReservedBySessionId == CurrentSessionId &&
+            s.ReservedUntil.HasValue &&
+            s.ReservedUntil.Value > DateTime.UtcNow
+        ).ToList();
+
+        ReservationExpiresAt = myReserved.Any()
+            ? myReserved.Max(s => s.ReservedUntil!.Value)
+            : null;
+
+        PreReservedSeatsJson = System.Text.Json.JsonSerializer.Serialize(
+            myReserved.Select(s => new {
+                id       = s.Id,
+                label    = s.Label,
+                price    = (double)(s.TicketType?.Price ?? 0),
+                isCouple = s.SeatType == SeatType.Couple
+            })
+        );
+
         return Page();
     }
 
@@ -54,7 +87,6 @@ public class SelectSeatsModel(AppDbContext db, CartService cartService) : PageMo
             return RedirectToPage(new { id = eventId });
         }
 
-        // Release any expired first
         await ReleaseExpiredAsync(eventId);
 
         var seats = await db.Seats
@@ -68,7 +100,6 @@ public class SelectSeatsModel(AppDbContext db, CartService cartService) : PageMo
             return RedirectToPage(new { id = eventId });
         }
 
-        // Count physical seats (couple = 2)
         int physicalCount = seats.Sum(s => s.SeatType == SeatType.Couple ? 2 : 1);
         if (physicalCount > 8)
         {
@@ -79,25 +110,23 @@ public class SelectSeatsModel(AppDbContext db, CartService cartService) : PageMo
         var evt = await db.Events.FindAsync(eventId);
         if (evt == null) return NotFound();
 
-        // Reserve seats
+        var sessionId    = HttpContext.Session.Id;
         var reserveUntil = DateTime.UtcNow.Add(ReservationWindow);
         foreach (var s in seats)
         {
-            s.Status       = SeatStatus.Reserved;
-            s.ReservedUntil = reserveUntil;
+            s.Status              = SeatStatus.Reserved;
+            s.ReservedUntil       = reserveUntil;
+            s.ReservedBySessionId = sessionId;
         }
         await db.SaveChangesAsync();
 
-        // Group by TicketType → CartItem per group
         foreach (var grp in seats.GroupBy(s => s.TicketTypeId))
         {
             var tt = grp.First().TicketType;
             if (tt == null) continue;
 
-            var groupSeats  = grp.ToList();
-            var qty         = groupSeats.Sum(s => s.SeatType == SeatType.Couple ? 2 : 1);
-            var seatIds     = groupSeats.Select(s => s.Id).ToList();
-            var seatLabels  = groupSeats.Select(s => s.Label).ToList();
+            var groupSeats = grp.ToList();
+            var qty        = groupSeats.Sum(s => s.SeatType == SeatType.Couple ? 2 : 1);
 
             cartService.AddSeatedItemToCart(HttpContext.Session, new CartItem
             {
@@ -108,13 +137,42 @@ public class SelectSeatsModel(AppDbContext db, CartService cartService) : PageMo
                 EventName      = evt.Title,
                 TicketTypeName = tt.Name,
                 EventImageUrl  = evt.ImageUrl,
-                SeatIds        = seatIds,
-                SeatLabels     = seatLabels
+                SeatIds        = groupSeats.Select(s => s.Id).ToList(),
+                SeatLabels     = groupSeats.Select(s => s.Label).ToList()
             });
         }
 
-        TempData["CartSuccess"] = $"Đã thêm {physicalCount} chỗ ngồi vào giỏ! Ghế được giữ trong 10 phút.";
+        TempData["CartSuccess"] = $"Đã thêm {physicalCount} chỗ ngồi vào giỏ! Ghế được giữ trong {(int)ReservationWindow.TotalMinutes} phút.";
         return RedirectToPage("/Cart/Index");
+    }
+
+    // ── Release: user chủ động huỷ ghế đang giữ ─────────────────────────────
+    public async Task<IActionResult> OnPostReleaseAsync(int eventId)
+    {
+        var sessionId = HttpContext.Session.Id;
+        var seats = await db.Seats
+            .Where(s => s.EventId == eventId &&
+                        s.Status  == SeatStatus.Reserved &&
+                        s.ReservedBySessionId == sessionId)
+            .ToListAsync();
+
+        foreach (var seat in seats)
+        {
+            seat.Status              = SeatStatus.Available;
+            seat.ReservedUntil       = null;
+            seat.ReservedBySessionId = null;
+        }
+
+        if (seats.Count > 0)
+        {
+            await db.SaveChangesAsync();
+            // Xóa cart items liên quan để cart không lưu ghế đã hủy
+            var cart = cartService.GetCart(HttpContext.Session);
+            foreach (var item in cart.Where(c => c.EventId == eventId && c.HasSeats).ToList())
+                cartService.RemoveFromCart(HttpContext.Session, item.TicketTypeId);
+        }
+
+        return RedirectToPage("/Events/Details", new { id = eventId });
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
@@ -146,8 +204,9 @@ public class SelectSeatsModel(AppDbContext db, CartService cartService) : PageMo
         {
             foreach (var s in expired)
             {
-                s.Status        = SeatStatus.Available;
-                s.ReservedUntil = null;
+                s.Status              = SeatStatus.Available;
+                s.ReservedUntil       = null;
+                s.ReservedBySessionId = null;
             }
             await db.SaveChangesAsync();
         }

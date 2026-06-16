@@ -95,8 +95,6 @@
                             </div>
                             <div id="couponMsg" class="coupon-msg mt-2" style="display:none;"></div>
                         </div>
-                        <input type="hidden" id="appliedCouponCode" value="" />
-                        <input type="hidden" id="appliedCouponDiscount" value="0" />
 
                         <div class="summary-row">
                             <span>Tạm tính</span>
@@ -114,30 +112,9 @@
 
                         <hr style="border-color:rgba(124,77,255,.15); margin:16px 0;" />
 
-                        @* Checkout form *@
-                        <form method="post" asp-page-handler="Checkout" id="checkoutForm">
-                            <input type="hidden" name="couponCode" id="checkoutCoupon" />
-
-                            <div class="mb-3">
-                                <label class="form-label-sm">Họ và tên *</label>
-                                <input type="text" name="customerName" class="form-control form-control-sm"
-                                       value="@(Model.CurrentUser?.HoTen ?? "")" placeholder="Nguyễn Văn A" required />
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label-sm">Email *</label>
-                                <input type="email" name="customerEmail" class="form-control form-control-sm"
-                                       value="@(Model.CurrentUser?.Email ?? "")" placeholder="email@example.com" required />
-                            </div>
-                            <div class="mb-4">
-                                <label class="form-label-sm">Số điện thoại</label>
-                                <input type="tel" name="customerPhone" class="form-control form-control-sm"
-                                       value="@(Model.CurrentUser?.PhoneNumber ?? "")" placeholder="0901234567" />
-                            </div>
-
-                            <button type="submit" class="btn-checkout w-100">
-                                Thanh Toán (@Model.CartItems.Sum(c => c.Quantity) vé) →
-                            </button>
-                        </form>
+                        <a href="/Orders/Payment" class="btn-checkout w-100 d-block text-center text-decoration-none">
+                            Tiến Hành Thanh Toán →
+                        </a>
                     </div>
                 </div>
             </div>
@@ -274,15 +251,9 @@ async function applyCoupon() {
     const data = await res.json();
 
     if (data.valid) {
-        document.getElementById('appliedCouponCode').value     = code;
-        document.getElementById('appliedCouponDiscount').value  = data.discount;
-        document.getElementById('checkoutCoupon').value         = code;
         updateSummary(data.discount);
         showMsg('✓ ' + data.message, true);
     } else {
-        document.getElementById('appliedCouponCode').value     = '';
-        document.getElementById('appliedCouponDiscount').value  = 0;
-        document.getElementById('checkoutCoupon').value         = '';
         updateSummary(0);
         showMsg('✗ ' + data.error, false);
     }

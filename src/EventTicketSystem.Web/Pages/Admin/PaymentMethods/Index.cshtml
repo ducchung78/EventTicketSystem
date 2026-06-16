@@ -1,0 +1,155 @@
+@page
+@model EventTicketSystem.Web.Pages.Admin.PaymentMethods.PaymentMethodsIndexModel
+@{
+    ViewData["Title"] = "Quản Lý Phương Thức Thanh Toán";
+}
+
+<style>
+    .pm-wrap { padding: 2rem 0 3rem; }
+    .pm-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:1.5rem; }
+    .pm-title { font-size:1.45rem; font-weight:800; color:#ede0ff; }
+
+    .pm-table-wrap {
+        background:rgba(20,10,52,.82); border:1px solid rgba(124,77,255,.22);
+        border-radius:14px; overflow:hidden;
+    }
+    table.pm-table { width:100%; border-collapse:collapse; }
+    table.pm-table thead th {
+        padding:12px 14px; font-size:.72rem; font-weight:700;
+        text-transform:uppercase; letter-spacing:.06em;
+        color:rgba(124,77,255,.75); border-bottom:1px solid rgba(124,77,255,.2);
+        white-space:nowrap;
+    }
+    table.pm-table tbody tr { border-bottom:1px solid rgba(124,77,255,.08); transition:background .15s; }
+    table.pm-table tbody tr:last-child { border-bottom:none; }
+    table.pm-table tbody tr:hover { background:rgba(124,77,255,.06); }
+    table.pm-table td { padding:12px 14px; font-size:.84rem; color:rgba(210,195,255,.75); vertical-align:middle; }
+
+    .badge-active   { background:rgba(0,200,83,.15); color:#69f0ae; border:1px solid rgba(0,200,83,.3); border-radius:50px; padding:3px 10px; font-size:.72rem; font-weight:700; }
+    .badge-inactive { background:rgba(229,57,53,.1); color:#ef9a9a; border:1px solid rgba(229,57,53,.25); border-radius:50px; padding:3px 10px; font-size:.72rem; font-weight:700; }
+
+    .btn-toggle { padding:5px 14px; border-radius:8px; font-size:.78rem; font-weight:600; cursor:pointer; border:1px solid; transition:background .15s; }
+    .btn-toggle-on  { background:rgba(0,200,83,.12); border-color:rgba(0,200,83,.3); color:#69f0ae; }
+    .btn-toggle-on:hover  { background:rgba(0,200,83,.25); }
+    .btn-toggle-off { background:rgba(255,167,38,.1); border-color:rgba(255,167,38,.3); color:#ffa726; }
+    .btn-toggle-off:hover { background:rgba(255,167,38,.22); }
+
+    .btn-edit   { padding:5px 12px; border-radius:8px; font-size:.78rem; font-weight:600; background:rgba(124,77,255,.12); border:1px solid rgba(124,77,255,.3); color:#b388ff; cursor:pointer; text-decoration:none; transition:background .15s; display:inline-block; }
+    .btn-edit:hover   { background:rgba(124,77,255,.25); color:#b388ff; }
+    .btn-delete { padding:5px 12px; border-radius:8px; font-size:.78rem; font-weight:600; background:rgba(229,57,53,.08); border:1px solid rgba(229,57,53,.25); color:#ef9a9a; cursor:pointer; transition:background .15s; }
+    .btn-delete:hover { background:rgba(229,57,53,.2); }
+
+    .btn-add { display:inline-flex; align-items:center; gap:6px; padding:8px 18px; border-radius:10px; font-size:.88rem; font-weight:700; background:linear-gradient(90deg,#7c4dff,#448aff); color:#fff; border:none; text-decoration:none; transition:opacity .15s; }
+    .btn-add:hover { opacity:.85; color:#fff; }
+
+    .logo-img { width:40px; height:28px; object-fit:contain; border-radius:5px; background:rgba(255,255,255,.06); padding:3px; }
+    .no-logo  { width:40px; height:28px; background:rgba(124,77,255,.1); border-radius:5px; border:1px dashed rgba(124,77,255,.3); }
+
+    .pm-empty { text-align:center; padding:3rem 2rem; color:rgba(210,195,255,.3); }
+    .pm-empty-icon { font-size:2.5rem; margin-bottom:.75rem; display:block; }
+
+    .alert-admin { background:rgba(0,200,83,.1); border:1px solid rgba(0,200,83,.25); border-radius:10px; padding:10px 16px; color:#69f0ae; font-size:.88rem; margin-bottom:1rem; }
+</style>
+
+<div class="container-xl px-3 px-md-4 pm-wrap">
+
+    <div class="pm-header">
+        <span class="pm-title">💳 Quản Lý Phương Thức Thanh Toán</span>
+        <a href="/Admin/PaymentMethods/Create" class="btn-add">+ Thêm Mới</a>
+    </div>
+
+    @if (TempData["AdminMsg"] is string adminMsg)
+    {
+        <div class="alert-admin">✅ @adminMsg</div>
+    }
+
+    @if (!Model.Methods.Any())
+    {
+        <div class="pm-table-wrap">
+            <div class="pm-empty">
+                <span class="pm-empty-icon">💳</span>
+                Chưa có phương thức thanh toán nào.
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="pm-table-wrap">
+            <table class="pm-table">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Logo</th>
+                        <th>Tên Phương Thức</th>
+                        <th>QR Code</th>
+                        <th>Thứ Tự</th>
+                        <th>Trạng Thái</th>
+                        <th>Hành Động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @{ int stt = 1; }
+                @foreach (var m in Model.Methods)
+                {
+                    <tr>
+                        <td style="color:rgba(210,195,255,.35);width:40px;">@(stt++)</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(m.LogoUrl))
+                            {
+                                <img src="@m.LogoUrl" alt="@m.Name" class="logo-img" />
+                            }
+                            else
+                            {
+                                <div class="no-logo"></div>
+                            }
+                        </td>
+                        <td><strong style="color:#ede0ff;">@m.Name</strong>
+                            @if (!string.IsNullOrEmpty(m.BankAccountInfo))
+                            {
+                                <div style="font-size:.75rem;color:rgba(210,195,255,.4);margin-top:3px;">@m.BankAccountInfo</div>
+                            }
+                        </td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(m.QrCodeUrl))
+                            {
+                                <img src="@m.QrCodeUrl" alt="QR" style="width:36px;height:36px;object-fit:contain;border-radius:5px;background:rgba(255,255,255,.06);padding:2px;" />
+                            }
+                            else
+                            {
+                                <span style="color:rgba(210,195,255,.25);font-size:.78rem;">—</span>
+                            }
+                        </td>
+                        <td style="text-align:center;">@m.SortOrder</td>
+                        <td>
+                            @if (m.IsActive)
+                            {
+                                <span class="badge-active">✅ Hoạt động</span>
+                            }
+                            else
+                            {
+                                <span class="badge-inactive">⏸ Tắt</span>
+                            }
+                        </td>
+                        <td>
+                            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                <form method="post" asp-page-handler="Toggle" style="display:inline;">
+                                    <input type="hidden" name="id" value="@m.Id" />
+                                    <button type="submit" class="btn-toggle @(m.IsActive ? "btn-toggle-off" : "btn-toggle-on")">
+                                        @(m.IsActive ? "⏸ Tắt" : "▶ Bật")
+                                    </button>
+                                </form>
+                                <a href="/Admin/PaymentMethods/Edit/@m.Id" class="btn-edit">✏️ Sửa</a>
+                                <form method="post" asp-page-handler="Delete" style="display:inline;"
+                                      onsubmit="return confirm('Xóa phương thức \'@m.Name\'?')">
+                                    <input type="hidden" name="id" value="@m.Id" />
+                                    <button type="submit" class="btn-delete">🗑 Xóa</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

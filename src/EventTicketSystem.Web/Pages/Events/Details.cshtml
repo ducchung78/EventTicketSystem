@@ -32,252 +32,800 @@
     </div>
 }
 
-@* ── Breadcrumb ── *@
-<div class="container-xl px-3 px-md-4 mt-3">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb small mb-0">
-            <li class="breadcrumb-item"><a href="/">Trang Chủ</a></li>
-            <li class="breadcrumb-item"><a href="/Events">Sự Kiện</a></li>
-            <li class="breadcrumb-item active text-truncate" style="max-width:240px;">@evt.Title</li>
-        </ol>
+<style>
+/* ── Base page ── */
+.tb-page {
+    background: #12151F;
+    min-height: 100vh;
+    padding: 24px 0 60px;
+}
+.tb-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* ── Breadcrumb ── */
+.tb-breadcrumb {
+    font-size: .78rem;
+    color: rgba(255,255,255,.35);
+    margin-bottom: 20px;
+}
+.tb-breadcrumb a { color: rgba(255,255,255,.45); text-decoration: none; }
+.tb-breadcrumb a:hover { color: #2DC275; }
+.tb-breadcrumb span { margin: 0 6px; }
+
+/* ── Section A: Hero card ── */
+.tb-hero {
+    background: #1E2130;
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    margin-bottom: 20px;
+    min-height: 320px;
+}
+.tb-hero-left {
+    flex: 0 0 40%;
+    padding: 36px 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.tb-hero-right {
+    flex: 0 0 60%;
+    position: relative;
+    overflow: hidden;
+}
+.tb-hero-right img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.tb-hero-right-ph {
+    width: 100%;
+    height: 100%;
+    min-height: 320px;
+    background: linear-gradient(135deg, #1a1d2a, #2a2d3a);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+    opacity: .3;
+}
+
+.tb-cat-badge {
+    display: inline-block;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    padding: 4px 12px;
+    border-radius: 50px;
+    background: rgba(45,194,117,.15);
+    color: #2DC275;
+    border: 1px solid rgba(45,194,117,.35);
+    margin-bottom: 14px;
+    text-transform: uppercase;
+}
+
+.tb-hero-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.25;
+    margin-bottom: 18px;
+}
+
+.tb-meta-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: .88rem;
+}
+.tb-meta-icon { color: #2DC275; font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+.tb-meta-text { color: rgba(255,255,255,.75); line-height: 1.4; }
+.tb-meta-text strong { color: #fff; display: block; }
+.tb-more-dates {
+    display: inline-block;
+    font-size: .72rem;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,.25);
+    color: rgba(255,255,255,.55);
+    margin-top: 5px;
+}
+
+.tb-price-label {
+    font-size: .75rem;
+    color: rgba(255,255,255,.4);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 3px;
+}
+.tb-price-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #2DC275;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.tb-price-value span { font-size: .85rem; }
+
+.tb-btn-buy {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    background: #2DC275;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: background .2s ease, transform .15s ease;
+}
+.tb-btn-buy:hover { background: #25a863; color: #fff; transform: translateY(-1px); }
+.tb-btn-buy:disabled, .tb-btn-buy.disabled {
+    background: rgba(255,255,255,.1);
+    color: rgba(255,255,255,.35);
+    cursor: default;
+    transform: none;
+}
+
+/* ── Section cards ── */
+.tb-section {
+    background: #1E2130;
+    border-radius: 14px;
+    margin-bottom: 16px;
+    overflow: hidden;
+}
+.tb-section-header {
+    padding: 18px 24px 16px;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.tb-section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #2DC275;
+    margin: 0;
+    border-left: 4px solid #2DC275;
+    padding-left: 12px;
+}
+.tb-section-body {
+    padding: 20px 24px;
+}
+
+/* ── Section B: Giới thiệu ── */
+.tb-desc-text {
+    color: rgba(255,255,255,.72);
+    line-height: 1.85;
+    font-size: .92rem;
+}
+.tb-desc-collapsed {
+    max-height: 120px;
+    overflow: hidden;
+    position: relative;
+}
+.tb-desc-collapsed::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 48px;
+    background: linear-gradient(transparent, #1E2130);
+}
+.tb-desc-collapsed.expanded { max-height: none; }
+.tb-desc-collapsed.expanded::after { display: none; }
+.tb-expand-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 10px;
+    background: none;
+    border: none;
+    color: #2DC275;
+    font-size: .84rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 0;
+}
+.tb-expand-btn:hover { opacity: .8; }
+
+/* ── Gallery carousel ── */
+.gc-wrap { margin-top: 18px; display: none; }
+.gc-stage {
+    position: relative; display: flex; align-items: center;
+    background: rgba(10,6,28,.7); border-radius: 12px; overflow: hidden;
+    min-height: 200px;
+}
+.gc-img-box {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    padding: 14px 60px;
+}
+.gc-img { max-width: 100%; max-height: 380px; object-fit: contain; border-radius: 8px; transition: opacity .2s; }
+.gc-nav {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(45,194,117,.4);
+    background: rgba(45,194,117,.2); color: #fff; font-size: 1rem;
+    cursor: pointer; z-index: 2; display: flex; align-items: center; justify-content: center;
+    transition: background .15s;
+}
+.gc-nav:hover { background: rgba(45,194,117,.5); }
+.gc-prev { left: 10px; } .gc-next { right: 10px; }
+.gc-footer { padding: 10px 14px 4px; }
+.gc-caption { font-size: .78rem; color: rgba(255,255,255,.4); text-align: center; min-height: 1.1em; margin-bottom: 8px; }
+.gc-dots { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.gc-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.2); cursor: pointer; transition: background .15s; }
+.gc-dot.active { background: #2DC275; }
+
+/* ── Section C: Lịch diễn ── */
+#section-schedule {}
+.tb-schedule-item {
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+.tb-schedule-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: background .15s;
+    gap: 12px;
+}
+.tb-schedule-row:hover { background: rgba(255,255,255,.03); }
+.tb-schedule-left { display: flex; align-items: center; gap: 14px; }
+.tb-schedule-chevron {
+    color: rgba(255,255,255,.35);
+    font-size: .9rem;
+    transition: transform .25s ease;
+    flex-shrink: 0;
+}
+.tb-schedule-item.open .tb-schedule-chevron { transform: rotate(180deg); }
+.tb-schedule-time {
+    font-size: .97rem;
+    font-weight: 700;
+    color: #fff;
+}
+.tb-schedule-date {
+    font-size: .85rem;
+    color: #2DC275;
+    margin-top: 2px;
+}
+.tb-schedule-body {
+    display: none;
+    padding: 0 20px 16px;
+    border-top: 1px solid rgba(255,255,255,.06);
+}
+.tb-schedule-item.open .tb-schedule-body { display: block; }
+
+/* ── Ticket type table inside accordion ── */
+.tb-tkt-table {
+    width: 100%;
+    margin-top: 12px;
+}
+.tb-tkt-head {
+    display: flex;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    font-size: .72rem;
+    font-weight: 600;
+    color: rgba(255,255,255,.35);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+.tb-tkt-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,.05);
+    font-size: .88rem;
+}
+.tb-tkt-row:last-child { border-bottom: none; }
+.tb-tkt-row.tb-tkt-clickable {
+    cursor: pointer;
+    transition: background .2s ease;
+    border-radius: 6px;
+    padding-left: 6px;
+    padding-right: 6px;
+}
+.tb-tkt-row.tb-tkt-clickable:hover { background: rgba(255,255,255,.06); }
+.tb-tkt-name { flex: 1; color: rgba(255,255,255,.8); }
+.tb-tkt-price { font-weight: 700; color: #2DC275; flex-shrink: 0; }
+.tb-tkt-sold { color: rgba(255,255,255,.25); font-size: .78rem; }
+
+/* ── Buy button in schedule ── */
+.tb-btn-buy-sm {
+    flex-shrink: 0;
+    padding: 9px 24px;
+    border-radius: 8px;
+    background: #2DC275;
+    color: #fff;
+    font-size: .88rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: background .2s ease;
+}
+.tb-btn-buy-sm:hover { background: #25a863; color: #fff; }
+
+/* ── Related events cards ── */
+.tb-rel-section { margin-top: 32px; }
+.tb-rel-title {
+    text-align: center;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 20px;
+}
+.tb-rel-card {
+    background: #1E2130;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform .2s ease, box-shadow .2s ease;
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    height: 100%;
+}
+.tb-rel-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0,0,0,.4);
+    text-decoration: none;
+    color: inherit;
+}
+.tb-rel-img {
+    width: 100%;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    display: block;
+}
+.tb-rel-img-ph {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #2a2d3a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    opacity: .3;
+}
+.tb-rel-body { padding: 14px; }
+.tb-rel-name {
+    font-size: .9rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+}
+.tb-rel-price {
+    font-size: .82rem;
+    color: #2DC275;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+.tb-rel-date {
+    font-size: .75rem;
+    color: rgba(255,255,255,.4);
+}
+
+/* ── Admin strip ── */
+.tb-admin-strip {
+    margin-top: 12px;
+    padding: 12px 0;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    border-top: 1px solid rgba(255,255,255,.06);
+}
+
+/* ── Buy modal overrides (green accent) ── */
+.tb-modal .modal-content {
+    background: #1E2130;
+    border: 1px solid rgba(45,194,117,.25);
+    border-radius: 16px;
+}
+.tb-modal .modal-header {
+    background: linear-gradient(90deg, #2DC275, #25a863);
+    border-radius: 16px 16px 0 0;
+    border-bottom: none;
+}
+.tb-modal .modal-body { background: #1E2130; color: rgba(255,255,255,.8); }
+.tb-modal .modal-footer { background: #1E2130; border-top: 1px solid rgba(255,255,255,.06); }
+.tb-modal .form-control {
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.15);
+    color: #fff;
+    border-radius: 8px;
+}
+.tb-modal .form-control:focus {
+    background: rgba(255,255,255,.1);
+    border-color: #2DC275;
+    box-shadow: 0 0 0 2px rgba(45,194,117,.2);
+    color: #fff;
+}
+.tb-modal .form-control::placeholder { color: rgba(255,255,255,.3); }
+.tb-modal .form-label { color: rgba(255,255,255,.7); font-size: .84rem; }
+.tb-modal .bg-light {
+    background: rgba(255,255,255,.06) !important;
+    border-radius: 10px;
+}
+
+/* ── Coupon bar ── */
+.coupon-bar { padding: 0; }
+.coupon-bar-inner {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(45,194,117,.2);
+    border-radius: 10px; padding: 8px 10px;
+    transition: border-color .15s;
+}
+.coupon-bar-inner:focus-within { border-color: rgba(45,194,117,.6); box-shadow: 0 0 0 2px rgba(45,194,117,.12); }
+.coupon-icon { font-size: 1rem; flex-shrink: 0; }
+.coupon-bar-input {
+    flex: 1; border: none; background: transparent;
+    color: #fff; font-size: .88rem; outline: none;
+    text-transform: uppercase; letter-spacing: .04em;
+}
+.coupon-bar-input::placeholder { color: rgba(255,255,255,.3); text-transform: none; letter-spacing: 0; }
+.btn-apply-coupon-green {
+    padding: 5px 14px; border-radius: 8px; flex-shrink: 0;
+    background: #2DC275; border: none; color: #fff;
+    font-weight: 700; font-size: .8rem; cursor: pointer;
+    transition: opacity .15s;
+}
+.btn-apply-coupon-green:hover { opacity: .85; }
+.coupon-feedback { font-size: .78rem; margin-top: 6px; padding: 5px 10px; border-radius: 6px; }
+.coupon-feedback.ok  { background: rgba(45,194,117,.12); color: #2DC275; border: 1px solid rgba(45,194,117,.25); }
+.coupon-feedback.err { background: rgba(229,57,53,.1); color: #ef9a9a; border: 1px solid rgba(229,57,53,.2); }
+
+/* ── Total summary ── */
+.total-summary {
+    background: rgba(45,194,117,.07);
+    border: 1px solid rgba(45,194,117,.18);
+    border-radius: 12px; padding: 12px 16px;
+}
+.total-row-item {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: .84rem; color: rgba(255,255,255,.55); padding: 3px 0;
+}
+.total-gross-val { color: rgba(255,255,255,.35); text-decoration: line-through; }
+.total-discount-item { color: #2DC275 !important; }
+.total-discount-val { color: #2DC275; font-weight: 600; }
+.total-final-item {
+    margin-top: 8px; padding-top: 8px;
+    border-top: 1px solid rgba(45,194,117,.15);
+}
+.total-final-lbl { font-weight: 700; font-size: .95rem; color: rgba(255,255,255,.9); }
+.total-final-val { font-weight: 800; font-size: 1.45rem; color: #2DC275; }
+
+/* ── Modal footer buttons ── */
+.btn-modal-close {
+    padding: 9px 18px; border-radius: 50px;
+    border: 1px solid rgba(255,255,255,.15);
+    background: transparent; color: rgba(255,255,255,.5);
+    font-size: .85rem; cursor: pointer;
+}
+.btn-modal-close:hover { border-color: rgba(255,255,255,.35); color: rgba(255,255,255,.8); }
+.btn-modal-cart {
+    padding: 9px 18px; border-radius: 50px;
+    background: rgba(45,194,117,.12);
+    border: 1px solid rgba(45,194,117,.35);
+    color: #2DC275; font-weight: 700; font-size: .85rem;
+    cursor: pointer;
+}
+.btn-modal-cart:hover { background: rgba(45,194,117,.25); }
+.btn-modal-pay {
+    padding: 9px 22px; border-radius: 50px; flex: 1;
+    background: #2DC275; border: none; color: #fff;
+    font-weight: 700; font-size: .88rem; cursor: pointer;
+    box-shadow: 0 2px 14px rgba(45,194,117,.35);
+    transition: opacity .15s;
+}
+.btn-modal-pay:hover { opacity: .88; }
+
+/* Toast */
+#cartToast {
+    background: rgba(18,21,31,.97);
+    border: 1px solid rgba(45,194,117,.3);
+    border-radius: 14px; min-width: 280px;
+    backdrop-filter: blur(12px);
+}
+
+@@media (max-width: 900px) {
+    .tb-hero { flex-direction: column-reverse; }
+    .tb-hero-left, .tb-hero-right { flex: none; width: 100%; }
+    .tb-hero-right img { max-height: 240px; }
+}
+@@media (max-width: 600px) {
+    .tb-hero-left { padding: 20px 16px; }
+    .tb-hero-title { font-size: 1.25rem; }
+    .tb-section-body { padding: 16px; }
+}
+</style>
+
+<div class="tb-page">
+<div class="tb-inner">
+
+    @* ── Breadcrumb ── *@
+    <nav class="tb-breadcrumb" aria-label="breadcrumb">
+        <a href="/">Trang Chủ</a><span>/</span>
+        <a href="/Events">Sự Kiện</a><span>/</span>
+        <span style="color:rgba(255,255,255,.65);">@evt.Title</span>
     </nav>
-</div>
 
-@* ── Main layout ── *@
-<div class="container-xl px-3 px-md-4 py-4">
-    <div class="row g-4">
-
-        @* ═══════════════ LEFT 8/12 ═══════════════ *@
-        <div class="col-lg-8">
-
-            @* Banner image *@
-            <div class="det-banner-wrap mb-4">
-                @if (!string.IsNullOrEmpty(evt.ImageUrl))
+    @* ── Section A: Hero Card ── *@
+    <div class="tb-hero">
+        @* Cột trái 40% — thông tin + giá + nút mua *@
+        <div class="tb-hero-left">
+            <div>
+                @if (!string.IsNullOrEmpty(evt.Category))
                 {
-                    <img src="@evt.ImageUrl" alt="@evt.Title" class="det-banner-img" />
+                    <div class="tb-cat-badge">@evt.Category</div>
+                }
+                @if (evt.IsHot)   { <span class="badge bg-danger me-1" style="font-size:.7rem;">🔥 HOT</span> }
+                @if (evt.IsSpecial) { <span class="badge me-1" style="background:rgba(255,215,64,.2);color:#ffd740;border:1px solid rgba(255,215,64,.3);font-size:.7rem;">⭐ Đặc Biệt</span> }
+
+                <h1 class="tb-hero-title">@evt.Title</h1>
+
+                <div class="tb-meta-row">
+                    <i class="bi bi-calendar-event tb-meta-icon"></i>
+                    <div class="tb-meta-text">
+                        <strong>
+                            @evt.StartDate.ToLocalTime().ToString("HH:mm")
+                            @if (evt.EndDate.HasValue)
+                            { <text> – @evt.EndDate.Value.ToLocalTime().ToString("HH:mm")</text> },
+                            @evt.StartDate.ToLocalTime().ToString("dd") Tháng @evt.StartDate.ToLocalTime().ToString("MM, yyyy")
+                        </strong>
+                    </div>
+                </div>
+
+                <div class="tb-meta-row">
+                    <i class="bi bi-geo-alt tb-meta-icon"></i>
+                    <div class="tb-meta-text">
+                        <strong>@evt.Venue</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                @if (hasBuyable && minPrice.HasValue)
+                {
+                    <div class="tb-price-label">Giá từ</div>
+                    <div class="tb-price-value">
+                        @if (minPrice == 0)
+                        {
+                            <span style="font-size:1.5rem;">Miễn phí</span>
+                        }
+                        else
+                        {
+                            @String.Format("{0:N0} đ", minPrice.Value)
+                            <i class="bi bi-chevron-right" style="font-size:1rem;opacity:.6;"></i>
+                        }
+                    </div>
+                    <button id="btn-buy-hero" class="tb-btn-buy">Mua vé ngay</button>
+                }
+                else if (!hasTickets)
+                {
+                    <div style="color:rgba(255,255,255,.35);font-size:.88rem;">Chưa có thông tin vé</div>
                 }
                 else
                 {
-                    <div class="det-banner-ph"><span>🎫</span></div>
+                    <span class="tb-btn-buy disabled">Đã hết vé</span>
                 }
-                @* Badges overlay *@
-                <div class="det-banner-badges">
-                    <span class="det-cat-badge">@evt.Category</span>
-                    @if (evt.IsHot)     { <span class="badge bg-danger ms-1">🔥 HOT</span> }
-                    @if (evt.IsSpecial) { <span class="badge ms-1" style="background:rgba(255,215,64,.25);color:#ffd740;border:1px solid rgba(255,215,64,.4);">⭐ Đặc Biệt</span> }
-                    @if (!evt.IsActive) { <span class="badge bg-secondary ms-1">Không HĐ</span> }
-                </div>
             </div>
+        </div>
 
-            @* ── Section 1: Giới Thiệu ── *@
-            <div class="sec-card mb-3" id="secIntro">
-                <div class="sec-header" onclick="toggleIntro()">
-                    <h5 class="sec-title mb-0">📖 Giới Thiệu</h5>
-                    <span class="sec-arrow" id="introArrow">▼</span>
+        @* Cột phải 60% — banner image *@
+        <div class="tb-hero-right">
+            @if (!string.IsNullOrEmpty(evt.ImageUrl))
+            {
+                <img src="@evt.ImageUrl" alt="@evt.Title" />
+            }
+            else
+            {
+                <div class="tb-hero-right-ph">🎫</div>
+            }
+        </div>
+    </div>
+
+    @* ── Section B: Giới thiệu ── *@
+    @if (!string.IsNullOrEmpty(evt.Description))
+    {
+        <div class="tb-section">
+            <div class="tb-section-header">
+                <h2 class="tb-section-title">Giới thiệu</h2>
+            </div>
+            <div class="tb-section-body">
+                <div class="tb-desc-text tb-desc-collapsed" id="descText">
+                    @Html.Raw(evt.Description.Replace("\n", "<br/>"))
                 </div>
-                <div class="sec-body">
-                    <div class="intro-text" id="introText">@evt.Description</div>
+                <button class="tb-expand-btn" id="descExpandBtn" onclick="toggleDesc()">
+                    <i class="bi bi-chevron-down" id="descChevron"></i> Xem thêm
+                </button>
 
-                    @* Gallery carousel – visible only when expanded *@
-                    @if (Model.GalleryImages.Any())
-                    {
-                        <div class="gc-wrap" id="gcWrap">
-                            <div class="gc-stage">
-                                <button class="gc-nav gc-prev" onclick="gcMove(-1)" aria-label="Ảnh trước">&#9664;</button>
-                                <div class="gc-img-box">
-                                    <img id="gcImg" src="@Model.GalleryImages[0].ImagePath" alt="" class="gc-img" />
-                                </div>
-                                <button class="gc-nav gc-next" onclick="gcMove(1)" aria-label="Ảnh tiếp">&#9654;</button>
+                @* Gallery carousel – hiện khi expand *@
+                @if (Model.GalleryImages.Any())
+                {
+                    <div class="gc-wrap" id="gcWrap">
+                        <div class="gc-stage">
+                            <button class="gc-nav gc-prev" onclick="gcMove(-1)" aria-label="Ảnh trước">&#9664;</button>
+                            <div class="gc-img-box">
+                                <img id="gcImg" src="@Model.GalleryImages[0].ImagePath" alt="" class="gc-img" />
                             </div>
-                            <div class="gc-footer">
-                                <div id="gcCaption" class="gc-caption">@(Model.GalleryImages[0].Caption ?? "")</div>
-                                <div id="gcDots" class="gc-dots">
-                                    @for (int d = 0; d < Model.GalleryImages.Count; d++)
-                                    {
-                                        <span class="gc-dot @(d == 0 ? "active" : "")" data-idx="@d" onclick="gcGoto(@d)"></span>
-                                    }
-                                </div>
-                            </div>
+                            <button class="gc-nav gc-next" onclick="gcMove(1)" aria-label="Ảnh tiếp">&#9654;</button>
                         </div>
-                    }
-                </div>
-                <div class="sec-expand-btn-wrap">
-                    <button class="sec-expand-btn" id="introExpandBtn" onclick="toggleIntro()">▼ Xem thêm</button>
-                </div>
-            </div>
-
-            @* ── Section 2: Lịch Diễn ── *@
-            <div class="sec-card mb-3">
-                <div class="sec-header static">
-                    <h5 class="sec-title mb-0">📅 Lịch Diễn</h5>
-                </div>
-                <div class="sec-body">
-                    <div class="schedule-row">
-                        <div class="schedule-info">
-                            <div class="schedule-date">@evt.StartDate.ToLocalTime().ToString("dddd, dd/MM/yyyy")</div>
-                            <div class="schedule-time">
-                                🕐 @evt.StartDate.ToLocalTime().ToString("HH:mm")
-                                @if (evt.EndDate.HasValue)
+                        <div class="gc-footer">
+                            <div id="gcCaption" class="gc-caption">@(Model.GalleryImages[0].Caption ?? "")</div>
+                            <div id="gcDots" class="gc-dots">
+                                @for (int d = 0; d < Model.GalleryImages.Count; d++)
                                 {
-                                    <span style="color:rgba(210,195,255,.45);"> → @evt.EndDate.Value.ToLocalTime().ToString("HH:mm")</span>
+                                    <span class="gc-dot @(d == 0 ? "active" : "")" data-idx="@d" onclick="gcGoto(@d)"></span>
                                 }
                             </div>
-                            <div class="schedule-venue">📍 @evt.Venue</div>
                         </div>
-                        @if (hasBuyable)
-                        {
-                            <button type="button" class="btn-buy-green" onclick="openFirstTicket()">🎟 Mua vé ngay</button>
-                        }
-                        else if (hasTickets)
-                        {
-                            <span class="badge bg-secondary px-3 py-2">Hết vé</span>
-                        }
                     </div>
-                </div>
+                }
             </div>
+        </div>
+    }
 
-            @* ── Section 3: Thông Tin Vé / Chọn Ghế ── *@
-            <div class="sec-card mb-3" id="ticket-section">
-                <div class="sec-header static">
-                    <h5 class="sec-title mb-0">@(evt.HasSeatMap ? "🪑 Sơ Đồ Ghế" : "🎟 Thông Tin Vé")</h5>
-                </div>
-                <div class="sec-body @(evt.HasSeatMap ? "text-center py-4" : "p-0")">
-                    @if (evt.HasSeatMap)
+    @* ── Section C: Lịch diễn ── *@
+    <div class="tb-section" id="section-schedule">
+        <div class="tb-section-header">
+            <h2 class="tb-section-title">Lịch diễn</h2>
+        </div>
+        <div class="tb-section-body">
+            @* Sự kiện hiện tại chỉ có 1 suất diễn (StartDate/EndDate) *@
+            <div class="tb-schedule-item open" id="scheduleItem0">
+                <div class="tb-schedule-row" onclick="toggleSchedule('scheduleItem0')">
+                    <div class="tb-schedule-left">
+                        <i class="bi bi-chevron-down tb-schedule-chevron"></i>
+                        <div>
+                            <div class="tb-schedule-time">
+                                @evt.StartDate.ToLocalTime().ToString("HH:mm")
+                                @if (evt.EndDate.HasValue)
+                                { <text>– @evt.EndDate.Value.ToLocalTime().ToString("HH:mm")</text> }
+                            </div>
+                            <div class="tb-schedule-date">
+                                @evt.StartDate.ToLocalTime().ToString("dd") Tháng @evt.StartDate.ToLocalTime().ToString("MM, yyyy")
+                            </div>
+                        </div>
+                    </div>
+                    @if (hasBuyable)
                     {
-                        <p style="color:rgba(210,195,255,.55);font-size:.9rem;margin-bottom:1.25rem;">
-                            Sự kiện này có sơ đồ ghế. Chọn ghế yêu thích của bạn!
-                        </p>
-                        @if (hasBuyable)
+                        @if (evt.HasSeatMap)
                         {
-                            <a href="/Events/SelectSeats/@evt.Id" class="btn-buy-green" style="text-decoration:none;display:inline-block;">🪑 Chọn Ghế Ngay</a>
+                            <a asp-page="/Events/SelectSeats" asp-route-id="@evt.Id" class="tb-btn-buy-sm">Mua vé ngay</a>
                         }
                         else
                         {
-                            <span class="badge bg-secondary px-3 py-2">Hết vé</span>
+                            <button type="button" class="tb-btn-buy-sm" onclick="openFirstTicket(); event.stopPropagation();">Mua vé ngay</button>
                         }
                     }
-                    else if (!hasTickets)
+                    else if (hasTickets)
                     {
-                        <div class="px-4 py-3 text-muted small">Sự kiện này chưa có loại vé.</div>
+                        <span class="badge bg-secondary px-3 py-2">Hết vé</span>
                     }
-                    else
+                </div>
+
+                @* Accordion body: bảng thông tin vé *@
+                <div class="tb-schedule-body">
+                    @if (hasTickets)
                     {
-                        @foreach (var tt in evt.TicketTypes.OrderBy(t => t.Price))
-                        {
-                            var soldOut = tt.AvailableQuantity <= 0;
-                            <div class="tkt-row @(soldOut ? "tkt-row-sold" : "")">
-                                <div class="tkt-row-info">
-                                    <div class="tkt-row-name">@tt.Name</div>
-                                    @if (!string.IsNullOrEmpty(tt.Description))
+                        <div class="tb-tkt-table">
+                            <div class="tb-tkt-head">
+                                <div style="flex:1;">Loại vé</div>
+                                <div>Giá</div>
+                            </div>
+                            @foreach (var tt in evt.TicketTypes.OrderBy(t => t.Price))
+                            {
+                                var tktClickable = evt.HasSeatMap && tt.AvailableQuantity > 0;
+                                <div class="tb-tkt-row @(tktClickable ? "tb-tkt-clickable" : string.Empty)"
+                                     onclick="@(tktClickable ? $"location.href='/Events/SelectSeats/{evt.Id}?ticketTypeId={tt.Id}'" : null)"
+                                     title="@(tktClickable ? "Click để chọn ghế loại này" : null)">
+                                    <div class="tb-tkt-name">@tt.Name
+                                        @if (!string.IsNullOrEmpty(tt.Description))
+                                        {
+                                            <div style="font-size:.74rem;color:rgba(255,255,255,.35);margin-top:2px;">@tt.Description</div>
+                                        }
+                                    </div>
+                                    @if (tt.AvailableQuantity <= 0)
                                     {
-                                        <div class="tkt-row-desc">@tt.Description</div>
+                                        <span class="tb-tkt-sold">Hết vé</span>
                                     }
-                                </div>
-                                <div class="tkt-row-price">
-                                    @if (tt.Price == 0)
+                                    else if (tt.Price == 0)
                                     {
-                                        <span style="color:#69f0ae;font-weight:700;">Miễn phí</span>
+                                        <div class="tb-tkt-price">Miễn phí</div>
                                     }
                                     else
                                     {
-                                        @tt.Price.ToString("N0")<span style="font-size:.8em;">đ</span>
+                                        <div class="tb-tkt-price">@String.Format("{0:N0} đ", tt.Price)</div>
                                     }
                                 </div>
-                                @if (soldOut)
-                                {
-                                    <span class="tkt-row-sold-badge">Hết vé</span>
-                                }
-                                else
-                                {
-                                    <button class="tkt-row-btn"
-                                            onclick="openBuyModal(@tt.Id, '@Html.Raw(tt.Name.Replace("'","&#39;"))', @tt.Price.ToString("0", System.Globalization.CultureInfo.InvariantCulture), @tt.AvailableQuantity)">
-                                        Mua vé
-                                    </button>
-                                }
-                            </div>
-                        }
-                        <div class="px-4 py-3 text-center small" style="color:rgba(210,195,255,.3);border-top:1px solid rgba(124,77,255,.1);">
-                            🔒 Thanh toán bảo mật &amp; mã hóa SSL
+                            }
                         </div>
+                    }
+                    else
+                    {
+                        <p style="color:rgba(255,255,255,.35);font-size:.85rem;margin:0;">Chưa có thông tin vé.</p>
                     }
                 </div>
             </div>
-
-            @if (User.IsInRole("Admin"))
-            {
-                <div class="mt-3 pt-3 d-flex gap-2 flex-wrap" style="border-top:1px solid rgba(124,77,255,.12);">
-                    <a href="/Events/Edit/@evt.Id" class="btn btn-outline-secondary btn-sm">✏️ Chỉnh sửa</a>
-                    <a href="/Events/SeatMap/@evt.Id" class="btn btn-sm" style="background:rgba(124,77,255,.18);border:1px solid rgba(124,77,255,.4);color:#b388ff;">🗺️ Cấu hình ghế</a>
-                </div>
-            }
         </div>
+    </div>
 
-        @* ═══════════════ RIGHT 4/12 – sticky summary ═══════════════ *@
-        <div class="col-lg-4">
-            <div class="sticky-top" style="top:80px;">
-                <div class="summary-card">
-                    <div class="summary-body">
-                        @if (!string.IsNullOrEmpty(evt.Category))
-                        {
-                            <span class="det-cat-badge mb-3 d-inline-block">@evt.Category</span>
-                        }
-                        <div class="summary-title">@evt.Title</div>
+    @* ── Admin links ── *@
+    @if (User.IsInRole("Admin"))
+    {
+        <div class="tb-admin-strip">
+            <a href="/Events/Edit/@evt.Id" class="btn btn-sm btn-outline-secondary">✏️ Chỉnh sửa</a>
+            <a href="/Events/SeatMap/@evt.Id" class="btn btn-sm" style="background:rgba(45,194,117,.15);border:1px solid rgba(45,194,117,.4);color:#2DC275;">🗺️ Cấu hình ghế</a>
+        </div>
+    }
 
-                        <div class="summary-row mt-3">
-                            <span class="summary-icon">📅</span>
-                            <span class="summary-text">@evt.StartDate.ToLocalTime().ToString("dd/MM/yyyy · HH:mm")</span>
-                        </div>
-                        @if (evt.EndDate.HasValue)
-                        {
-                            <div class="summary-row">
-                                <span class="summary-icon">⏰</span>
-                                <span class="summary-text">đến @evt.EndDate.Value.ToLocalTime().ToString("HH:mm")</span>
-                            </div>
-                        }
-                        <div class="summary-row">
-                            <span class="summary-icon">📍</span>
-                            <span class="summary-text">@evt.Venue</span>
-                        </div>
-
-                        @if (hasBuyable && minPrice.HasValue)
-                        {
-                            <hr class="summary-divider" />
-                            <div class="summary-price-label">Giá vé từ</div>
-                            <div class="summary-price">
-                                @(minPrice == 0 ? "Miễn phí" : minPrice.Value.ToString("N0") + "đ")
-                            </div>
-                            @if (evt.HasSeatMap)
+    @* ── Section E: Có thể bạn cũng thích ── *@
+    @if (Model.RelatedEvents.Any())
+    {
+        <div class="tb-rel-section">
+            <h2 class="tb-rel-title">Có thể bạn cũng thích</h2>
+            <div class="row g-3">
+                @foreach (var rel in Model.RelatedEvents)
+                {
+                    var relMin = rel.TicketTypes.Where(t => t.AvailableQuantity > 0).OrderBy(t => t.Price).FirstOrDefault()?.Price;
+                    <div class="col-lg-3 col-md-6 col-12">
+                        <a href="/Events/Details/@rel.Id" class="tb-rel-card">
+                            @if (!string.IsNullOrEmpty(rel.ImageUrl))
                             {
-                                <a href="/Events/SelectSeats/@evt.Id" class="btn-summary-buy" style="text-decoration:none;display:block;text-align:center;">🪑 Chọn Ghế Ngay</a>
+                                <img class="tb-rel-img" src="@rel.ImageUrl" alt="@rel.Title" loading="lazy" />
                             }
                             else
                             {
-                                <button type="button" class="btn-summary-buy" onclick="openFirstTicket()">🎟 Mua Vé Ngay</button>
+                                <div class="tb-rel-img-ph">🎟</div>
                             }
-                        }
-                        else if (!hasTickets)
-                        {
-                            <hr class="summary-divider" />
-                            <span class="text-muted small">Chưa có thông tin vé</span>
-                        }
-                        else
-                        {
-                            <hr class="summary-divider" />
-                            <span class="badge bg-secondary px-3 py-2 w-100 text-center">Đã hết vé</span>
-                        }
+                            <div class="tb-rel-body">
+                                <div class="tb-rel-name">@rel.Title</div>
+                                @if (relMin.HasValue)
+                                {
+                                    <div class="tb-rel-price">Từ @String.Format("{0:N0} đ", relMin.Value)</div>
+                                }
+                                else
+                                {
+                                    <div class="tb-rel-price" style="color:rgba(255,255,255,.3);">Hết vé</div>
+                                }
+                                <div class="tb-rel-date">
+                                    <i class="bi bi-calendar3" style="font-size:.7rem;"></i>
+                                    @rel.StartDate.ToLocalTime().ToString("dd") Tháng @rel.StartDate.ToLocalTime().ToString("MM, yyyy")
+                                </div>
+                            </div>
+                        </a>
                     </div>
-                </div>
+                }
             </div>
         </div>
+    }
 
-    </div>
+</div>
 </div>
 
 @* ── Buy Modal ── *@
-<div class="modal fade" id="buyModal" tabindex="-1" aria-labelledby="buyModalLabel" aria-hidden="true">
+<div class="modal fade tb-modal" id="buyModal" tabindex="-1" aria-labelledby="buyModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header" style="background:linear-gradient(90deg,#7c4dff,#448aff);">
+            <div class="modal-header">
                 <div>
                     <h5 class="modal-title fw-bold text-white" id="buyModalLabel">🎟 Đặt Vé</h5>
                     <p class="text-white small mb-0 opacity-75" id="modalTicketDesc"></p>
@@ -289,12 +837,12 @@
                     <input type="hidden" name="eventId" value="@evt.Id" />
                     <input type="hidden" name="ticketTypeId" id="modalTicketTypeId" />
 
-                    <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded-3 mb-3">
+                    <div class="d-flex justify-content-between align-items-center p-3 rounded-3 mb-3 bg-light">
                         <div>
-                            <div class="fw-semibold" id="modalTicketName">—</div>
-                            <small class="text-muted">Giá / vé</small>
+                            <div class="fw-semibold text-white" id="modalTicketName">—</div>
+                            <small style="color:rgba(255,255,255,.45);">Giá / vé</small>
                         </div>
-                        <div class="fw-bold fs-5" style="color:#7c4dff;" id="modalTicketPrice">—</div>
+                        <div class="fw-bold fs-5" style="color:#2DC275;" id="modalTicketPrice">—</div>
                     </div>
 
                     <div class="mb-3">
@@ -302,10 +850,10 @@
                         <div class="d-flex align-items-center gap-2">
                             <button type="button" class="btn btn-outline-secondary px-3" onclick="changeQty(-1)">−</button>
                             <input type="number" name="qty" id="modalQty"
-                                   class="form-control text-center fw-bold fs-5" style="width:80px;"
+                                   class="form-control text-center fw-bold fs-5 text-white" style="width:80px;"
                                    value="1" min="1" max="10" readonly />
                             <button type="button" class="btn btn-outline-secondary px-3" onclick="changeQty(1)">+</button>
-                            <span class="text-muted small" id="modalMaxQtyLabel"></span>
+                            <span style="color:rgba(255,255,255,.4);font-size:.8rem;" id="modalMaxQtyLabel"></span>
                         </div>
                     </div>
 
@@ -315,21 +863,19 @@
                             <span class="coupon-icon">🏷</span>
                             <input type="text" id="buyCouponInput" class="coupon-bar-input"
                                    placeholder="Nhập mã giảm giá..." autocomplete="off" />
-                            <button type="button" class="btn-apply-coupon-green"
-                                    onclick="applyBuyCoupon()">Áp dụng</button>
+                            <button type="button" class="btn-apply-coupon-green" onclick="applyBuyCoupon()">Áp dụng</button>
                         </div>
                         <div id="buyCouponMsg" class="coupon-feedback" style="display:none;"></div>
                     </div>
                     <input type="hidden" name="couponCode" id="buyCouponCode" />
 
-                    @* Total: 2-line *@
                     <div class="total-summary mb-3">
                         <div class="total-row-item" id="grossRow" style="display:none;">
-                            <span class="total-lbl">Tạm tính</span>
+                            <span>Tạm tính</span>
                             <s class="total-gross-val" id="modalGross"></s>
                         </div>
                         <div class="total-row-item total-discount-item" id="modalDiscountRow" style="display:none;">
-                            <span class="total-lbl" style="color:#69f0ae;">Giảm</span>
+                            <span>Giảm</span>
                             <span class="total-discount-val" id="modalDiscountAmt"></span>
                         </div>
                         <div class="total-row-item total-final-item">
@@ -337,7 +883,7 @@
                             <span class="total-final-val" id="modalTotal">0đ</span>
                         </div>
                     </div>
-                    <hr />
+                    <hr style="border-color:rgba(255,255,255,.1);" />
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Họ và tên <span class="text-danger">*</span></label>
                         <input type="text" name="customerName" class="form-control"
@@ -356,13 +902,10 @@
                 </div>
                 <div class="modal-footer border-0 pt-0 gap-2">
                     <button type="button" class="btn-modal-close" data-bs-dismiss="modal">Đóng</button>
-                    <button type="button" class="btn-modal-cart" id="btnAddToCart"
-                            onclick="addToCartFromModal()">
+                    <button type="button" class="btn-modal-cart" id="btnAddToCart" onclick="addToCartFromModal()">
                         🛒 Thêm vào giỏ
                     </button>
-                    <button type="submit" class="btn-modal-pay">
-                        Thanh Toán →
-                    </button>
+                    <button type="submit" class="btn-modal-pay">Thanh Toán →</button>
                 </div>
             </form>
         </div>
@@ -375,301 +918,70 @@
         <div class="d-flex align-items-start p-3 gap-3">
             <span style="font-size:1.6rem;line-height:1;">🛒</span>
             <div class="flex-grow-1">
-                <div class="fw-semibold mb-1" id="cartToastMsg" style="color:#ede0ff;font-size:.9rem;"></div>
-                <a href="/Cart" class="small text-decoration-none fw-semibold"
-                   style="color:#7c4dff;">Xem giỏ hàng →</a>
+                <div class="fw-semibold mb-1" id="cartToastMsg" style="color:#fff;font-size:.9rem;"></div>
+                <a href="/Cart" class="small text-decoration-none fw-semibold" style="color:#2DC275;">Xem giỏ hàng →</a>
             </div>
-            <button type="button" class="btn-close btn-close-white opacity-50 flex-shrink-0"
-                    data-bs-dismiss="toast"></button>
+            <button type="button" class="btn-close btn-close-white opacity-50 flex-shrink-0" data-bs-dismiss="toast"></button>
         </div>
     </div>
 </div>
 
-<style>
-.breadcrumb-item + .breadcrumb-item::before { color: rgba(210,195,255,.3); }
-.breadcrumb-item a { color: rgba(210,195,255,.6); }
-.breadcrumb-item.active { color: rgba(210,195,255,.9); }
-
-/* ── Banner ── */
-.det-banner-wrap {
-    position: relative; border-radius: 14px; overflow: hidden;
-    background: rgba(10,6,28,.8);
-    border: 1px solid rgba(124,77,255,.2);
-    box-shadow: 0 8px 40px rgba(0,0,0,.4);
-}
-.det-banner-img { width: 100%; height: auto; display: block; }
-.det-banner-ph {
-    min-height: 220px;
-    background: linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);
-    display: flex; align-items: center; justify-content: center; font-size: 4rem;
-}
-.det-banner-badges {
-    position: absolute; top: 12px; left: 12px;
-}
-.det-cat-badge {
-    font-size: .74rem; font-weight: 600; letter-spacing: .04em;
-    padding: 4px 12px; border-radius: 50px;
-    background: rgba(124,77,255,.3); color: #c2a6ff;
-    border: 1px solid rgba(124,77,255,.5);
-}
-
-/* ── Section cards ── */
-.sec-card {
-    background: rgba(15,9,40,.75);
-    border: 1px solid rgba(124,77,255,.18);
-    border-radius: 14px; overflow: hidden;
-}
-.sec-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 15px 20px;
-    border-bottom: 1px solid rgba(124,77,255,.12);
-    cursor: pointer; user-select: none;
-    transition: background .15s;
-}
-.sec-header:hover { background: rgba(124,77,255,.07); }
-.sec-header.static { cursor: default; }
-.sec-header.static:hover { background: transparent; }
-.sec-title { font-size: .95rem; font-weight: 700; }
-.sec-arrow { font-size: .8rem; color: rgba(210,195,255,.5); transition: transform .3s; }
-.sec-arrow.open { transform: rotate(180deg); }
-.sec-body { padding: 18px 20px; }
-
-/* ── Intro text ── */
-.intro-text {
-    color: rgba(210,195,255,.75); line-height: 1.85; white-space: pre-wrap;
-    max-height: 92px; overflow: hidden; position: relative;
-    transition: max-height .4s ease;
-}
-.intro-text::after {
-    content: ''; position: absolute; bottom: 0; left: 0; right: 0;
-    height: 44px;
-    background: linear-gradient(transparent, rgba(15,9,40,.95));
-    transition: opacity .3s;
-}
-.intro-text.expanded { max-height: 9999px; }
-.intro-text.expanded::after { opacity: 0; pointer-events: none; }
-
-/* Expand button */
-.sec-expand-btn-wrap { text-align: center; padding-bottom: 14px; }
-.sec-expand-btn {
-    background: none; border: none; cursor: pointer;
-    color: rgba(124,77,255,.85); font-size: .82rem; font-weight: 600;
-    padding: 4px 12px; border-radius: 50px;
-    transition: color .15s, background .15s;
-}
-.sec-expand-btn:hover { color: #c2a6ff; background: rgba(124,77,255,.1); }
-
-/* ── Gallery carousel ── */
-.gc-wrap { margin-top: 18px; display: none; }
-.gc-stage {
-    position: relative; display: flex; align-items: center;
-    background: rgba(10,6,28,.7); border-radius: 12px; overflow: hidden;
-    min-height: 200px;
-}
-.gc-img-box {
-    flex: 1; display: flex; align-items: center; justify-content: center;
-    padding: 14px 60px;
-}
-.gc-img {
-    max-width: 100%; max-height: 380px;
-    object-fit: contain; border-radius: 8px;
-    transition: opacity .2s;
-}
-.gc-nav {
-    position: absolute; top: 50%; transform: translateY(-50%);
-    width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(124,77,255,.4);
-    background: rgba(124,77,255,.25); color: #fff; font-size: 1rem;
-    cursor: pointer; z-index: 2; display: flex; align-items: center; justify-content: center;
-    transition: background .15s;
-}
-.gc-nav:hover { background: rgba(124,77,255,.55); }
-.gc-prev { left: 10px; } .gc-next { right: 10px; }
-.gc-footer { padding: 10px 14px 4px; }
-.gc-caption { font-size: .78rem; color: rgba(210,195,255,.5); text-align: center; min-height: 1.1em; margin-bottom: 8px; }
-.gc-dots { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
-.gc-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: rgba(210,195,255,.2); cursor: pointer; transition: background .15s;
-}
-.gc-dot.active { background: #7c4dff; }
-
-/* ── Schedule ── */
-.schedule-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-.schedule-date { font-size: 1rem; font-weight: 700; color: #ede0ff; margin-bottom: 3px; }
-.schedule-time { font-size: .88rem; color: rgba(210,195,255,.65); margin-bottom: 4px; }
-.schedule-venue { font-size: .84rem; color: rgba(210,195,255,.5); }
-.btn-buy-green {
-    display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
-    padding: 11px 26px; border-radius: 50px; font-weight: 700; font-size: .92rem;
-    background: #00c853; color: #fff; border: none; text-decoration: none;
-    box-shadow: 0 3px 18px rgba(0,200,83,.35); cursor: pointer;
-    transition: opacity .15s;
-}
-.btn-buy-green:hover { opacity: .86; color: #fff; }
-
-/* ── Ticket rows ── */
-.tkt-row {
-    display: flex; align-items: center; gap: 14px; padding: 14px 20px;
-    border-bottom: 1px solid rgba(124,77,255,.1);
-    transition: background .15s;
-}
-.tkt-row:hover { background: rgba(124,77,255,.04); }
-.tkt-row:last-child { border-bottom: none; }
-.tkt-row-sold { opacity: .45; }
-.tkt-row-info { flex: 1; min-width: 0; }
-.tkt-row-name { font-weight: 600; color: #ede0ff; font-size: .95rem; }
-.tkt-row-desc { font-size: .75rem; color: rgba(210,195,255,.48); margin-top: 2px; }
-.tkt-row-price { font-weight: 800; font-size: 1rem; color: #ffd740; flex-shrink: 0; white-space: nowrap; }
-.tkt-row-btn {
-    padding: 7px 18px; border-radius: 50px; border: none; flex-shrink: 0;
-    background: linear-gradient(90deg,#7c4dff,#448aff); color: #fff;
-    font-weight: 600; font-size: .8rem; cursor: pointer;
-    box-shadow: 0 2px 12px rgba(124,77,255,.35);
-    transition: opacity .15s, transform .15s;
-}
-.tkt-row-btn:hover { opacity: .85; transform: scale(1.04); }
-.tkt-row-sold-badge {
-    font-size: .74rem; color: rgba(210,195,255,.35); flex-shrink: 0;
-    padding: 6px 12px; border-radius: 50px;
-    border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.04);
-}
-/* ── Coupon bar ── */
-.coupon-bar { padding: 0; }
-.coupon-bar-inner {
-    display: flex; align-items: center; gap: 8px;
-    background: rgba(255,255,255,.04);
-    border: 1px solid rgba(124,77,255,.2);
-    border-radius: 10px; padding: 8px 10px;
-    transition: border-color .15s;
-}
-.coupon-bar-inner:focus-within { border-color: rgba(0,200,83,.5); box-shadow: 0 0 0 2px rgba(0,200,83,.1); }
-.coupon-icon { font-size: 1rem; flex-shrink: 0; }
-.coupon-bar-input {
-    flex: 1; border: none; background: transparent;
-    color: #ede0ff; font-size: .88rem; outline: none;
-    text-transform: uppercase; letter-spacing: .04em;
-}
-.coupon-bar-input::placeholder { color: rgba(210,195,255,.3); text-transform: none; letter-spacing: 0; }
-.btn-apply-coupon-green {
-    padding: 5px 14px; border-radius: 8px; flex-shrink: 0;
-    background: linear-gradient(90deg,#00c853,#00bfa5);
-    border: none; color: #fff; font-weight: 700; font-size: .8rem;
-    cursor: pointer; white-space: nowrap;
-    transition: opacity .15s;
-}
-.btn-apply-coupon-green:hover { opacity: .85; }
-.coupon-feedback {
-    font-size: .78rem; margin-top: 6px; padding: 5px 10px;
-    border-radius: 6px;
-}
-.coupon-feedback.ok  { background: rgba(0,200,83,.1); color: #69f0ae; border: 1px solid rgba(0,200,83,.2); }
-.coupon-feedback.err { background: rgba(229,57,53,.1); color: #ef9a9a; border: 1px solid rgba(229,57,53,.2); }
-
-/* ── Total summary ── */
-.total-summary {
-    background: rgba(124,77,255,.07);
-    border: 1px solid rgba(124,77,255,.18);
-    border-radius: 12px; padding: 12px 16px;
-}
-.total-row-item {
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: .84rem; color: rgba(210,195,255,.6);
-    padding: 3px 0;
-}
-.total-lbl { }
-.total-gross-val { color: rgba(210,195,255,.45); text-decoration: line-through; }
-.total-discount-item { color: #69f0ae !important; }
-.total-discount-val { color: #69f0ae; font-weight: 600; }
-.total-final-item {
-    margin-top: 8px; padding-top: 8px;
-    border-top: 1px solid rgba(124,77,255,.15);
-}
-.total-final-lbl { font-weight: 700; font-size: .95rem; color: rgba(210,195,255,.9); }
-.total-final-val { font-weight: 800; font-size: 1.45rem; color: #7c4dff; }
-
-/* ── Modal footer buttons ── */
-.btn-modal-close {
-    padding: 9px 18px; border-radius: 50px;
-    border: 1px solid rgba(255,255,255,.15);
-    background: transparent; color: rgba(210,195,255,.6);
-    font-size: .85rem; cursor: pointer; transition: border-color .15s;
-}
-.btn-modal-close:hover { border-color: rgba(255,255,255,.35); color: rgba(210,195,255,.9); }
-.btn-modal-cart {
-    padding: 9px 18px; border-radius: 50px; flex-shrink: 0;
-    background: rgba(0,200,83,.12);
-    border: 1px solid rgba(0,200,83,.35);
-    color: #00c853; font-weight: 700; font-size: .85rem;
-    cursor: pointer; transition: background .15s;
-}
-.btn-modal-cart:hover { background: rgba(0,200,83,.25); }
-.btn-modal-pay {
-    padding: 9px 22px; border-radius: 50px; flex: 1;
-    background: linear-gradient(90deg,#7c4dff,#448aff);
-    border: none; color: #fff; font-weight: 700; font-size: .88rem;
-    cursor: pointer; box-shadow: 0 2px 14px rgba(124,77,255,.35);
-    transition: opacity .15s;
-}
-.btn-modal-pay:hover { opacity: .88; }
-
-/* Toast dark theme */
-#cartToast {
-    background: rgba(18,10,45,.95);
-    border: 1px solid rgba(124,77,255,.3);
-    border-radius: 14px; min-width: 280px;
-    backdrop-filter: blur(12px);
-}
-
-/* ── Summary sidebar ── */
-.summary-card {
-    background: rgba(15,9,40,.85);
-    border: 1px solid rgba(124,77,255,.22);
-    border-radius: 16px; overflow: hidden;
-    box-shadow: 0 10px 46px rgba(0,0,0,.4);
-}
-.summary-body { padding: 20px; }
-.summary-title { font-size: .95rem; font-weight: 700; color: #ede0ff; line-height: 1.35; margin-bottom: 0; }
-.summary-row { display: flex; gap: 9px; align-items: flex-start; margin-bottom: 8px; }
-.summary-icon { flex-shrink: 0; font-size: 1rem; }
-.summary-text { font-size: .82rem; color: rgba(210,195,255,.65); line-height: 1.4; }
-.summary-divider { border-color: rgba(124,77,255,.15); margin: 16px 0; }
-.summary-price-label { font-size: .68rem; color: rgba(210,195,255,.4); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
-.summary-price { font-size: 1.5rem; font-weight: 800; color: #ffd740; text-shadow: 0 0 20px rgba(255,215,64,.3); margin-bottom: 14px; }
-.btn-summary-buy {
-    display: block; width: 100%; padding: 13px; border-radius: 50px; text-align: center;
-    background: linear-gradient(90deg,#7c4dff,#448aff);
-    color: #fff; border: none; font-weight: 700; font-size: .97rem;
-    box-shadow: 0 4px 22px rgba(124,77,255,.45);
-    text-decoration: none; cursor: pointer;
-    transition: opacity .15s;
-}
-.btn-summary-buy:hover { opacity: .88; color: #fff; }
-
-@@media (max-width:768px) {
-    .schedule-row { flex-direction: column; align-items: flex-start; }
-    .gc-img-box { padding: 10px 52px; }
-}
-</style>
-
 @section Scripts {
 <script>
-/* ── Buyable tickets (for generic open-modal buttons) ── */
+/* ── Bootstrap Icons (lazy) ── */
+(function() {
+    if (!document.querySelector('link[href*="bootstrap-icons"]')) {
+        var l = document.createElement('link');
+        l.rel = 'stylesheet';
+        l.href = 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css';
+        document.head.appendChild(l);
+    }
+})();
+
+/* ── Hero "Mua vé ngay" → scroll tới lịch diễn ── */
+var heroBuyBtn = document.getElementById('btn-buy-hero');
+if (heroBuyBtn) {
+    heroBuyBtn.addEventListener('click', function() {
+        document.getElementById('section-schedule').scrollIntoView({ behavior: 'smooth' });
+    });
+}
+
+/* ── Toggle accordion lịch diễn ── */
+function toggleSchedule(id) {
+    document.getElementById(id).classList.toggle('open');
+}
+
+/* ── Toggle mô tả expand/collapse ── */
+var descOpen = false;
+function toggleDesc() {
+    descOpen = !descOpen;
+    var el  = document.getElementById('descText');
+    var btn = document.getElementById('descExpandBtn');
+    var chev = document.getElementById('descChevron');
+    el.classList.toggle('expanded', descOpen);
+    if (descOpen) {
+        btn.innerHTML = '<i class="bi bi-chevron-up" id="descChevron"></i> Thu gọn';
+        var gc = document.getElementById('gcWrap');
+        if (gc) gc.style.display = 'block';
+    } else {
+        btn.innerHTML = '<i class="bi bi-chevron-down" id="descChevron"></i> Xem thêm';
+        var gc = document.getElementById('gcWrap');
+        if (gc) gc.style.display = 'none';
+    }
+}
+
+/* ── Buyable tickets ── */
 const _buyableTickets = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
     evt.TicketTypes
        .Where(t => t.AvailableQuantity > 0)
        .OrderBy(t => t.Price)
-       .Select(t => new {
-           id        = t.Id,
-           name      = t.Name,
-           price     = (double)t.Price,
-           available = t.AvailableQuantity
-       })
+       .Select(t => new { id = t.Id, name = t.Name, price = (double)t.Price, available = t.AvailableQuantity })
        .ToList()
 ));
 
 function openFirstTicket() {
     if (_buyableTickets.length === 0) return;
-    const t = _buyableTickets[0];
+    var t = _buyableTickets[0];
     openBuyModal(t.id, t.name, t.price, t.available);
 }
 
@@ -683,15 +995,15 @@ function openBuyModal(ttId, name, price, maxQty) {
     modalDiscount = 0;
     modalMaxQty   = Math.min(maxQty, 10);
 
-    document.getElementById('modalTicketTypeId').value         = ttId;
-    document.getElementById('modalTicketName').textContent     = name;
-    document.getElementById('modalTicketDesc').textContent     = name;
-    document.getElementById('modalTicketPrice').textContent    = price.toLocaleString('vi-VN') + 'đ';
-    document.getElementById('modalMaxQtyLabel').textContent    = '(tối đa ' + modalMaxQty + ')';
-    document.getElementById('modalQty').max                    = modalMaxQty;
-    document.getElementById('modalQty').value                  = 1;
-    document.getElementById('buyCouponInput').value            = '';
-    document.getElementById('buyCouponCode').value             = '';
+    document.getElementById('modalTicketTypeId').value      = ttId;
+    document.getElementById('modalTicketName').textContent  = name;
+    document.getElementById('modalTicketDesc').textContent  = name;
+    document.getElementById('modalTicketPrice').textContent = price.toLocaleString('vi-VN') + 'đ';
+    document.getElementById('modalMaxQtyLabel').textContent = '(tối đa ' + modalMaxQty + ')';
+    document.getElementById('modalQty').max                 = modalMaxQty;
+    document.getElementById('modalQty').value               = 1;
+    document.getElementById('buyCouponInput').value         = '';
+    document.getElementById('buyCouponCode').value          = '';
     resetCouponUI();
     updateTotal();
     new bootstrap.Modal(document.getElementById('buyModal')).show();
@@ -699,31 +1011,30 @@ function openBuyModal(ttId, name, price, maxQty) {
 
 function resetCouponUI() {
     modalDiscount = 0;
-    document.getElementById('buyCouponCode').value = '';
-    const msg = document.getElementById('buyCouponMsg');
+    document.getElementById('buyCouponCode').value          = '';
+    var msg = document.getElementById('buyCouponMsg');
     msg.style.display = 'none';
-    msg.className = 'coupon-feedback';
-    document.getElementById('grossRow').style.display       = 'none';
+    msg.className     = 'coupon-feedback';
+    document.getElementById('grossRow').style.display        = 'none';
     document.getElementById('modalDiscountRow').style.display = 'none';
 }
 
 function changeQty(d) {
-    const el = document.getElementById('modalQty');
+    var el = document.getElementById('modalQty');
     el.value = Math.min(Math.max(parseInt(el.value) + d, 1), modalMaxQty);
     resetCouponUI();
     updateTotal();
 }
 
 function updateTotal() {
-    const qty   = parseInt(document.getElementById('modalQty').value) || 1;
-    const gross = modalPrice * qty;
-    const net   = gross - modalDiscount;
-
+    var qty   = parseInt(document.getElementById('modalQty').value) || 1;
+    var gross = modalPrice * qty;
+    var net   = gross - modalDiscount;
     if (modalDiscount > 0) {
-        document.getElementById('grossRow').style.display = '';
-        document.getElementById('modalGross').textContent = gross.toLocaleString('vi-VN') + 'đ';
+        document.getElementById('grossRow').style.display        = '';
+        document.getElementById('modalGross').textContent        = gross.toLocaleString('vi-VN') + 'đ';
         document.getElementById('modalDiscountRow').style.display = '';
-        document.getElementById('modalDiscountAmt').textContent = '−' + modalDiscount.toLocaleString('vi-VN') + 'đ';
+        document.getElementById('modalDiscountAmt').textContent  = '−' + modalDiscount.toLocaleString('vi-VN') + 'đ';
     } else {
         document.getElementById('grossRow').style.display        = 'none';
         document.getElementById('modalDiscountRow').style.display = 'none';
@@ -731,24 +1042,21 @@ function updateTotal() {
     document.getElementById('modalTotal').textContent = net.toLocaleString('vi-VN') + 'đ';
 }
 
-document.getElementById('modalQty').addEventListener('input', () => { resetCouponUI(); updateTotal(); });
+document.getElementById('modalQty').addEventListener('input', function() { resetCouponUI(); updateTotal(); });
 
 async function applyBuyCoupon() {
-    const code  = document.getElementById('buyCouponInput').value.trim();
-    const qty   = parseInt(document.getElementById('modalQty').value) || 1;
-    const gross = modalPrice * qty;
-    const msg   = document.getElementById('buyCouponMsg');
-
+    var code  = document.getElementById('buyCouponInput').value.trim();
+    var qty   = parseInt(document.getElementById('modalQty').value) || 1;
+    var gross = modalPrice * qty;
+    var msg   = document.getElementById('buyCouponMsg');
     if (!code) {
         msg.textContent = '✗ Vui lòng nhập mã giảm giá.';
         msg.className   = 'coupon-feedback err';
         msg.style.display = '';
         return;
     }
-
-    const res  = await fetch(`/api/coupons/validate?code=${encodeURIComponent(code)}&total=${gross}`);
-    const data = await res.json();
-
+    var res  = await fetch('/api/coupons/validate?code=' + encodeURIComponent(code) + '&total=' + gross);
+    var data = await res.json();
     if (data.valid) {
         modalDiscount = data.discount;
         document.getElementById('buyCouponCode').value = code;
@@ -764,25 +1072,21 @@ async function applyBuyCoupon() {
     updateTotal();
 }
 
-document.getElementById('buyCouponInput').addEventListener('keydown', e => {
+document.getElementById('buyCouponInput').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') { e.preventDefault(); applyBuyCoupon(); }
 });
 
-/* ── Add to cart (AJAX) ── */
 async function addToCartFromModal() {
-    const qty = parseInt(document.getElementById('modalQty').value) || 1;
-    const btn = document.getElementById('btnAddToCart');
-    btn.disabled = true;
-    btn.textContent = '⏳ Đang thêm...';
-
+    var qty = parseInt(document.getElementById('modalQty').value) || 1;
+    var btn = document.getElementById('btnAddToCart');
+    btn.disabled = true; btn.textContent = '⏳ Đang thêm...';
     try {
-        const res  = await fetch('/api/cart/add', {
+        var res  = await fetch('/api/cart/add', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ eventId: modalEventId, ticketTypeId: modalTtId, qty })
+            body: JSON.stringify({ eventId: modalEventId, ticketTypeId: modalTtId, qty: qty })
         });
-        const data = await res.json();
-
+        var data = await res.json();
         if (data.success) {
             bootstrap.Modal.getInstance(document.getElementById('buyModal')).hide();
             showCartToast(data.message);
@@ -790,12 +1094,8 @@ async function addToCartFromModal() {
         } else {
             alert(data.message || 'Không thể thêm vào giỏ hàng.');
         }
-    } catch {
-        alert('Lỗi kết nối. Vui lòng thử lại.');
-    } finally {
-        btn.disabled = false;
-        btn.textContent = '🛒 Thêm vào giỏ';
-    }
+    } catch { alert('Lỗi kết nối. Vui lòng thử lại.'); }
+    finally { btn.disabled = false; btn.textContent = '🛒 Thêm vào giỏ'; }
 }
 
 function showCartToast(message) {
@@ -804,31 +1104,19 @@ function showCartToast(message) {
 }
 
 function updateNavBadge(count) {
-    const badge = document.getElementById('navCartBadge');
+    var badge = document.getElementById('navCartBadge');
     if (badge) {
         badge.textContent = count > 99 ? '99+' : String(count);
         badge.style.display = count > 0 ? '' : 'none';
     } else if (count > 0) {
-        const link = document.querySelector('.cart-nav-link');
+        var link = document.querySelector('.cart-nav-link');
         if (link) {
-            const b = document.createElement('span');
-            b.id        = 'navCartBadge';
-            b.className = 'cart-badge';
+            var b = document.createElement('span');
+            b.id = 'navCartBadge'; b.className = 'cart-badge';
             b.textContent = count > 99 ? '99+' : String(count);
             link.appendChild(b);
         }
     }
-}
-
-/* ── Intro expand/collapse ── */
-let introOpen = false;
-function toggleIntro() {
-    introOpen = !introOpen;
-    document.getElementById('introText').classList.toggle('expanded', introOpen);
-    document.getElementById('introArrow').classList.toggle('open', introOpen);
-    document.getElementById('introExpandBtn').textContent = introOpen ? '▲ Thu gọn' : '▼ Xem thêm';
-    const gc = document.getElementById('gcWrap');
-    if (gc) gc.style.display = introOpen ? 'block' : 'none';
 }
 </script>
 
@@ -837,34 +1125,24 @@ function toggleIntro() {
     var gcJson = System.Text.Json.JsonSerializer.Serialize(
         Model.GalleryImages.Select(i => new { src = i.ImagePath, caption = i.Caption ?? "" }));
     <script>
-    const gcImages = @Html.Raw(gcJson);
-    let gcIdx = 0;
-
-    function gcMove(delta) {
-        gcIdx = (gcIdx + delta + gcImages.length) % gcImages.length;
-        gcShow(gcIdx);
-    }
-    function gcGoto(idx) { gcIdx = idx; gcShow(idx); }
+    var gcImages = @Html.Raw(gcJson);
+    var gcIdx = 0;
+    function gcMove(delta) { gcIdx = (gcIdx + delta + gcImages.length) % gcImages.length; gcShow(gcIdx); }
+    function gcGoto(idx)   { gcIdx = idx; gcShow(idx); }
     function gcShow(idx) {
-        const img = document.getElementById('gcImg');
+        var img = document.getElementById('gcImg');
         img.style.opacity = '0';
-        setTimeout(() => {
-            img.src = gcImages[idx].src;
-            img.alt = gcImages[idx].caption;
-            img.style.opacity = '1';
-        }, 150);
+        setTimeout(function() { img.src = gcImages[idx].src; img.alt = gcImages[idx].caption; img.style.opacity = '1'; }, 150);
         document.getElementById('gcCaption').textContent = gcImages[idx].caption;
-        document.querySelectorAll('.gc-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+        document.querySelectorAll('.gc-dot').forEach(function(d, i) { d.classList.toggle('active', i === idx); });
     }
-
-    // Touch swipe on carousel
     (function() {
-        const stage = document.querySelector('.gc-stage');
+        var stage = document.querySelector('.gc-stage');
         if (!stage) return;
-        let tx = 0;
-        stage.addEventListener('touchstart', e => { tx = e.changedTouches[0].clientX; }, { passive: true });
-        stage.addEventListener('touchend',   e => {
-            const dx = e.changedTouches[0].clientX - tx;
+        var tx = 0;
+        stage.addEventListener('touchstart', function(e) { tx = e.changedTouches[0].clientX; }, { passive: true });
+        stage.addEventListener('touchend',   function(e) {
+            var dx = e.changedTouches[0].clientX - tx;
             if (Math.abs(dx) > 45) gcMove(dx < 0 ? 1 : -1);
         }, { passive: true });
     })();

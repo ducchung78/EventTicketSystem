@@ -63,6 +63,9 @@ public static class DbSeeder
             }
         }
 
+        // Seed payment methods
+        await SeedPaymentMethodsAsync(db);
+
         // Seed extra events for new homepage sections (idempotent by title)
         await SeedExtraEventsAsync(db);
 
@@ -117,6 +120,21 @@ public static class DbSeeder
             db.Orders.Add(order);
         }
 
+        await db.SaveChangesAsync();
+    }
+
+    private static async Task SeedPaymentMethodsAsync(AppDbContext db)
+    {
+        if (await db.PaymentMethods.AnyAsync()) return;
+
+        var created = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        db.PaymentMethods.AddRange(
+            new PaymentMethod { Name = "VNPAY / Ứng dụng ngân hàng", IsActive = true, SortOrder = 1, CreatedAt = created },
+            new PaymentMethod { Name = "VietQR",                       IsActive = true, SortOrder = 2, CreatedAt = created },
+            new PaymentMethod { Name = "ShopeePay",                    IsActive = true, SortOrder = 3, CreatedAt = created },
+            new PaymentMethod { Name = "ZaloPay",                      IsActive = true, SortOrder = 4, CreatedAt = created },
+            new PaymentMethod { Name = "Thẻ ghi nợ / Thẻ tín dụng",  IsActive = true, SortOrder = 5, CreatedAt = created }
+        );
         await db.SaveChangesAsync();
     }
 

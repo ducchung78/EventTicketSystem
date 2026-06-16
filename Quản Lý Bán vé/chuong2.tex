@@ -1,0 +1,175 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+% ============================================================
+\section{Khảo sát hiện trạng}
+% ============================================================
+
+\subsection{Bối cảnh thực tế}
+
+Hiện nay, việc tổ chức các sự kiện giải trí, hội nghị và thể thao tại Việt Nam chủ yếu vẫn dựa vào hai hình thức bán vé truyền thống: bán trực tiếp tại quầy và bán qua các đại lý phân phối. Cả hai hình thức này đều bộc lộ nhiều hạn chế trong bối cảnh nhu cầu tổ chức sự kiện ngày càng tăng cao.
+
+Đối với \textbf{ban tổ chức sự kiện}, quy trình thủ công kéo theo hàng loạt bất tiện: theo dõi số lượng vé đã bán bằng bảng tính Excel, không có báo cáo doanh thu theo thời gian thực, khó kiểm soát tình trạng bán trùng vé, và không có công cụ phân tích dữ liệu để tối ưu chiến lược định giá.
+
+Đối với \textbf{người mua vé}, việc phải đến tận nơi hoặc liên hệ qua điện thoại để mua vé gây tốn thời gian, không thể xem trước sơ đồ chỗ ngồi và lựa chọn vị trí mong muốn, cũng như không có kênh hỗ trợ trực tiếp khi cần giải đáp thắc mắc.
+
+\subsection{Quy trình nghiệp vụ hiện tại}
+
+Quy trình bán vé truyền thống diễn ra theo các bước:
+
+\begin{enumerate}
+    \item Ban tổ chức công bố thông tin sự kiện qua mạng xã hội hoặc website tĩnh.
+    \item Người mua liên hệ trực tiếp hoặc đến quầy để hỏi thông tin và mua vé.
+    \item Nhân viên kiểm tra số lượng vé còn lại thủ công và ghi nhận giao dịch.
+    \item Vé được in và phát trực tiếp hoặc gửi qua bưu điện.
+    \item Tổng kết doanh thu được thực hiện thủ công sau sự kiện.
+\end{enumerate}
+
+Quy trình này tiềm ẩn nhiều rủi ro: bán trùng vé khi có nhiều nhân viên xử lý đồng thời, sai sót trong ghi chép, và không có khả năng hoàn vé linh hoạt.
+
+\subsection{Các vấn đề cần giải quyết}
+
+Từ khảo sát thực tế, đề tài xác định các vấn đề cốt lõi cần giải quyết:
+
+\begin{itemize}
+    \item \textbf{Tính nhất quán}: Hệ thống phải đảm bảo mỗi ghế chỉ được bán cho một người duy nhất, ngay cả khi nhiều người cùng đặt đồng thời.
+    \item \textbf{Trực quan hóa}: Người mua cần xem và chọn ghế trực tiếp trên sơ đồ chỗ ngồi.
+    \item \textbf{Tự động hóa}: Thông báo xác nhận, quản lý tồn kho vé và báo cáo doanh thu cần được tự động hóa.
+    \item \textbf{Tối ưu hóa giá}: Ban tổ chức cần công cụ gợi ý giá vé hợp lý dựa trên dữ liệu thực tế.
+    \item \textbf{Hỗ trợ khách hàng}: Cần kênh hỗ trợ tự động để giải đáp câu hỏi thường gặp mà không cần nhân sự trực 24/7.
+\end{itemize}
+
+% ============================================================
+\section{Phân tích yêu cầu}
+% ============================================================
+
+\subsection{Yêu cầu chức năng}
+
+\subsubsection{Phân hệ người dùng cuối}
+
+\begin{itemize}
+    \item \textbf{Quản lý tài khoản}: Đăng ký tài khoản mới, đăng nhập, đăng xuất, xác nhận email, đặt lại mật khẩu.
+    \item \textbf{Xem sự kiện}: Xem danh sách sự kiện, tìm kiếm theo tên hoặc danh mục, xem chi tiết sự kiện và các loại vé.
+    \item \textbf{Chọn ghế}: Xem sơ đồ chỗ ngồi trực quan, chọn ghế theo loại vé, xem trạng thái ghế theo thời gian thực (trống, đã đặt, đã bán).
+    \item \textbf{Giỏ hàng}: Thêm vé vào giỏ hàng, xem và chỉnh sửa giỏ hàng, áp dụng mã coupon giảm giá.
+    \item \textbf{Đặt hàng}: Xác nhận thông tin đơn hàng, đặt hàng và nhận mã xác nhận qua email.
+    \item \textbf{Quản lý đơn hàng}: Xem lịch sử đơn hàng, xem chi tiết từng đơn hàng, gửi yêu cầu hoàn vé.
+    \item \textbf{Chatbot AI}: Đặt câu hỏi về sự kiện, giá vé, chính sách hoàn vé và nhận phản hồi tự động.
+    \item \textbf{Liên hệ}: Gửi tin nhắn liên hệ đến ban tổ chức.
+\end{itemize}
+
+\subsubsection{Phân hệ quản trị}
+
+\begin{itemize}
+    \item \textbf{Quản lý sự kiện}: Tạo, chỉnh sửa, xóa sự kiện; quản lý loại vé và giá; cấu hình sơ đồ ghế.
+    \item \textbf{Quản lý coupon}: Tạo và quản lý mã giảm giá theo phần trăm hoặc số tiền cố định.
+    \item \textbf{Quản lý đơn hàng}: Xem tất cả đơn hàng, lọc theo trạng thái, xem chi tiết từng đơn.
+    \item \textbf{Quản lý hoàn vé}: Xem danh sách yêu cầu hoàn vé, duyệt hoặc từ chối yêu cầu.
+    \item \textbf{Báo cáo}: Xem báo cáo doanh thu theo sự kiện, theo thời gian; biểu đồ thống kê.
+    \item \textbf{AI định giá}: Xem gợi ý giá vé từ mô hình ML, xem lịch sử dự đoán, cấu hình tham số mô hình.
+    \item \textbf{Quản lý tin nhắn}: Xem và phản hồi tin nhắn liên hệ từ người dùng.
+    \item \textbf{Quản lý nhân sự}: Cấp và thu hồi quyền nhân viên (Staff) cho tài khoản người dùng.
+\end{itemize}
+
+\subsection{Yêu cầu phi chức năng}
+
+\begin{itemize}
+    \item \textbf{Hiệu năng}: Hệ thống phải phản hồi các thao tác thông thường (xem sự kiện, chọn ghế) trong vòng 2 giây; sơ đồ ghế phải cập nhật trạng thái trong thời gian thực.
+    \item \textbf{Tính nhất quán dữ liệu}: Đảm bảo không xảy ra bán trùng ghế trong mọi tình huống đồng thời; các giao dịch cơ sở dữ liệu phải tuân thủ thuộc tính ACID.
+    \item \textbf{Bảo mật}: Mật khẩu người dùng phải được mã hóa (bcrypt); toàn bộ giao tiếp phải qua HTTPS; kiểm tra phân quyền tại tầng server cho mọi thao tác nhạy cảm.
+    \item \textbf{Khả năng mở rộng}: Kiến trúc phân lớp cho phép bổ sung tính năng mới mà không ảnh hưởng đến các module hiện có.
+    \item \textbf{Khả năng triển khai}: Hệ thống phải chạy được trong môi trường Docker; quy trình triển khai phải được tự động hóa qua CI/CD.
+    \item \textbf{Khả năng bảo trì}: Mã nguồn phải đạt chuẩn chất lượng theo SonarQube; tránh các code smell và lỗ hổng bảo mật phổ biến.
+\end{itemize}
+
+\subsection{Ràng buộc hệ thống}
+
+\begin{itemize}
+    \item Nền tảng phát triển: ASP.NET Core 10 trên .NET runtime, ngôn ngữ C\#.
+    \item Cơ sở dữ liệu: Microsoft SQL Server.
+    \item Giao diện người dùng: Web browser (không yêu cầu cài đặt ứng dụng riêng).
+    \item Môi trường triển khai: Docker container, tương thích với các nền tảng đám mây chính (Azure, AWS, GCP).
+    \item Tích hợp bên ngoài: Groq API (chatbot AI), SMTP server (gửi email).
+\end{itemize}
+
+% ============================================================
+\section{Phương pháp thực hiện}
+% ============================================================
+
+\subsection{Phương pháp phát triển phần mềm}
+
+Đề tài áp dụng phương pháp phát triển \textbf{Agile kết hợp Iterative Development}: hệ thống được xây dựng theo từng vòng lặp (iteration), mỗi vòng lặp hoàn thiện một nhóm tính năng có thể chạy được. Cách tiếp cận này phù hợp với bối cảnh đề tài tốt nghiệp vì cho phép điều chỉnh yêu cầu linh hoạt và có sản phẩm trung gian để đánh giá tiến độ.
+
+\subsection{Quy trình thực hiện}
+
+Quá trình phát triển được chia thành 5 giai đoạn:
+
+\begin{enumerate}
+    \item \textbf{Phân tích và thiết kế}: Xác định yêu cầu, thiết kế kiến trúc hệ thống, thiết kế cơ sở dữ liệu (ERD), thiết kế giao diện người dùng (wireframe).
+    \item \textbf{Xây dựng nền tảng}: Khởi tạo dự án ASP.NET Core, cấu hình EF Core và Identity, thiết lập Docker và pipeline CI/CD.
+    \item \textbf{Phát triển tính năng cốt lõi}: Quản lý sự kiện, chọn ghế và đặt vé, giỏ hàng, coupon, quản lý đơn hàng.
+    \item \textbf{Phát triển tính năng nâng cao}: Tích hợp ML.NET (dự đoán giá), tích hợp Groq API (chatbot), hệ thống email, báo cáo thống kê.
+    \item \textbf{Hoàn thiện và triển khai}: Tối ưu hóa hiệu năng, cải thiện giao diện, triển khai môi trường production.
+\end{enumerate}
+
+\subsection{Công cụ và công nghệ sử dụng}
+
+\begin{itemize}
+    \item \textbf{Ngôn ngữ lập trình}: C\# (.NET 10)
+    \item \textbf{Framework}: ASP.NET Core Razor Pages, Entity Framework Core
+    \item \textbf{Cơ sở dữ liệu}: Microsoft SQL Server
+    \item \textbf{Học máy}: ML.NET (KMeans, PCA, StandardScaler)
+    \item \textbf{AI tích hợp}: Groq API (LLM chatbot)
+    \item \textbf{Email}: MailKit, MimeKit
+    \item \textbf{Xác thực}: ASP.NET Core Identity, Azure Identity
+    \item \textbf{Container}: Docker, Docker Compose
+    \item \textbf{CI/CD}: GitHub Actions
+    \item \textbf{Phân tích mã}: SonarQube
+    \item \textbf{IDE}: Visual Studio 2022 / Visual Studio Code
+    \item \textbf{Quản lý mã nguồn}: Git, GitHub
+\end{itemize}
+
+\subsection{Thiết kế cơ sở dữ liệu}
+
+Cơ sở dữ liệu được thiết kế theo phương pháp code-first với 17 migration. Các thực thể chính và quan hệ giữa chúng:
+
+\begin{itemize}
+    \item \texttt{Event} (1) $\rightarrow$ (N) \texttt{TicketType}: Một sự kiện có nhiều loại vé.
+    \item \texttt{TicketType} (1) $\rightarrow$ (N) \texttt{Seat}: Một loại vé gồm nhiều ghế.
+    \item \texttt{Order} (1) $\rightarrow$ (N) \texttt{OrderItem}: Một đơn hàng gồm nhiều mục vé.
+    \item \texttt{OrderItem} (N) $\rightarrow$ (1) \texttt{Seat}: Mỗi mục vé tương ứng một ghế cụ thể.
+    \item \texttt{ApplicationUser} (1) $\rightarrow$ (N) \texttt{Order}: Một người dùng có nhiều đơn hàng.
+    \item \texttt{Order} (N) $\rightarrow$ (1) \texttt{Coupon}: Đơn hàng có thể áp dụng một coupon.
+    \item \texttt{Order} (1) $\rightarrow$ (1) \texttt{RefundRequest}: Đơn hàng có thể có một yêu cầu hoàn vé.
+\end{itemize}
+
+% ============================================================
+\section{Kế hoạch thực hiện}
+% ============================================================
+
+Kế hoạch thực hiện đề tài được chia thành 6 giai đoạn, trình bày chi tiết trong Bảng~\ref{tab:ke-hoach}.
+
+\begin{table}[H]
+\centering
+\caption{Kế hoạch thực hiện đề tài}
+\label{tab:ke-hoach}
+\begin{tabular}{|c|p{5.5cm}|p{5.5cm}|}
+\hline
+\textbf{Giai đoạn} & \textbf{Công việc} & \textbf{Kết quả dự kiến} \\
+\hline
+1 & Khảo sát hiện trạng, phân tích yêu cầu, thiết kế kiến trúc và cơ sở dữ liệu & Tài liệu yêu cầu, ERD, sơ đồ kiến trúc hệ thống \\
+\hline
+2 & Khởi tạo dự án ASP.NET Core, cấu hình EF Core, Identity, Docker và CI/CD pipeline & Dự án khởi tạo chạy được, pipeline CI/CD hoạt động \\
+\hline
+3 & Phát triển tính năng cốt lõi: quản lý sự kiện, loại vé, sơ đồ ghế, đặt vé, giỏ hàng, đơn hàng & Luồng mua vé hoàn chỉnh từ xem sự kiện đến đặt hàng thành công \\
+\hline
+4 & Phát triển tính năng quản trị: coupon, báo cáo, quản lý hoàn vé, quản lý nhân sự & Phân hệ admin đầy đủ chức năng quản lý \\
+\hline
+5 & Tích hợp tính năng nâng cao: ML.NET dự đoán giá, Groq chatbot, thông báo email & Module AI hoạt động, chatbot phản hồi được câu hỏi, email gửi tự động \\
+\hline
+6 & Hoàn thiện giao diện, tối ưu hiệu năng, triển khai Docker, hoàn chỉnh báo cáo đồ án & Hệ thống triển khai hoàn chỉnh, báo cáo đồ án hoàn thành \\
+\hline
+\end{tabular}
+\end{table}
+
+\end{document}

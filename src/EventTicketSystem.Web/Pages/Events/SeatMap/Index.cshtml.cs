@@ -101,6 +101,7 @@ public class SeatMapIndexModel(AppDbContext db) : PageModel
         }
 
         db.Seats.AddRange(newSeats);
+        AutoAssignByRow(newSeats, evt.TicketTypes.ToList());
         evt.HasSeatMap = true;
         await db.SaveChangesAsync();
 
@@ -160,6 +161,79 @@ public class SeatMapIndexModel(AppDbContext db) : PageModel
             GridCols = Seats.Max(s => s.GridCol + (s.SeatType == SeatType.Couple ? 2 : 1));
             SeatGrid = Seats.ToDictionary(s => (s.GridRow, s.GridCol));
         }
+    }
+
+    // ── Auto-assign TicketType by row (force overwrite, for admin manual trigger) ──
+    public async Task<IActionResult> OnPostAutoAssignAsync(int eventId)
+    {
+        var evt = await db.Events.Include(e => e.TicketTypes)
+            .FirstOrDefaultAsync(e => e.Id == eventId);
+        if (evt == null) return NotFound();
+
+        var tts = evt.TicketTypes.ToList();
+        if (tts.Count == 0)
+        {
+            TempData["Error"] = "Event chưa có TicketType nào.";
+            return RedirectToPage(new { eventId });
+        }
+
+        var seats = await db.Seats.Where(s => s.EventId == eventId).ToListAsync();
+        if (seats.Count == 0)
+        {
+            TempData["Error"] = "Chưa có ghế nào để phân vùng.";
+            return RedirectToPage(new { eventId });
+        }
+
+        var sortedTts = tts.OrderByDescending(t => t.Price).ToList();
+        var rows      = seats.Select(s => s.RowLabel).Distinct().OrderBy(r => r).ToList();
+        int ttCount   = sortedTts.Count;
+        int baseCnt   = rows.Count / ttCount;
+        int extra     = rows.Count % ttCount;
+
+        var rowToTt = new Dictionary<string, int>();
+        int idx = 0;
+        for (int i = 0; i < ttCount; i++)
+        {
+            int take = baseCnt + (i >= ttCount - extra ? 1 : 0);
+            for (int j = 0; j < take && idx < rows.Count; j++, idx++)
+                rowToTt[rows[idx]] = sortedTts[i].Id;
+        }
+
+        int changed = 0;
+        foreach (var seat in seats)
+            if (rowToTt.TryGetValue(seat.RowLabel, out var ttId) && seat.TicketTypeId != ttId)
+            { seat.TicketTypeId = ttId; changed++; }
+
+        await db.SaveChangesAsync();
+        TempData["Success"] = $"Đã phân vùng {changed}/{seats.Count} ghế cho {ttCount} loại vé.";
+        return RedirectToPage(new { eventId });
+    }
+
+    private static void AutoAssignByRow(List<Seat> seats, List<TicketType> ticketTypes)
+    {
+        var unassigned = seats.Where(s => s.TicketTypeId == null).ToList();
+        if (unassigned.Count == 0 || ticketTypes.Count == 0) return;
+
+        var sortedTts = ticketTypes.OrderByDescending(t => t.Price).ToList();
+        var rows = unassigned.Select(s => s.GridRow).Distinct().OrderBy(r => r).ToList();
+        if (rows.Count == 0) return;
+
+        int ttCount = sortedTts.Count;
+        int baseCnt = rows.Count / ttCount;
+        int extra   = rows.Count % ttCount;
+
+        var rowToTt = new Dictionary<int, int>();
+        int idx = 0;
+        for (int i = 0; i < ttCount; i++)
+        {
+            int take = baseCnt + (i >= ttCount - extra ? 1 : 0);
+            for (int j = 0; j < take && idx < rows.Count; j++, idx++)
+                rowToTt[rows[idx]] = sortedTts[i].Id;
+        }
+
+        foreach (var seat in unassigned)
+            if (rowToTt.TryGetValue(seat.GridRow, out var ttId))
+                seat.TicketTypeId = ttId;
     }
 
     public record GridSaveDto(int EventId, int Rows, int Cols,

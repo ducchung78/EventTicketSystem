@@ -1,0 +1,182 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+% ============================================================
+\section{Khảo sát}
+% ============================================================
+
+\subsection{Khảo sát hiện trạng}
+
+Qua quá trình khảo sát thực tế các đơn vị tổ chức sự kiện tại Việt Nam, nhóm nhận thấy việc quản lý bán vé hiện nay chủ yếu vẫn được thực hiện theo phương thức thủ công hoặc bán thủ công. Cụ thể:
+
+\begin{itemize}
+    \item Thông tin sự kiện được đăng tải trên mạng xã hội (Facebook, Zalo) hoặc website tĩnh, không có khả năng cập nhật trạng thái vé theo thời gian thực.
+    \item Khách hàng liên hệ mua vé qua điện thoại, nhắn tin hoặc đến trực tiếp quầy. Nhân viên ghi nhận thông tin vào bảng tính Excel và xác nhận thủ công.
+    \item Sơ đồ chỗ ngồi (nếu có) được vẽ tay hoặc in giấy, không tích hợp vào hệ thống đặt vé.
+    \item Thanh toán chủ yếu bằng tiền mặt hoặc chuyển khoản thủ công; không có hệ thống tự động xác nhận thanh toán.
+    \item Quản lý hoàn vé hoàn toàn thủ công, không có quy trình chuẩn hóa.
+    \item Báo cáo doanh thu được tổng hợp thủ công sau mỗi sự kiện, mất nhiều thời gian và dễ sai sót.
+\end{itemize}
+
+\subsection{Đánh giá hiện trạng khảo sát}
+
+Từ kết quả khảo sát, có thể đánh giá hiện trạng hệ thống bán vé sự kiện theo các khía cạnh:
+
+\textbf{Về phía ban tổ chức}:
+\begin{itemize}
+    \item Không có công cụ quản lý tập trung, dữ liệu bán vé phân tán, khó tổng hợp và phân tích.
+    \item Rủi ro bán trùng vé cao khi nhiều nhân viên cùng xử lý đặt vé một lúc.
+    \item Không có khả năng theo dõi xu hướng mua vé và tối ưu chiến lược giá.
+    \item Chi phí nhân sự cao do nhiều công đoạn thực hiện thủ công.
+\end{itemize}
+
+\textbf{Về phía khách hàng}:
+\begin{itemize}
+    \item Trải nghiệm mua vé phức tạp, mất nhiều thời gian để liên hệ và xác nhận.
+    \item Không thể chủ động chọn vị trí ghế ngồi theo sơ đồ trực quan.
+    \item Thiếu kênh hỗ trợ tức thì khi cần tra cứu thông tin hoặc xử lý sự cố.
+    \item Quy trình hoàn vé không rõ ràng, gây khó khăn khi phát sinh tình huống cần hủy.
+\end{itemize}
+
+\subsection{Quy trình hoạt động hệ thống bán vé sự kiện}
+
+Quy trình nghiệp vụ bán vé sự kiện hiện tại bao gồm các bước được mô tả trong Hình~\ref{fig:quy-trinh-hien-tai}.
+
+\begin{enumerate}
+    \item \textbf{Tạo sự kiện}: Ban tổ chức đăng thông tin sự kiện, loại vé và giá vé lên kênh truyền thông.
+    \item \textbf{Tiếp nhận yêu cầu}: Khách hàng liên hệ qua điện thoại/mạng xã hội để đặt mua vé.
+    \item \textbf{Kiểm tra tồn kho}: Nhân viên kiểm tra số lượng vé còn lại trong bảng tính.
+    \item \textbf{Xác nhận đặt vé}: Nhân viên xác nhận và ghi nhận thông tin khách hàng.
+    \item \textbf{Thanh toán}: Khách hàng chuyển khoản hoặc nộp tiền mặt; nhân viên xác nhận thủ công.
+    \item \textbf{Phát hành vé}: Vé được gửi qua email dạng PDF hoặc phát tại chỗ.
+    \item \textbf{Tổng kết}: Sau sự kiện, nhân viên tổng hợp doanh thu từ bảng tính.
+\end{enumerate}
+
+% ============================================================
+\section{Đánh giá hệ thống hiện trạng}
+% ============================================================
+
+\subsection{Ưu điểm}
+
+Mặc dù còn nhiều hạn chế, quy trình hiện tại vẫn có một số ưu điểm nhất định:
+
+\begin{itemize}
+    \item \textbf{Đơn giản, không phụ thuộc công nghệ}: Quy trình thủ công không yêu cầu đầu tư hạ tầng kỹ thuật, phù hợp với các ban tổ chức quy mô nhỏ có ít sự kiện.
+    \item \textbf{Linh hoạt trong xử lý ngoại lệ}: Nhân viên có thể linh hoạt xử lý các tình huống đặc biệt (đặt hàng theo nhóm, ưu đãi đặc biệt) mà hệ thống tự động khó xử lý.
+    \item \textbf{Chi phí triển khai ban đầu thấp}: Không cần đầu tư phần mềm hay hạ tầng máy chủ ngay từ đầu.
+    \item \textbf{Tương tác trực tiếp với khách hàng}: Nhân viên có thể tư vấn và giải đáp thắc mắc trực tiếp trong quá trình mua vé.
+\end{itemize}
+
+\subsection{Nhược điểm}
+
+Bên cạnh những ưu điểm hạn chế trên, hệ thống hiện tại bộc lộ nhiều nhược điểm nghiêm trọng:
+
+\begin{itemize}
+    \item \textbf{Nguy cơ bán trùng vé}: Khi nhiều nhân viên cùng xử lý đặt vé đồng thời, không có cơ chế khóa dữ liệu nên dễ xảy ra việc bán một ghế cho nhiều khách hàng.
+    \item \textbf{Thiếu tính thời gian thực}: Thông tin tồn kho vé không được cập nhật tức thì, dẫn đến nhầm lẫn trong quá trình tư vấn cho khách.
+    \item \textbf{Không có sơ đồ ghế trực quan}: Khách hàng không thể tự chọn vị trí ưa thích, làm giảm trải nghiệm người dùng.
+    \item \textbf{Tốn nhân lực}: Mọi công đoạn đều cần nhân viên can thiệp thủ công, chi phí vận hành cao và không mở rộng được khi có nhiều sự kiện đồng thời.
+    \item \textbf{Không có phân tích dữ liệu}: Ban tổ chức không có công cụ phân tích xu hướng mua vé, hiệu quả bán hàng hay tối ưu hóa giá.
+    \item \textbf{Quy trình hoàn vé thiếu minh bạch}: Không có hệ thống theo dõi trạng thái yêu cầu hoàn vé, dễ gây tranh chấp với khách hàng.
+    \item \textbf{Không hỗ trợ 24/7}: Việc mua vé bị giới hạn trong giờ làm việc của nhân viên, bỏ lỡ nhiều cơ hội bán hàng.
+\end{itemize}
+
+% ============================================================
+\section{Đề xuất hệ thống mới}
+% ============================================================
+
+\subsection{Yêu cầu chức năng}
+
+Dựa trên kết quả khảo sát và đánh giá, hệ thống mới cần đáp ứng các yêu cầu chức năng được trình bày trong Bảng~\ref{tab:yc-chuc-nang}.
+
+\begin{table}[H]
+\centering
+\caption{Danh sách yêu cầu chức năng}
+\label{tab:yc-chuc-nang}
+\begin{tabular}{|c|p{4cm}|p{7cm}|}
+\hline
+\textbf{Mã YC} & \textbf{Tên yêu cầu} & \textbf{Mô tả} \\
+\hline
+UC01 & Quản lý tài khoản & Cho phép người dùng đăng ký, đăng nhập, xác nhận email và quản lý thông tin cá nhân. \\
+\hline
+UC02 & Quản lý sự kiện & Admin/Staff tạo, chỉnh sửa, xóa sự kiện; cấu hình loại vé và giá. \\
+\hline
+UC03 & Chọn ghế trực quan & Người dùng xem và chọn ghế trên sơ đồ chỗ ngồi tương tác theo thời gian thực. \\
+\hline
+UC04 & Quản lý giỏ hàng & Người dùng thêm, xóa vé trong giỏ hàng và áp dụng mã coupon giảm giá. \\
+\hline
+UC05 & Đặt hàng và thanh toán & Xác nhận đơn hàng, ghi nhận thanh toán và gửi xác nhận qua email tự động. \\
+\hline
+UC06 & Quản lý đơn hàng & Xem lịch sử đơn hàng, theo dõi trạng thái, gửi yêu cầu hoàn vé. \\
+\hline
+UC07 & Quản lý coupon & Admin tạo và quản lý mã giảm giá theo phần trăm hoặc số tiền cố định. \\
+\hline
+UC08 & Quản lý hoàn vé & Admin duyệt hoặc từ chối yêu cầu hoàn vé từ người dùng. \\
+\hline
+UC09 & Báo cáo thống kê & Admin xem báo cáo doanh thu, biểu đồ theo sự kiện và theo thời gian. \\
+\hline
+UC10 & AI dự đoán giá vé & Hệ thống gợi ý giá vé tối ưu dựa trên phân tích dữ liệu lịch sử bằng ML.NET. \\
+\hline
+UC11 & Chatbot AI hỗ trợ & Người dùng đặt câu hỏi về sự kiện và nhận phản hồi tự động từ chatbot Groq. \\
+\hline
+UC12 & Thông báo email & Hệ thống tự động gửi email xác nhận đặt vé và cập nhật trạng thái đơn hàng. \\
+\hline
+UC13 & Quản lý nhân sự & Admin cấp và thu hồi quyền Staff cho tài khoản người dùng. \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Yêu cầu phi chức năng}
+
+Ngoài các yêu cầu chức năng, hệ thống cần đáp ứng các yêu cầu phi chức năng sau:
+
+\begin{itemize}
+    \item \textbf{Hiệu năng (Performance)}: Thời gian phản hồi các thao tác thông thường không vượt quá 2 giây. Sơ đồ ghế cập nhật trạng thái trong vòng 1 giây khi có thay đổi.
+    \item \textbf{Tính nhất quán (Consistency)}: Đảm bảo không xảy ra bán trùng ghế trong mọi tình huống đồng thời thông qua cơ chế session-based locking và giao dịch ACID.
+    \item \textbf{Bảo mật (Security)}: Mật khẩu được mã hóa bằng bcrypt. Toàn bộ giao tiếp qua HTTPS. Kiểm tra phân quyền tại tầng server cho mọi thao tác nhạy cảm. Chống các lỗ hổng phổ biến theo chuẩn OWASP.
+    \item \textbf{Khả dụng (Availability)}: Hệ thống hoạt động liên tục 24/7, hỗ trợ người dùng mua vé bất kỳ lúc nào.
+    \item \textbf{Khả năng mở rộng (Scalability)}: Kiến trúc phân lớp rõ ràng cho phép bổ sung tính năng mới mà không ảnh hưởng đến các module hiện có.
+    \item \textbf{Khả năng triển khai (Deployability)}: Hệ thống đóng gói Docker, triển khai được trên mọi môi trường đám mây hoặc on-premise.
+    \item \textbf{Khả năng bảo trì (Maintainability)}: Mã nguồn đạt chuẩn chất lượng theo SonarQube; có tài liệu kỹ thuật đầy đủ.
+    \item \textbf{Tính tương thích (Compatibility)}: Giao diện web tương thích với các trình duyệt hiện đại (Chrome, Firefox, Edge, Safari) và thiết bị di động.
+\end{itemize}
+
+\subsection{Sơ đồ phân cấp chức năng}
+
+Sơ đồ phân cấp chức năng (Hình~\ref{fig:phan-cap-chuc-nang}) mô tả toàn bộ các chức năng của hệ thống EventTicketSystem được tổ chức theo cấu trúc cây.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    every node/.style={rectangle, draw, rounded corners, text centered, font=\small},
+    level 1/.style={sibling distance=55mm, level distance=18mm},
+    level 2/.style={sibling distance=22mm, level distance=18mm},
+    edge from parent/.style={draw, -latex}
+]
+\node[fill=gray!20, text width=5.5cm] {Hệ thống quản lý bán vé sự kiện}
+    child { node[fill=blue!10, text width=2.8cm] {Quản lý\\ tài khoản}
+        child { node[text width=2.2cm] {Đăng ký\\ Đăng nhập} }
+        child { node[text width=2.2cm] {Phân quyền\\ người dùng} }
+    }
+    child { node[fill=blue!10, text width=2.8cm] {Quản lý\\ sự kiện}
+        child { node[text width=2.2cm] {Tạo/Sửa\\ sự kiện} }
+        child { node[text width=2.2cm] {Loại vé\\ Sơ đồ ghế} }
+    }
+    child { node[fill=blue!10, text width=2.8cm] {Mua vé}
+        child { node[text width=2.2cm] {Chọn ghế\\ Giỏ hàng} }
+        child { node[text width=2.2cm] {Đặt hàng\\ Coupon} }
+    }
+    child { node[fill=blue!10, text width=2.8cm] {Quản trị}
+        child { node[text width=2.2cm] {Đơn hàng\\ Hoàn vé} }
+        child { node[text width=2.2cm] {Báo cáo\\ AI giá vé} }
+    }
+    child { node[fill=blue!10, text width=2.8cm] {Hỗ trợ}
+        child { node[text width=2.2cm] {Chatbot AI\\ Liên hệ} }
+        child { node[text width=2.2cm] {Email\\ thông báo} }
+    };
+\end{tikzpicture}
+\caption{Sơ đồ phân cấp chức năng hệ thống EventTicketSystem}
+\label{fig:phan-cap-chuc-nang}
+\end{figure}
+
+\end{document}

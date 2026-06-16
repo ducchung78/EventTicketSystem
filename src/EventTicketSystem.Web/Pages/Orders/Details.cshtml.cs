@@ -27,19 +27,28 @@ public class OrderDetailsModel(AppDbContext db) : PageModel
     public async Task<IActionResult> OnPostCancelAsync(int id)
     {
         var order = await db.Orders
-            .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.TicketType)
+            .Include(o => o.OrderItems).ThenInclude(oi => oi.TicketType)
+            .Include(o => o.OrderItems).ThenInclude(oi => oi.Seat)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order == null) return NotFound();
 
         if (order.Status == OrderStatus.Confirmed)
         {
+            await using var tx = await db.Database.BeginTransactionAsync();
             order.Status = OrderStatus.Cancelled;
             foreach (var item in order.OrderItems)
+            {
                 item.TicketType.SoldQuantity -= item.Quantity;
-
+                if (item.Seat != null)
+                {
+                    item.Seat.Status = SeatStatus.Available;
+                    item.Seat.ReservedBySessionId = null;
+                    item.Seat.ReservedUntil = null;
+                }
+            }
             await db.SaveChangesAsync();
+            await tx.CommitAsync();
         }
 
         return RedirectToPage(new { id });

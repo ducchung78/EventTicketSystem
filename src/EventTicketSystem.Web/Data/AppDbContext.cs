@@ -18,7 +18,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<RefundRequest> RefundRequests   { get; set; }
     public DbSet<Seat>          Seats            { get; set; }
     public DbSet<AIConfig>      AIConfigs        { get; set; }
-    public DbSet<PredictionLog> PredictionLogs   { get; set; }
+    public DbSet<PredictionLog>    PredictionLogs    { get; set; }
+    public DbSet<PaymentMethod>   PaymentMethods    { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

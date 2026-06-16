@@ -15,6 +15,7 @@ public class RefundService(AppDbContext db, EmailService emailService, ILogger<R
     {
         var order = await db.Orders
             .Include(o => o.OrderItems).ThenInclude(i => i.TicketType).ThenInclude(t => t!.Event)
+            .Include(o => o.OrderItems).ThenInclude(i => i.Seat)
             .FirstOrDefaultAsync(o => o.ConfirmationCode == confirmationCode.Trim().ToUpper());
 
         if (order == null)
@@ -52,6 +53,7 @@ public class RefundService(AppDbContext db, EmailService emailService, ILogger<R
         {
             order.Status       = OrderStatus.Refunded;
             refund.ProcessedAt = DateTime.UtcNow;
+            ReleaseSeatsAndQty(order);
         }
 
         await db.SaveChangesAsync();
@@ -62,19 +64,23 @@ public class RefundService(AppDbContext db, EmailService emailService, ILogger<R
 
     public async Task<bool> ApproveAsync(int refundId, string adminId, string? note)
     {
-        var refund = await db.RefundRequests.Include(r => r.Order).ThenInclude(o => o.OrderItems)
-            .ThenInclude(i => i.TicketType).ThenInclude(t => t!.Event)
+        var refund = await db.RefundRequests
+            .Include(r => r.Order).ThenInclude(o => o.OrderItems).ThenInclude(i => i.TicketType).ThenInclude(t => t!.Event)
+            .Include(r => r.Order).ThenInclude(o => o.OrderItems).ThenInclude(i => i.Seat)
             .FirstOrDefaultAsync(r => r.Id == refundId);
 
         if (refund == null || refund.Status != RefundStatus.Pending) return false;
 
+        await using var tx = await db.Database.BeginTransactionAsync();
         refund.Status      = RefundStatus.Approved;
         refund.ProcessedAt = DateTime.UtcNow;
         refund.ProcessedBy = adminId;
         refund.AdminNote   = note;
         refund.Order.Status = OrderStatus.Refunded;
+        ReleaseSeatsAndQty(refund.Order);
 
         await db.SaveChangesAsync();
+        await tx.CommitAsync();
         await SendEmailAsync(refund, refund.Order);
         return true;
     }
@@ -115,6 +121,20 @@ public class RefundService(AppDbContext db, EmailService emailService, ILogger<R
         else
         {
             refund.Status = RefundStatus.Pending;
+        }
+    }
+
+    private static void ReleaseSeatsAndQty(Order order)
+    {
+        foreach (var item in order.OrderItems)
+        {
+            item.TicketType.SoldQuantity -= item.Quantity;
+            if (item.Seat != null)
+            {
+                item.Seat.Status = SeatStatus.Available;
+                item.Seat.ReservedBySessionId = null;
+                item.Seat.ReservedUntil = null;
+            }
         }
     }
 

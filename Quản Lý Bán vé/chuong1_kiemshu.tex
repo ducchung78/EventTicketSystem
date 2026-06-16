@@ -1,0 +1,230 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+\textit{Chương này trình bày tổng quan đề tài, cơ sở lý thuyết về kiểm thử phần mềm web, các công trình liên quan, và định hướng giải quyết bài toán kiểm thử cho hệ thống quản lý bán vé sự kiện.}
+
+% ============================================================
+\section{Tổng quan đề tài}
+% ============================================================
+
+\subsection{Bối cảnh và động lực}
+
+Trong bối cảnh các ứng dụng web ngày càng đóng vai trò quan trọng trong hoạt động kinh doanh và dịch vụ, việc đảm bảo chất lượng phần mềm trở thành yêu cầu bắt buộc thay vì tùy chọn. Đặc biệt với các hệ thống thương mại điện tử như bán vé sự kiện trực tuyến, một lỗi nhỏ trong luồng đặt hàng, thanh toán hay chọn ghế có thể gây ra tổn thất doanh thu lớn và mất uy tín với người dùng.
+
+Hệ thống \textbf{EventTicketSystem} được xây dựng trên nền tảng ASP.NET Core 10 Razor Pages, tích hợp SQL Server, ML.NET, Groq AI, Docker và GitHub Actions. Với độ phức tạp cao và nhiều luồng nghiệp vụ quan trọng (đặt ghế đồng thời, xử lý coupon, hoàn vé, xác thực phân quyền), hệ thống đòi hỏi một chiến lược kiểm thử toàn diện bao phủ nhiều khía cạnh: chức năng, hiệu năng, bảo mật và chất lượng mã nguồn.
+
+\subsection{Mục tiêu đề tài}
+
+Đề tài tập trung xây dựng và thực thi bộ kiểm thử toàn diện cho hệ thống EventTicketSystem với các mục tiêu cụ thể:
+
+\begin{itemize}
+    \item Xây dựng bộ kiểm thử tự động (automation testing) cho các luồng nghiệp vụ chính bằng Selenium WebDriver.
+    \item Đo lường độ bao phủ kiểm thử (test coverage) để đánh giá mức độ kiểm thử trên toàn bộ mã nguồn.
+    \item Thực hiện kiểm thử hiệu năng (performance testing) với Apache JMeter nhằm xác định ngưỡng chịu tải của hệ thống.
+    \item Thực hiện kiểm thử bảo mật cơ bản bằng OWASP ZAP để phát hiện các lỗ hổng phổ biến theo chuẩn OWASP Top 10.
+    \item Phân tích chất lượng mã nguồn và quản lý lỗi với SonarQube và Jira.
+    \item Tích hợp toàn bộ quy trình kiểm thử vào pipeline CI/CD trên GitHub Actions để kiểm thử tự động mỗi khi có thay đổi mã nguồn.
+\end{itemize}
+
+\subsection{Phạm vi đề tài}
+
+Đề tài tập trung kiểm thử các thành phần và luồng nghiệp vụ sau của hệ thống EventTicketSystem:
+
+\begin{itemize}
+    \item \textbf{Luồng mua vé}: Đăng nhập $\rightarrow$ Xem sự kiện $\rightarrow$ Chọn ghế $\rightarrow$ Thêm vào giỏ hàng $\rightarrow$ Áp dụng coupon $\rightarrow$ Đặt hàng.
+    \item \textbf{Luồng quản trị}: Tạo sự kiện, quản lý loại vé, duyệt hoàn vé, xem báo cáo doanh thu.
+    \item \textbf{Kiểm thử đồng thời}: Nhiều người dùng cùng chọn một ghế (race condition).
+    \item \textbf{Kiểm thử bảo mật}: Các điểm cuối API, form đăng nhập, phân quyền truy cập.
+    \item \textbf{Chất lượng mã nguồn}: Toàn bộ mã nguồn C\# trong dự án EventTicketSystem.Web.
+\end{itemize}
+
+% ============================================================
+\section{Cơ sở lý thuyết}
+% ============================================================
+
+\subsection{Tổng quan về kiểm thử phần mềm web}
+
+Kiểm thử phần mềm (Software Testing) là quá trình đánh giá và xác minh rằng một sản phẩm phần mềm hoạt động đúng theo yêu cầu đặt ra \cite{sommerville2016software}. Đối với ứng dụng web, kiểm thử bao gồm nhiều tầng: kiểm thử đơn vị (unit testing), kiểm thử tích hợp (integration testing), kiểm thử giao diện người dùng (UI testing), kiểm thử hiệu năng (performance testing) và kiểm thử bảo mật (security testing).
+
+Mô hình kim tự tháp kiểm thử (Testing Pyramid) đề xuất rằng tỷ lệ kiểm thử nên tập trung nhiều nhất ở tầng đơn vị, ít hơn ở tầng tích hợp, và ít nhất ở tầng UI, nhằm tối ưu chi phí và tốc độ phản hồi của bộ kiểm thử.
+
+\subsection{Kiểm thử tự động với Selenium WebDriver}
+
+Selenium WebDriver là framework kiểm thử tự động giao diện web mã nguồn mở, cho phép điều khiển trình duyệt web thông qua code để mô phỏng thao tác của người dùng thực. Selenium hỗ trợ nhiều ngôn ngữ lập trình (Java, C\#, Python) và nhiều trình duyệt (Chrome, Firefox, Edge).
+
+Trong đề tài này, Selenium WebDriver được sử dụng cùng với C\# và NUnit để xây dựng các test case tự động cho các luồng nghiệp vụ quan trọng của EventTicketSystem. Các thao tác được tự động hóa bao gồm: đăng nhập, điều hướng trang, chọn ghế trên sơ đồ tương tác, áp dụng mã coupon và xác nhận đặt hàng.
+
+Mô hình \textbf{Page Object Model (POM)} được áp dụng để tổ chức mã kiểm thử: mỗi trang web tương ứng với một lớp Page Object chứa các phần tử giao diện và phương thức tương tác, giúp tách biệt logic kiểm thử khỏi chi tiết giao diện và dễ bảo trì khi giao diện thay đổi.
+
+\subsection{Đo lường độ bao phủ kiểm thử}
+
+Độ bao phủ kiểm thử (Test Coverage) là chỉ số đo lường tỷ lệ phần trăm mã nguồn được thực thi bởi bộ kiểm thử. Các loại độ bao phủ phổ biến bao gồm:
+
+\begin{itemize}
+    \item \textbf{Line Coverage}: Tỷ lệ số dòng lệnh được thực thi ít nhất một lần.
+    \item \textbf{Branch Coverage}: Tỷ lệ các nhánh điều kiện (if/else, switch) được kiểm tra.
+    \item \textbf{Method Coverage}: Tỷ lệ phương thức được gọi trong quá trình kiểm thử.
+\end{itemize}
+
+Trong môi trường .NET, công cụ \textbf{Coverlet} được sử dụng để thu thập dữ liệu coverage, kết hợp với \textbf{ReportGenerator} để tạo báo cáo HTML trực quan. Kết quả coverage được tích hợp vào SonarQube để theo dõi xu hướng theo thời gian.
+
+\subsection{Kiểm thử hiệu năng với Apache JMeter}
+
+Apache JMeter là công cụ kiểm thử hiệu năng mã nguồn mở, được thiết kế để mô phỏng tải trọng lớn lên ứng dụng web và đo lường hành vi của hệ thống dưới các điều kiện tải khác nhau. JMeter hỗ trợ kiểm thử theo giao thức HTTP/HTTPS, cho phép tạo kịch bản kiểm thử phức tạp với nhiều người dùng ảo (virtual users) đồng thời.
+
+Các chỉ số hiệu năng quan trọng được đo lường bao gồm:
+
+\begin{itemize}
+    \item \textbf{Throughput}: Số lượng yêu cầu xử lý được mỗi giây.
+    \item \textbf{Response Time}: Thời gian phản hồi trung bình, P90, P95 và P99.
+    \item \textbf{Error Rate}: Tỷ lệ yêu cầu trả về lỗi (HTTP 4xx, 5xx).
+    \item \textbf{Concurrent Users}: Số người dùng đồng thời hệ thống chịu được.
+\end{itemize}
+
+Với EventTicketSystem, JMeter được sử dụng để kiểm thử đặc biệt tình huống nhiều người dùng đồng thời truy cập trang chọn ghế và đặt vé, nhằm xác minh tính đúng đắn của cơ chế session-based seat locking dưới tải cao.
+
+\subsection{Kiểm thử bảo mật với OWASP ZAP}
+
+OWASP ZAP (Zed Attack Proxy) là công cụ kiểm thử bảo mật ứng dụng web mã nguồn mở của tổ chức OWASP (Open Web Application Security Project). ZAP hoạt động như một proxy trung gian, phân tích lưu lượng HTTP/HTTPS và tự động quét các lỗ hổng bảo mật phổ biến theo chuẩn OWASP Top 10.
+
+Các loại tấn công mà ZAP kiểm tra bao gồm:
+
+\begin{itemize}
+    \item \textbf{SQL Injection}: Chèn câu lệnh SQL độc hại vào các form input.
+    \item \textbf{Cross-Site Scripting (XSS)}: Chèn mã JavaScript vào các trường nhập liệu.
+    \item \textbf{Broken Authentication}: Kiểm tra các điểm yếu trong cơ chế xác thực.
+    \item \textbf{Security Misconfiguration}: Phát hiện cấu hình bảo mật không đúng (headers thiếu, thông tin nhạy cảm lộ ra).
+    \item \textbf{Broken Access Control}: Kiểm tra khả năng truy cập trái phép vào tài nguyên bảo vệ.
+\end{itemize}
+
+ZAP được tích hợp vào pipeline CI/CD thông qua chế độ \textit{Baseline Scan} và \textit{Full Scan} để tự động kiểm tra bảo mật mỗi khi có thay đổi mã nguồn.
+
+\subsection{Phân tích chất lượng mã nguồn với SonarQube}
+
+SonarQube là nền tảng phân tích chất lượng mã nguồn tĩnh (static analysis), hỗ trợ hơn 30 ngôn ngữ lập trình bao gồm C\#. SonarQube phân tích mã nguồn và báo cáo các vấn đề theo bốn chiều:
+
+\begin{itemize}
+    \item \textbf{Bugs}: Lỗi logic trong mã nguồn có khả năng gây ra sự cố khi chạy.
+    \item \textbf{Vulnerabilities}: Lỗ hổng bảo mật theo chuẩn CWE và OWASP.
+    \item \textbf{Code Smells}: Các đoạn mã không tối ưu, khó bảo trì (hàm quá dài, tham số quá nhiều, v.v.).
+    \item \textbf{Duplications}: Tỷ lệ mã nguồn bị trùng lặp.
+\end{itemize}
+
+SonarQube sử dụng khái niệm \textit{Quality Gate} — một ngưỡng chất lượng tối thiểu mà mã nguồn phải đạt được trước khi được phép merge hoặc triển khai. Trong EventTicketSystem, Quality Gate được cấu hình với các tiêu chí: không có bug nghiêm trọng mới, độ bao phủ kiểm thử tối thiểu 70\%, tỷ lệ trùng lặp dưới 3\%.
+
+\subsection{Quản lý lỗi với Jira}
+
+Jira là công cụ quản lý dự án và theo dõi lỗi (bug tracking) của Atlassian, được sử dụng rộng rãi trong các nhóm phát triển phần mềm theo phương pháp Agile. Trong đề tài, Jira được tích hợp với GitHub Actions để tự động tạo issue khi SonarQube phát hiện lỗi nghiêm trọng hoặc khi bộ kiểm thử tự động thất bại, giúp vòng đời xử lý lỗi được quản lý tập trung và có thể theo dõi.
+
+\subsection{Tích hợp kiểm thử vào CI/CD với GitHub Actions}
+
+CI/CD (Continuous Integration/Continuous Delivery) là phương pháp tự động hóa quy trình build, kiểm thử và triển khai phần mềm. GitHub Actions cung cấp nền tảng CI/CD tích hợp trực tiếp vào GitHub, cho phép định nghĩa workflow dưới dạng file YAML.
+
+Pipeline CI/CD của EventTicketSystem được thiết kế theo các giai đoạn:
+
+\begin{itemize}
+    \item \textbf{Build}: Biên dịch mã nguồn C\# và kiểm tra lỗi cú pháp.
+    \item \textbf{Unit Test \& Coverage}: Chạy bộ kiểm thử đơn vị, thu thập coverage bằng Coverlet.
+    \item \textbf{SonarQube Analysis}: Phân tích chất lượng mã và kiểm tra Quality Gate.
+    \item \textbf{Selenium E2E Test}: Chạy bộ kiểm thử giao diện tự động trên môi trường staging.
+    \item \textbf{OWASP ZAP Scan}: Quét bảo mật tự động.
+    \item \textbf{JMeter Performance Test}: Chạy kịch bản kiểm thử hiệu năng cơ bản.
+    \item \textbf{Docker Build \& Push}: Đóng gói và đẩy image lên registry nếu tất cả các bước trước thành công.
+\end{itemize}
+
+% ============================================================
+\section{Các công trình hoặc hệ thống liên quan}
+% ============================================================
+
+\subsection{Nghiên cứu về kiểm thử tự động ứng dụng web}
+
+Nhiều nghiên cứu đã chỉ ra hiệu quả của kiểm thử tự động trong việc giảm chi phí và thời gian phát hiện lỗi. Nghiên cứu của Crispin và Gregory~\cite{crispin2009agile} đề xuất mô hình kiểm thử Agile, trong đó kiểm thử tự động là nền tảng để duy trì tốc độ phát triển liên tục. Selenium WebDriver đã trở thành tiêu chuẩn de facto cho kiểm thử giao diện web nhờ tính linh hoạt và cộng đồng hỗ trợ rộng lớn.
+
+\subsection{Các hệ thống kiểm thử bán vé trực tuyến tương tự}
+
+Ticketmaster và Eventbrite — hai nền tảng bán vé lớn nhất thế giới — đều công bố các chiến lược kiểm thử mở rộng. Ticketmaster sử dụng kiểm thử tải với hàng triệu người dùng đồng thời trong các sự kiện lớn, áp dụng chaos engineering để kiểm thử khả năng phục hồi. Eventbrite áp dụng mô hình \textit{shift-left testing} — đưa kiểm thử về sớm trong vòng đời phát triển.
+
+Tuy nhiên, các hệ thống này là thương mại đóng và không phù hợp nghiên cứu học thuật. Bài học kế thừa chính là: kiểm thử đồng thời (concurrency testing) và kiểm thử hiệu năng dưới tải cao là yêu cầu bắt buộc cho hệ thống bán vé.
+
+\subsection{Các công trình về tích hợp bảo mật vào CI/CD (DevSecOps)}
+
+Mô hình DevSecOps tích hợp kiểm thử bảo mật vào quy trình CI/CD đã được nhiều nghiên cứu và tổ chức lớn (OWASP, NIST) khuyến nghị. OWASP cung cấp bộ công cụ ZAP với chế độ automation hoàn chỉnh, cho phép tích hợp trực tiếp vào GitHub Actions. Các nghiên cứu gần đây cho thấy việc phát hiện lỗ hổng bảo mật ở giai đoạn CI/CD giảm chi phí vá lỗi trung bình 6 lần so với phát hiện sau khi triển khai production.
+
+\subsection{Nhận xét và kế thừa}
+
+Từ các công trình liên quan, đề tài kế thừa và phát triển các điểm sau:
+
+\begin{itemize}
+    \item Áp dụng mô hình Page Object Model theo chuẩn của cộng đồng Selenium để xây dựng bộ kiểm thử tự động dễ bảo trì.
+    \item Tích hợp đầy đủ vòng lặp DevSecOps: build $\rightarrow$ test $\rightarrow$ quality gate $\rightarrow$ security scan $\rightarrow$ deploy.
+    \item Bổ sung kịch bản kiểm thử đặc thù cho hệ thống bán vé: kiểm thử race condition khi đặt ghế đồng thời — đây là điểm ít được đề cập trong các công trình chung về kiểm thử web.
+\end{itemize}
+
+% ============================================================
+\section{Định hướng giải quyết}
+% ============================================================
+
+\subsection{Chiến lược kiểm thử tổng thể}
+
+Đề tài áp dụng chiến lược kiểm thử đa tầng, kết hợp nhiều loại kiểm thử bổ sung cho nhau, được minh họa theo mô hình kim tự tháp kiểm thử mở rộng:
+
+\begin{itemize}
+    \item \textbf{Tầng 1 — Kiểm thử đơn vị và tích hợp}: Kiểm thử các Service, Controller và logic nghiệp vụ cốt lõi. Đo độ bao phủ bằng Coverlet, mục tiêu đạt tối thiểu 70\%.
+    \item \textbf{Tầng 2 — Kiểm thử giao diện tự động}: Selenium WebDriver kiểm thử các luồng end-to-end quan trọng theo mô hình Page Object Model.
+    \item \textbf{Tầng 3 — Kiểm thử hiệu năng}: JMeter mô phỏng tải đồng thời lên các endpoint nhạy cảm (chọn ghế, đặt hàng), xác định ngưỡng chịu tải.
+    \item \textbf{Tầng 4 — Kiểm thử bảo mật}: OWASP ZAP quét tự động toàn bộ ứng dụng theo chuẩn OWASP Top 10.
+    \item \textbf{Tầng 5 — Phân tích chất lượng}: SonarQube phân tích tĩnh toàn bộ mã nguồn, quản lý lỗi qua Jira.
+\end{itemize}
+
+\subsection{Hướng giải quyết từng bài toán}
+
+\subsubsection{Kiểm thử tự động luồng mua vé}
+
+Selenium WebDriver kết hợp C\# và NUnit xây dựng test suite tự động cho 5 luồng chính: đăng nhập/đăng ký, xem và tìm kiếm sự kiện, chọn ghế và quản lý giỏ hàng, áp dụng coupon và đặt hàng, quản lý đơn hàng và yêu cầu hoàn vé. Toàn bộ test case được tổ chức theo mô hình POM, chạy trên trình duyệt Chrome/Edge thông qua WebDriver headless trong môi trường CI.
+
+\subsubsection{Đo lường độ bao phủ kiểm thử}
+
+Coverlet được cấu hình để thu thập line coverage và branch coverage cho toàn bộ project \texttt{EventTicketSystem.Web}. Báo cáo XML được đẩy lên SonarQube để hiển thị trực quan và theo dõi xu hướng coverage qua từng lần commit.
+
+\subsubsection{Kiểm thử hiệu năng chịu tải}
+
+JMeter được cấu hình với các kịch bản: (1) 100 người dùng đồng thời xem danh sách sự kiện, (2) 50 người dùng đồng thời chọn ghế cùng một sự kiện, (3) 30 người dùng đồng thời hoàn tất đặt hàng. Kết quả được phân tích để xác định điểm nghẽn cổ chai và xác minh cơ chế seat locking hoạt động đúng dưới tải cao.
+
+\subsubsection{Kiểm thử bảo mật}
+
+OWASP ZAP Baseline Scan được chạy tự động trong pipeline CI/CD để phát hiện các lỗ hổng mức độ trung bình và cao. Full Scan được chạy định kỳ theo lịch (scheduled) để kiểm tra toàn diện hơn, bao gồm các form đăng nhập, các endpoint API quản trị và các trang yêu cầu phân quyền.
+
+\subsubsection{Quản lý chất lượng và lỗi}
+
+SonarQube được cài đặt và tích hợp vào GitHub Actions. Mỗi pull request phải vượt qua Quality Gate trước khi được merge. Các issue do SonarQube phát hiện được đồng bộ vào Jira thông qua webhook, tạo ticket tự động với mức độ ưu tiên tương ứng để nhóm phát triển theo dõi và xử lý có hệ thống.
+
+\subsection{Tóm tắt định hướng}
+
+Bảng~\ref{tab:dinh-huong} tóm tắt các bài toán kiểm thử và công cụ/phương pháp tương ứng được áp dụng trong đề tài.
+
+\begin{table}[H]
+\centering
+\caption{Tóm tắt định hướng kiểm thử và công cụ sử dụng}
+\label{tab:dinh-huong}
+\begin{tabular}{|p{4cm}|p{3cm}|p{6cm}|}
+\hline
+\textbf{Loại kiểm thử} & \textbf{Công cụ} & \textbf{Mục tiêu} \\
+\hline
+Kiểm thử tự động (E2E) & Selenium WebDriver & Kiểm thử các luồng nghiệp vụ chính qua giao diện trình duyệt \\
+\hline
+Đo độ bao phủ & Coverlet + SonarQube & Đảm bảo coverage tối thiểu 70\% mã nguồn \\
+\hline
+Kiểm thử hiệu năng & Apache JMeter & Xác định ngưỡng chịu tải, kiểm tra seat locking đồng thời \\
+\hline
+Kiểm thử bảo mật & OWASP ZAP & Phát hiện lỗ hổng theo chuẩn OWASP Top 10 \\
+\hline
+Phân tích chất lượng mã & SonarQube & Kiểm soát bug, vulnerability, code smell \\
+\hline
+Quản lý lỗi & Jira & Theo dõi và xử lý lỗi phát hiện từ các công cụ kiểm thử \\
+\hline
+Tích hợp CI/CD & GitHub Actions & Tự động hóa toàn bộ pipeline kiểm thử khi có thay đổi code \\
+\hline
+\end{tabular}
+\end{table}
+
+\end{document}

@@ -1,0 +1,107 @@
+@page
+@model EventTicketSystem.Web.Pages.Admin.PaymentMethods.CreatePaymentMethodModel
+@{
+    ViewData["Title"] = "Thêm Phương Thức Thanh Toán";
+}
+
+<style>
+    .pm-form-wrap { padding: 2rem 0 3rem; max-width: 680px; margin: 0 auto; }
+    .pm-form-title { font-size:1.35rem; font-weight:800; color:#ede0ff; margin-bottom:1.5rem; }
+
+    .pm-card {
+        background:rgba(20,10,52,.82); border:1px solid rgba(124,77,255,.22);
+        border-radius:14px; padding:24px 28px;
+    }
+    .form-label-pm { font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:rgba(124,77,255,.8); margin-bottom:6px; }
+    .form-ctrl-pm {
+        width:100%; background:rgba(255,255,255,.05); border:1.5px solid rgba(124,77,255,.25);
+        border-radius:9px; color:#ede0ff; font-size:.88rem; padding:9px 13px;
+        transition:border-color .15s;
+    }
+    .form-ctrl-pm:focus { outline:none; border-color:rgba(124,77,255,.6); background:rgba(255,255,255,.07); }
+    .form-ctrl-pm::placeholder { color:rgba(210,195,255,.3); }
+
+    .upload-hint { font-size:.74rem; color:rgba(210,195,255,.4); margin-top:5px; }
+    .preview-img { width:80px; height:56px; object-fit:contain; border-radius:8px; background:rgba(255,255,255,.06); padding:5px; margin-top:8px; display:none; }
+
+    .check-row { display:flex; align-items:center; gap:10px; }
+    .check-row input[type=checkbox] { width:18px; height:18px; accent-color:#7c4dff; cursor:pointer; }
+    .check-row label { color:rgba(210,195,255,.8); font-size:.88rem; cursor:pointer; }
+
+    .btn-submit { padding:10px 28px; border-radius:10px; font-size:.92rem; font-weight:700; background:linear-gradient(90deg,#7c4dff,#448aff); color:#fff; border:none; cursor:pointer; transition:opacity .15s; }
+    .btn-submit:hover { opacity:.85; }
+    .btn-back { padding:10px 20px; border-radius:10px; font-size:.88rem; font-weight:600; background:rgba(124,77,255,.1); border:1px solid rgba(124,77,255,.25); color:#b388ff; text-decoration:none; transition:background .15s; }
+    .btn-back:hover { background:rgba(124,77,255,.22); color:#b388ff; }
+
+    .text-danger-pm { color:#ef9a9a; font-size:.78rem; margin-top:4px; }
+</style>
+
+<div class="container-xl px-3 px-md-4">
+<div class="pm-form-wrap">
+    <div class="pm-form-title">➕ Thêm Phương Thức Thanh Toán</div>
+
+    <div class="pm-card">
+        <form method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <div class="form-label-pm">Tên phương thức <span style="color:#ef9a9a;">*</span></div>
+                <input asp-for="Input.Name" class="form-ctrl-pm" placeholder="VD: VNPAY, ZaloPay..." />
+                <span asp-validation-for="Input.Name" class="text-danger-pm"></span>
+            </div>
+
+            <div class="mb-3">
+                <div class="form-label-pm">Thông tin tài khoản ngân hàng</div>
+                <input asp-for="Input.BankAccountInfo" class="form-ctrl-pm" placeholder="VD: Vietcombank – STK: 1234567890 – Nguyễn Văn A" />
+                <span asp-validation-for="Input.BankAccountInfo" class="text-danger-pm"></span>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <div class="form-label-pm">Logo (.jpg .png .webp)</div>
+                    <input type="file" asp-for="Input.LogoFile" class="form-ctrl-pm" accept=".jpg,.jpeg,.png,.gif,.webp"
+                           onchange="previewImg(this,'prevLogo')" />
+                    <span asp-validation-for="Input.LogoFile" class="text-danger-pm"></span>
+                    <div class="upload-hint">Kích thước đề xuất: 120×40 px</div>
+                    <img id="prevLogo" class="preview-img" alt="Logo preview" />
+                </div>
+                <div class="col-md-6">
+                    <div class="form-label-pm">Ảnh QR code (.jpg .png .webp)</div>
+                    <input type="file" asp-for="Input.QrFile" class="form-ctrl-pm" accept=".jpg,.jpeg,.png,.gif,.webp"
+                           onchange="previewImg(this,'prevQr')" />
+                    <span asp-validation-for="Input.QrFile" class="text-danger-pm"></span>
+                    <div class="upload-hint">Kích thước đề xuất: 300×300 px</div>
+                    <img id="prevQr" class="preview-img" alt="QR preview" />
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="form-label-pm">Thứ tự hiển thị</div>
+                    <input asp-for="Input.SortOrder" type="number" class="form-ctrl-pm" min="0" />
+                </div>
+                <div class="col-md-6 d-flex align-items-end pb-1">
+                    <div class="check-row">
+                        <input asp-for="Input.IsActive" type="checkbox" id="isActiveChk" />
+                        <label for="isActiveChk">Kích hoạt ngay</label>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button type="submit" class="btn-submit">💾 Lưu</button>
+                <a href="/Admin/PaymentMethods" class="btn-back">← Quay lại</a>
+            </div>
+        </form>
+    </div>
+</div>
+</div>
+
+<script>
+function previewImg(input, targetId) {
+    const img = document.getElementById(targetId);
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => { img.src = e.target.result; img.style.display = 'block'; };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>

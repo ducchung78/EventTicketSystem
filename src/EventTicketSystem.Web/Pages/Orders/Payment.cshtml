@@ -1,254 +1,402 @@
-@page "{id:int}"
+@page
 @model EventTicketSystem.Web.Pages.Orders.PaymentModel
 @{
     ViewData["Title"] = "Thanh Toán";
-    var order = Model.Order;
-    var item  = order?.OrderItems.FirstOrDefault();
-    var tt    = item?.TicketType;
-    var evt   = tt?.Event;
-    var expiresAtMs = (long)(Model.ExpiresAt - DateTime.UtcNow).TotalMilliseconds;
-    if (expiresAtMs < 0) expiresAtMs = 0;
-
-    var transferNote = $"TICKETHUB {order?.ConfirmationCode}";
-    var qrText = $"MB Bank|0987654321|CONG TY TICKETHUB|{(long)(order?.TotalAmount ?? 0)}|{transferNote}";
+    var subtotalRaw = (long)Model.Subtotal;
+    var firstItem   = Model.CartItems.FirstOrDefault();
+    var userEmail   = Model.CurrentUser?.Email ?? User.Identity?.Name ?? "";
+    var userName    = Model.CurrentUser?.HoTen is { Length: > 0 } n ? n : (Model.CurrentUser?.UserName ?? "");
+    var userPhone   = Model.CurrentUser?.PhoneNumber ?? "";
 }
 
-@if (order == null)
+<div class="pay-page">
+
+@if (TempData["Error"] is string err)
 {
-    <div class="container"><div class="alert alert-danger">Không tìm thấy đơn hàng.</div></div>
-    return;
+    <div class="container-xl px-4 pt-3">
+        <div class="alert alert-danger alert-dismissible mb-0" role="alert">
+            @err <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
 }
 
-@* ===== HEADER STRIP ===== *@
-<div class="mx-n4 mt-0 py-4" style="background:linear-gradient(90deg,#e91e63,#f44336);">
-    <div class="container-fluid px-4">
-        <div class="d-flex align-items-center gap-3">
-            <div class="bg-white rounded-circle d-flex align-items-center justify-content-center"
-                 style="width:48px;height:48px;flex-shrink:0;">
-                <span style="font-size:1.4rem;">🎟</span>
-            </div>
-            <div>
-                <h4 class="text-white fw-bold mb-0">Hoàn Tất Thanh Toán</h4>
-                <p class="text-white small mb-0 opacity-75">Mã đơn: #@order.ConfirmationCode</p>
-            </div>
-            @* Countdown *@
-            <div class="ms-auto text-end">
-                <div class="text-white small opacity-75">Còn lại</div>
-                <div class="text-white fw-bold fs-4 font-monospace" id="countdown">05:00</div>
-            </div>
+@* ── Step bar ── *@
+<div class="pay-steps">
+    <div class="container-xl px-4">
+        <div class="d-flex align-items-center gap-2">
+            <span class="step done">1 Chọn vé</span>
+            <span class="step-sep">──</span>
+            <span class="step active">2 Thanh toán</span>
+            <span class="step-sep">──</span>
+            <span class="step">3 Xác nhận</span>
         </div>
     </div>
 </div>
 
-<div class="container pb-5 mt-4" style="max-width:900px;">
-    @* Progress steps *@
-    <div class="d-flex align-items-center justify-content-center gap-2 mb-4 small">
-        <span class="badge bg-success rounded-pill px-3 py-2">1 Chọn vé</span>
-        <span class="text-muted">──</span>
-        <span class="badge rounded-pill px-3 py-2" style="background:#e91e63;">2 Thanh toán</span>
-        <span class="text-muted">──</span>
-        <span class="badge bg-secondary rounded-pill px-3 py-2">3 Xác nhận</span>
-    </div>
+<form method="post" id="payForm">
+<input type="hidden" name="couponCode"       id="hiddenCoupon" />
+<input type="hidden" name="paymentMethodId"  id="hiddenPaymentMethodId" />
 
-    <div class="row g-4">
-        @* LEFT: QR + Bank info *@
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
-                <div class="card-header border-0 py-3 fw-semibold" style="background:#f8f9fa;">
-                    🏦 Chuyển Khoản Ngân Hàng
-                </div>
-                <div class="card-body p-4">
-                    @* QR code *@
-                    <div class="text-center mb-4">
-                        <div id="qrcode" class="d-inline-block p-3 border rounded-3 bg-white"></div>
-                        <p class="text-muted small mt-2 mb-0">Quét mã QR để chuyển khoản</p>
-                    </div>
+<div class="container-xl px-4 pb-5 mt-4">
+<div class="row g-4">
 
-                    @* Bank details *@
-                    <div class="d-flex flex-column gap-3">
-                        <div class="d-flex justify-content-between align-items-center p-3 rounded-3" style="background:#f8f9fa;">
-                            <div>
-                                <div class="text-muted small">Ngân hàng</div>
-                                <div class="fw-bold">MB Bank</div>
-                            </div>
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/2/20/MB_Bank_logo_%282016%29.svg"
-                                 alt="MB Bank" style="height:28px; opacity:.85;" onerror="this.style.display='none'" />
-                        </div>
+    @* ════════ CỘT TRÁI (8) ════════ *@
+    <div class="col-lg-8">
 
-                        <div class="p-3 rounded-3" style="background:#f8f9fa;">
-                            <div class="text-muted small mb-1">Số tài khoản</div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="fw-bold font-monospace fs-5" id="bankAccount">0987654321</span>
-                                <button type="button" class="btn btn-sm btn-outline-secondary"
-                                        onclick="copyText('0987654321', this)">Sao chép</button>
-                            </div>
-                        </div>
-
-                        <div class="p-3 rounded-3" style="background:#f8f9fa;">
-                            <div class="text-muted small mb-1">Chủ tài khoản</div>
-                            <div class="fw-bold">CONG TY TICKETHUB</div>
-                        </div>
-
-                        <div class="p-3 rounded-3 border" style="background:#fff5f5; border-color:#ffcdd2 !important;">
-                            <div class="text-muted small mb-1">Số tiền</div>
-                            <div class="fw-bold text-danger fs-4">@order.TotalAmount.ToString("N0")đ</div>
-                        </div>
-
-                        <div class="p-3 rounded-3" style="background:#f8f9fa;">
-                            <div class="text-muted small mb-1">Nội dung chuyển khoản</div>
-                            <div class="d-flex justify-content-between align-items-center gap-2">
-                                <span class="fw-bold font-monospace" id="transferNote">@transferNote</span>
-                                <button type="button" class="btn btn-sm btn-outline-secondary flex-shrink-0"
-                                        onclick="copyText('@transferNote', this)">Sao chép</button>
-                            </div>
-                        </div>
+        @* ── Box 1: Thông tin nhận vé ── *@
+        <div class="pay-card mb-3">
+            <div class="pay-card-head">Thông tin nhận vé</div>
+            <div class="pay-card-body">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="user-avatar">@(userName is { Length: > 0 } ? userName[0].ToString().ToUpper() : "U")</div>
+                    <div>
+                        <div class="user-name">@(userName is { Length: > 0 } ? userName : userEmail)</div>
+                        <div class="user-email">@userEmail</div>
                     </div>
                 </div>
+                <p class="ticket-info-note mt-3 mb-0">
+                    Vé điện tử sẽ được hiển thị trong mục <strong>Vé của tôi</strong> của tài khoản
+                    <span class="text-green">@userEmail</span>
+                </p>
             </div>
         </div>
 
-        @* RIGHT: Order summary + actions *@
-        <div class="col-lg-6">
-            @* Order summary *@
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
-                <div class="card-header border-0 py-3 fw-semibold" style="background:#f8f9fa;">
-                    📋 Tóm Tắt Đơn Hàng
+        @* ── Box 2: Mã khuyến mãi ── *@
+        <div class="pay-card mb-3">
+            <div class="pay-card-head">Mã khuyến mãi</div>
+            <div class="pay-card-body">
+                <div class="d-flex gap-2">
+                    <input type="text" id="couponInput" class="pay-input flex-1" placeholder="Nhập mã giảm giá..." />
+                    <button type="button" class="btn-apply" onclick="applyCoupon()">Áp dụng</button>
                 </div>
-                <div class="card-body p-4">
-                    @if (evt != null)
+                <div id="couponMsg" class="coupon-msg mt-2" style="display:none;"></div>
+            </div>
+        </div>
+
+        @* ── Box 3: Phương thức thanh toán ── *@
+        <div class="pay-card">
+            <div class="pay-card-head">Phương thức thanh toán</div>
+            <div class="pay-card-body p-0">
+                @if (!Model.PaymentMethods.Any())
+                {
+                    <p class="px-4 py-3 text-muted small mb-0">Chưa có phương thức thanh toán nào được cấu hình.</p>
+                }
+                else
+                {
+                    @foreach (var pm in Model.PaymentMethods)
                     {
-                        <div class="d-flex gap-3 mb-3">
-                            @if (!string.IsNullOrEmpty(evt.ImageUrl))
+                        var isFirst = pm == Model.PaymentMethods.First();
+                        <label class="pm-option" id="pm-label-@pm.Id">
+                            <input type="radio" name="_pmRadio" value="@pm.Id"
+                                   @(isFirst ? "checked" : "")
+                                   onchange="selectPm(@pm.Id, '@(pm.QrCodeUrl ?? "")')" />
+                            <span class="pm-radio-dot"></span>
+                            @if (!string.IsNullOrEmpty(pm.LogoUrl))
                             {
-                                <img src="@evt.ImageUrl" alt="@evt.Title"
-                                     class="rounded-3 flex-shrink-0"
-                                     style="width:64px;height:64px;object-fit:cover;" />
+                                <img src="@pm.LogoUrl" alt="@pm.Name" class="pm-logo" onerror="this.style.display='none'" />
                             }
                             else
                             {
-                                <div class="rounded-3 flex-shrink-0 d-flex align-items-center justify-content-center"
-                                     style="width:64px;height:64px;background:linear-gradient(135deg,#e91e63,#f44336);">
-                                    <span style="font-size:1.5rem;">🎟</span>
-                                </div>
+                                <span class="pm-icon-default">💳</span>
                             }
-                            <div>
-                                <div class="fw-bold">@evt.Title</div>
-                                <div class="text-muted small">📅 @evt.StartDate.ToLocalTime().ToString("dd/MM/yyyy · HH:mm")</div>
-                                <div class="text-muted small">📍 @evt.Venue</div>
+                            <span class="pm-name">@pm.Name</span>
+                        </label>
+
+                        @if (!string.IsNullOrEmpty(pm.QrCodeUrl))
+                        {
+                            <div class="pm-qr" id="qr-@pm.Id" style="@(isFirst ? "" : "display:none;")">
+                                <img src="@pm.QrCodeUrl" alt="QR @pm.Name" class="pm-qr-img" />
+                                @if (!string.IsNullOrEmpty(pm.BankAccountInfo))
+                                {
+                                    <div class="pm-bank-info">@pm.BankAccountInfo</div>
+                                }
+                            </div>
+                        }
+                    }
+
+                    @* pre-select first *@
+                    if (Model.PaymentMethods.Any())
+                    {
+                        <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            var first = @Model.PaymentMethods.First().Id;
+                            document.getElementById('hiddenPaymentMethodId').value = first;
+                        });
+                        </script>
+                    }
+                }
+            </div>
+        </div>
+
+    </div>@* /col-lg-8 *@
+
+    @* ════════ CỘT PHẢI (4) ════════ *@
+    <div class="col-lg-4">
+        <div class="sticky-top" style="top:80px;">
+
+            @* ── Box: Thông tin đặt vé ── *@
+            <div class="pay-card mb-3">
+                <div class="pay-card-head">Thông tin đặt vé</div>
+                <div class="pay-card-body p-0">
+                    @foreach (var item in Model.CartItems)
+                    {
+                        <div class="ticket-row">
+                            <div class="ticket-row-left">
+                                <div class="ticket-type">@item.TicketTypeName</div>
+                                <div class="ticket-event">@item.EventName</div>
+                                @if (item.HasSeats)
+                                {
+                                    <div class="ticket-seats">Ghế: @string.Join(", ", item.SeatLabels)</div>
+                                }
+                            </div>
+                            <div class="ticket-row-right">
+                                <div class="ticket-qty">x@item.Quantity</div>
+                                <div class="ticket-price">@item.Subtotal.ToString("N0")đ</div>
                             </div>
                         </div>
                     }
+                </div>
+            </div>
 
-                    <hr class="my-3" />
-
-                    @if (item != null && tt != null)
-                    {
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Loại vé</span>
-                            <span class="fw-semibold">@tt.Name</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Đơn giá</span>
-                            <span>@item.UnitPrice.ToString("N0")đ</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-3">
-                            <span class="text-muted">Số lượng</span>
-                            <span>×@item.Quantity</span>
-                        </div>
-                    }
-
-                    <div class="d-flex justify-content-between p-3 rounded-3"
-                         style="background:#fff5f5; border:1px solid #ffcdd2;">
-                        <span class="fw-bold">Tổng cộng</span>
-                        <span class="fw-bold text-danger fs-5">@order.TotalAmount.ToString("N0")đ</span>
+            @* ── Box: Thông tin đơn hàng ── *@
+            <div class="pay-card mb-3">
+                <div class="pay-card-head">Thông tin đơn hàng</div>
+                <div class="pay-card-body">
+                    <div class="order-row">
+                        <span>Tạm tính</span>
+                        <span id="subtotalDisp">@Model.Subtotal.ToString("N0")đ</span>
                     </div>
-
-                    <div class="mt-3">
-                        <div class="d-flex justify-content-between small text-muted mb-1">
-                            <span>Khách hàng</span>
-                            <span>@order.CustomerName</span>
-                        </div>
-                        <div class="d-flex justify-content-between small text-muted">
-                            <span>Email</span>
-                            <span>@order.CustomerEmail</span>
-                        </div>
+                    <div class="order-row discount-row" id="discountRow" style="display:none;">
+                        <span>Giảm giá</span>
+                        <span id="discountDisp" class="text-green">-0đ</span>
+                    </div>
+                    <hr class="order-divider" />
+                    <div class="order-total-row">
+                        <span>Tổng tiền</span>
+                        <span id="totalDisp" class="total-amount">@Model.Subtotal.ToString("N0")đ</span>
                     </div>
                 </div>
             </div>
 
-            @* Instructions *@
-            <div class="alert alert-warning border-0 rounded-3 small mb-4">
-                <strong>Lưu ý:</strong> Vui lòng chuyển khoản <strong>đúng số tiền</strong> và <strong>đúng nội dung</strong>
-                để đơn hàng được xác nhận tự động. Đơn hàng sẽ bị hủy sau <strong>5 phút</strong> nếu chưa thanh toán.
-            </div>
+            <p class="terms-text">
+                Bằng việc tiến hành đặt mua, bạn đã đồng ý với
+                <a href="#" class="terms-link">Điều Kiện Giao Dịch Chung</a>
+            </p>
 
-            @* Action buttons *@
-            <div class="d-grid gap-2">
-                <form method="post" asp-page-handler="Confirm">
-                    <input type="hidden" name="id" value="@order.Id" />
-                    <button type="submit" class="btn btn-success w-100 py-3 fw-bold fs-5">
-                        ✅ Tôi Đã Thanh Toán
-                    </button>
-                </form>
-                <form method="post" asp-page-handler="Cancel" id="cancelForm">
-                    <input type="hidden" name="id" value="@order.Id" />
-                    <button type="submit" class="btn btn-outline-danger w-100 py-2"
-                            onclick="return confirm('Bạn có chắc muốn hủy đơn hàng này?')">
-                        Hủy Đơn Hàng
-                    </button>
-                </form>
-            </div>
+            <button type="submit" class="btn-pay w-100">
+                Thanh toán
+            </button>
+
         </div>
-    </div>
+    </div>@* /col-lg-4 *@
+
 </div>
+</div>
+</form>
+
+</div>@* /pay-page *@
+
+<style>
+.pay-page { min-height: 100vh; }
+
+.pay-steps {
+    border-bottom: 1px solid rgba(124,77,255,.12);
+    padding: 14px 0;
+    background: rgba(15,9,40,.6);
+}
+.step {
+    font-size: .8rem; font-weight: 600; color: rgba(210,195,255,.35);
+    padding: 5px 14px; border-radius: 50px;
+}
+.step.done  { color: rgba(210,195,255,.6); }
+.step.active {
+    background: rgba(0,200,83,.15); color: #00C853;
+    border: 1px solid rgba(0,200,83,.3);
+}
+.step-sep { color: rgba(124,77,255,.2); font-size: .75rem; }
+
+/* Cards */
+.pay-card {
+    background: rgba(15,9,40,.8);
+    border: 1px solid rgba(124,77,255,.18);
+    border-radius: 14px; overflow: hidden;
+}
+.pay-card-head {
+    padding: 13px 20px;
+    border-bottom: 1px solid rgba(124,77,255,.1);
+    font-weight: 700; font-size: .88rem; color: rgba(210,195,255,.8);
+}
+.pay-card-body { padding: 18px 20px; }
+
+/* User info */
+.user-avatar {
+    width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg,#7c4dff,#448aff);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1.1rem; color: #fff;
+}
+.user-name  { font-weight: 700; color: #ede0ff; font-size: .92rem; }
+.user-email { font-size: .8rem; color: rgba(210,195,255,.5); margin-top: 2px; }
+.ticket-info-note {
+    font-size: .82rem; color: rgba(210,195,255,.55);
+    border-top: 1px solid rgba(124,77,255,.1); padding-top: 12px;
+}
+.text-green { color: #00C853; }
+
+/* Coupon */
+.pay-input {
+    flex: 1; background: rgba(255,255,255,.05);
+    border: 1px solid rgba(124,77,255,.25); color: #ede0ff;
+    border-radius: 8px; padding: 8px 12px; font-size: .85rem;
+    outline: none;
+}
+.pay-input:focus { border-color: #7c4dff; background: rgba(255,255,255,.08); }
+.pay-input::placeholder { color: rgba(210,195,255,.3); }
+.btn-apply {
+    padding: 8px 18px; border-radius: 8px;
+    border: 1px solid rgba(124,77,255,.5);
+    background: rgba(124,77,255,.15); color: #c2a6ff;
+    font-size: .82rem; font-weight: 600; cursor: pointer; white-space: nowrap;
+    transition: background .15s;
+}
+.btn-apply:hover { background: rgba(124,77,255,.3); }
+.coupon-msg { font-size: .8rem; padding: 6px 10px; border-radius: 6px; }
+.coupon-msg.success { background: rgba(0,200,83,.1); color: #69f0ae; border: 1px solid rgba(0,200,83,.2); }
+.coupon-msg.error   { background: rgba(229,57,53,.1); color: #ef9a9a; border: 1px solid rgba(229,57,53,.2); }
+
+/* Payment methods */
+.pm-option {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 20px; cursor: pointer;
+    border-bottom: 1px solid rgba(124,77,255,.08);
+    transition: background .15s;
+}
+.pm-option:last-of-type { border-bottom: none; }
+.pm-option:hover { background: rgba(124,77,255,.05); }
+.pm-option input[type=radio] { display: none; }
+.pm-radio-dot {
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 2px solid rgba(124,77,255,.4); flex-shrink: 0;
+    position: relative; transition: border-color .15s;
+}
+.pm-option input[type=radio]:checked ~ .pm-radio-dot {
+    border-color: #00C853;
+}
+.pm-option input[type=radio]:checked ~ .pm-radio-dot::after {
+    content: ''; position: absolute;
+    top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 8px; height: 8px; border-radius: 50%; background: #00C853;
+}
+.pm-logo { height: 28px; object-fit: contain; }
+.pm-icon-default { font-size: 1.3rem; }
+.pm-name { font-size: .88rem; color: #ede0ff; font-weight: 600; }
+.pm-qr {
+    padding: 16px 20px 20px; text-align: center;
+    background: rgba(0,200,83,.04);
+    border-top: 1px solid rgba(0,200,83,.1);
+}
+.pm-qr-img { max-width: 160px; border-radius: 8px; border: 3px solid rgba(255,255,255,.1); }
+.pm-bank-info { margin-top: 10px; font-size: .8rem; color: rgba(210,195,255,.5); white-space: pre-line; }
+
+/* Ticket rows */
+.ticket-row {
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+    padding: 14px 20px;
+    border-bottom: 1px solid rgba(124,77,255,.08);
+}
+.ticket-row:last-child { border-bottom: none; }
+.ticket-row-left { flex: 1; min-width: 0; }
+.ticket-type  { font-weight: 700; font-size: .88rem; color: #ede0ff; }
+.ticket-event { font-size: .78rem; color: rgba(210,195,255,.45); margin-top: 2px; }
+.ticket-seats { font-size: .75rem; color: rgba(210,195,255,.35); margin-top: 3px; }
+.ticket-row-right { text-align: right; flex-shrink: 0; }
+.ticket-qty   { font-size: .78rem; color: rgba(210,195,255,.4); }
+.ticket-price { font-weight: 700; color: #ffd740; font-size: .9rem; margin-top: 2px; }
+
+/* Order summary */
+.order-row { display: flex; justify-content: space-between; font-size: .87rem; color: rgba(210,195,255,.65); margin-bottom: 8px; }
+.order-divider { border-color: rgba(124,77,255,.12); margin: 12px 0; }
+.order-total-row { display: flex; justify-content: space-between; font-weight: 800; }
+.total-amount { color: #00C853; font-size: 1.25rem; }
+
+/* Terms */
+.terms-text { font-size: .76rem; color: rgba(210,195,255,.4); text-align: center; margin-bottom: 12px; }
+.terms-link { color: rgba(210,195,255,.6); text-decoration: underline; }
+.terms-link:hover { color: #c2a6ff; }
+
+/* Pay button */
+.btn-pay {
+    padding: 14px; border-radius: 50px; border: none;
+    background: #00C853; color: #fff;
+    font-weight: 800; font-size: 1.05rem;
+    box-shadow: 0 4px 24px rgba(0,200,83,.4);
+    cursor: pointer; transition: opacity .15s, transform .1s;
+}
+.btn-pay:hover   { opacity: .9; }
+.btn-pay:active  { transform: scale(.98); }
+</style>
 
 @section Scripts {
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
-        integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSi2jPQSCeQvc7pyRGmjIXdFe4L4CPibMuf1A=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
-// ── QR Code ──
-new QRCode(document.getElementById('qrcode'), {
-    text: '@Html.Raw(qrText)',
-    width: 180,
-    height: 180,
-    colorDark: '#000000',
-    colorLight: '#ffffff',
-    correctLevel: QRCode.CorrectLevel.M
-});
+const subtotalRaw = @subtotalRaw;
+let appliedDiscount = 0;
 
-// ── Countdown ──
-let remaining = Math.floor(@expiresAtMs / 1000);
-const countdownEl = document.getElementById('countdown');
+async function applyCoupon() {
+    const code = document.getElementById('couponInput').value.trim();
+    const msg  = document.getElementById('couponMsg');
+    if (!code) { showCouponMsg('Vui lòng nhập mã giảm giá.', false); return; }
 
-function tick() {
-    if (remaining <= 0) {
-        countdownEl.textContent = '00:00';
-        countdownEl.classList.add('text-warning');
-        document.getElementById('cancelForm').submit();
-        return;
+    const res  = await fetch(`/api/coupons/validate?code=${encodeURIComponent(code)}&total=${subtotalRaw}`);
+    const data = await res.json();
+
+    if (data.valid) {
+        appliedDiscount = data.discount;
+        document.getElementById('hiddenCoupon').value = code;
+        updateTotal(data.discount);
+        showCouponMsg('✓ ' + data.message, true);
+    } else {
+        appliedDiscount = 0;
+        document.getElementById('hiddenCoupon').value = '';
+        updateTotal(0);
+        showCouponMsg('✗ ' + data.error, false);
     }
-    const m = Math.floor(remaining / 60).toString().padStart(2, '0');
-    const s = (remaining % 60).toString().padStart(2, '0');
-    countdownEl.textContent = m + ':' + s;
-    if (remaining <= 60) countdownEl.classList.add('text-warning');
-    remaining--;
-    setTimeout(tick, 1000);
 }
 
-tick();
-
-// ── Copy to clipboard ──
-function copyText(text, btn) {
-    navigator.clipboard.writeText(text).then(() => {
-        const orig = btn.textContent;
-        btn.textContent = 'Đã sao chép!';
-        btn.classList.replace('btn-outline-secondary', 'btn-success');
-        setTimeout(() => {
-            btn.textContent = orig;
-            btn.classList.replace('btn-success', 'btn-outline-secondary');
-        }, 2000);
-    });
+function updateTotal(discount) {
+    const row  = document.getElementById('discountRow');
+    const dsp  = document.getElementById('discountDisp');
+    const tot  = document.getElementById('totalDisp');
+    if (discount > 0) {
+        row.style.display = '';
+        dsp.textContent   = '-' + discount.toLocaleString('vi-VN') + 'đ';
+    } else {
+        row.style.display = 'none';
+    }
+    tot.textContent = (subtotalRaw - discount).toLocaleString('vi-VN') + 'đ';
 }
+
+function showCouponMsg(text, ok) {
+    const msg = document.getElementById('couponMsg');
+    msg.textContent   = text;
+    msg.className     = 'coupon-msg mt-2 ' + (ok ? 'success' : 'error');
+    msg.style.display = '';
+}
+
+function selectPm(id, qrUrl) {
+    document.getElementById('hiddenPaymentMethodId').value = id;
+
+    // Hide all QR panels
+    document.querySelectorAll('[id^="qr-"]').forEach(el => el.style.display = 'none');
+
+    // Show this one if has QR
+    if (qrUrl) {
+        const qrEl = document.getElementById('qr-' + id);
+        if (qrEl) qrEl.style.display = '';
+    }
+}
+
+document.getElementById('couponInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); applyCoupon(); }
+});
 </script>
 }

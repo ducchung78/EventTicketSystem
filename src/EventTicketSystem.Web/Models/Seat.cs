@@ -23,11 +23,12 @@ public class Seat
 
     public int SeatNumber { get; set; }
 
-    public SeatStatus Status       { get; set; } = SeatStatus.Available;
-    public SeatType   SeatType     { get; set; } = SeatType.Normal;
-    public int        GridRow      { get; set; }
-    public int        GridCol      { get; set; }
-    public DateTime?  ReservedUntil { get; set; }
+    public SeatStatus Status             { get; set; } = SeatStatus.Available;
+    public SeatType   SeatType           { get; set; } = SeatType.Normal;
+    public int        GridRow            { get; set; }
+    public int        GridCol            { get; set; }
+    public DateTime?  ReservedUntil      { get; set; }
+    public string?    ReservedBySessionId { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

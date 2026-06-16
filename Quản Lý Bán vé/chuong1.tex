@@ -1,0 +1,196 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+\textit{Chương này trình bày tổng quan về đề tài, các cơ sở lý thuyết và công nghệ được sử dụng, các hệ thống liên quan đã được nghiên cứu, cũng như định hướng giải quyết bài toán đặt ra.}
+
+% ============================================================
+\section{Tổng quan đề tài}
+% ============================================================
+
+\subsection{Bối cảnh và động lực}
+
+Trong những năm gần đây, nhu cầu tổ chức và tham dự các sự kiện giải trí, văn hóa, thể thao và hội nghị ngày càng gia tăng mạnh mẽ tại Việt Nam. Song song với đó, sự bùng nổ của thương mại điện tử và các nền tảng trực tuyến đã thay đổi căn bản thói quen mua vé của người dùng: thay vì xếp hàng tại quầy, khán giả kỳ vọng có thể tìm kiếm, chọn chỗ ngồi và thanh toán vé chỉ trong vài phút từ thiết bị di động hoặc máy tính cá nhân.
+
+Tuy nhiên, việc xây dựng một hệ thống bán vé trực tuyến đáp ứng đồng thời các yêu cầu về hiệu năng cao (nhiều người dùng truy cập đồng thời), tính nhất quán dữ liệu (tránh bán trùng ghế), tính bảo mật (xác thực, phân quyền), cũng như tích hợp các tính năng thông minh (dự đoán giá vé, tư vấn tự động) là một bài toán kỹ thuật phức tạp đòi hỏi áp dụng nhiều công nghệ hiện đại.
+
+\subsection{Mục tiêu đề tài}
+
+Đề tài hướng đến xây dựng hệ thống \textbf{Quản lý bán vé sự kiện trực tuyến} (EventTicketSystem) với các mục tiêu cụ thể:
+
+\begin{itemize}
+    \item Cung cấp nền tảng cho ban tổ chức tạo và quản lý sự kiện, loại vé, ghế ngồi, coupon giảm giá và báo cáo doanh thu.
+    \item Cho phép người dùng tìm kiếm sự kiện, chọn ghế theo sơ đồ trực quan, đặt hàng và thanh toán trực tuyến.
+    \item Tích hợp trí tuệ nhân tạo để gợi ý giá vé tối ưu dựa trên dữ liệu lịch sử bán hàng (ML.NET).
+    \item Tích hợp chatbot AI hỗ trợ người dùng tra cứu thông tin sự kiện và giải đáp thắc mắc (Groq API).
+    \item Đảm bảo tính nhất quán khi đặt chỗ đồng thời thông qua cơ chế khóa ghế theo phiên (session-based seat locking).
+    \item Triển khai hệ thống trên nền tảng đám mây với Docker, CI/CD qua GitHub Actions và phân tích chất lượng mã nguồn bằng SonarQube.
+\end{itemize}
+
+\subsection{Phạm vi đề tài}
+
+Hệ thống bao gồm hai phân hệ chính:
+
+\begin{itemize}
+    \item \textbf{Phân hệ người dùng cuối}: Đăng ký/đăng nhập, xem danh sách sự kiện, chọn loại vé và ghế ngồi, quản lý giỏ hàng, đặt hàng, nhận thông báo email, yêu cầu hoàn vé, sử dụng chatbot AI.
+    \item \textbf{Phân hệ quản trị}: Quản lý sự kiện và loại vé, quản lý coupon, xem báo cáo doanh thu, duyệt yêu cầu hoàn vé, cấu hình mô hình AI định giá, quản lý tin nhắn liên hệ.
+\end{itemize}
+
+Đề tài không bao gồm tích hợp cổng thanh toán thực tế mà tập trung vào luồng quản lý đơn hàng và trạng thái thanh toán.
+
+% ============================================================
+\section{Cơ sở lý thuyết}
+% ============================================================
+
+\subsection{ASP.NET Core Razor Pages}
+
+ASP.NET Core là framework phát triển ứng dụng web đa nền tảng, mã nguồn mở của Microsoft, chạy trên .NET runtime. Razor Pages là mô hình lập trình trang theo kiểu \textit{page-centric} được tích hợp trong ASP.NET Core, trong đó mỗi trang giao diện (\texttt{.cshtml}) gắn liền với một \textit{Page Model} (\texttt{.cshtml.cs}) chứa toàn bộ logic xử lý yêu cầu HTTP.
+
+So với mô hình MVC truyền thống, Razor Pages phù hợp hơn cho các ứng dụng có luồng tương tác người dùng rõ ràng, giảm thiểu sự phức tạp do phân tán logic giữa Controller và View. Hệ thống EventTicketSystem sử dụng ASP.NET Core 10 với Razor Pages cho toàn bộ giao diện người dùng, kết hợp các Web API endpoint dạng minimal cho các tính năng tương tác AJAX (giỏ hàng, sơ đồ ghế, chat).
+
+\subsection{Entity Framework Core và SQL Server}
+
+Entity Framework Core (EF Core) là ORM (Object-Relational Mapper) chính thức của .NET, cho phép ánh xạ các lớp C\# sang bảng cơ sở dữ liệu quan hệ. Hệ thống sử dụng phương pháp \textit{code-first}: các lớp thực thể (Entity) được định nghĩa trước, sau đó EF Core sinh ra schema cơ sở dữ liệu thông qua cơ chế \textit{Migrations}.
+
+Cơ sở dữ liệu backend là Microsoft SQL Server, một hệ quản trị cơ sở dữ liệu quan hệ hiệu năng cao, hỗ trợ transaction ACID và các tính năng phân tích dữ liệu phong phú. Trong EventTicketSystem, \texttt{AppDbContext} kế thừa \texttt{IdentityDbContext} để tích hợp liền mạch với hệ thống xác thực, và quản lý các thực thể cốt lõi: \texttt{Event}, \texttt{TicketType}, \texttt{Seat}, \texttt{Order}, \texttt{OrderItem}, \texttt{Coupon}, \texttt{RefundRequest}, \texttt{ChatMessage}, \texttt{SalesData}, \texttt{PredictionLog}.
+
+\subsection{ASP.NET Core Identity}
+
+ASP.NET Core Identity là thư viện quản lý xác thực và phân quyền người dùng tích hợp sẵn trong ASP.NET Core. Hệ thống cung cấp các tính năng: đăng ký, đăng nhập, quản lý mật khẩu, xác nhận email, quản lý vai trò (Role-based Authorization). EventTicketSystem mở rộng lớp \texttt{IdentityUser} thành \texttt{ApplicationUser} để bổ sung các thuộc tính nghiệp vụ riêng và sử dụng phân quyền theo vai trò để kiểm soát truy cập các trang quản trị.
+
+\subsection{ML.NET và Dự đoán Giá Vé}
+
+ML.NET là thư viện học máy (machine learning) mã nguồn mở của Microsoft dành cho nền tảng .NET, cho phép tích hợp mô hình ML trực tiếp vào ứng dụng mà không cần chuyển sang Python hay các ngôn ngữ khác.
+
+Trong EventTicketSystem, module \texttt{TicketPredictionService} sử dụng ML.NET để xây dựng mô hình dự đoán giá vé dựa trên dữ liệu lịch sử bán hàng (\texttt{SalesData}). Pipeline học máy bao gồm các bước:
+\begin{enumerate}
+    \item Chuẩn hóa dữ liệu đầu vào bằng \texttt{StandardScaler} (chuẩn hóa z-score).
+    \item Giảm chiều dữ liệu bằng \texttt{PCA} (Principal Component Analysis) để loại bỏ nhiễu và tương quan giữa các đặc trưng.
+    \item Phân cụm dữ liệu bằng thuật toán \texttt{KMeans} để nhóm các sự kiện có đặc điểm bán hàng tương đồng.
+    \item Tính toán giá gợi ý cho từng cụm dựa trên thống kê doanh thu thực tế.
+\end{enumerate}
+
+Kết quả dự đoán được ghi nhận vào bảng \texttt{PredictionLog} để theo dõi lịch sử và đánh giá độ chính xác của mô hình theo thời gian.
+
+\subsection{Tích hợp AI Chatbot với Groq API}
+
+Groq API cung cấp khả năng truy cập các mô hình ngôn ngữ lớn (LLM) với tốc độ suy luận (inference) rất cao nhờ phần cứng LPU (Language Processing Unit) chuyên dụng. EventTicketSystem tích hợp Groq thông qua \texttt{GroqService} để xây dựng tính năng chatbot hỗ trợ người dùng. Chatbot có thể trả lời các câu hỏi về sự kiện, hướng dẫn quy trình mua vé, giải đáp chính sách hoàn vé, hoạt động trên nền tảng REST API với định dạng chuẩn OpenAI-compatible.
+
+\subsection{Cơ chế Đặt Ghế theo Phiên (Session-based Seat Locking)}
+
+Để giải quyết bài toán đặt trùng ghế khi nhiều người dùng chọn cùng một ghế đồng thời, hệ thống triển khai cơ chế khóa ghế tạm thời theo phiên:
+
+\begin{itemize}
+    \item Khi người dùng chọn ghế trên sơ đồ, ghế được đánh dấu trạng thái \texttt{Reserved} và lưu định danh phiên (\texttt{ReservedBySessionId}) vào cơ sở dữ liệu.
+    \item Dịch vụ nền \texttt{SeatReservationCleanupService} (chạy như \texttt{IHostedService}) định kỳ kiểm tra và giải phóng các ghế đã hết thời gian giữ chỗ nhưng chưa được thanh toán.
+    \item Khi đơn hàng được xác nhận, ghế chuyển sang trạng thái \texttt{Sold}; khi đơn bị hủy hoặc hết hạn, ghế quay về \texttt{Available}.
+\end{itemize}
+
+\subsection{MailKit và Thông Báo Email}
+
+MailKit là thư viện .NET mạnh mẽ để gửi và nhận email, hỗ trợ các giao thức SMTP, IMAP và POP3 với đầy đủ các tính năng bảo mật (TLS/SSL, OAuth2). \texttt{EmailService} trong hệ thống sử dụng MailKit và MimeKit để tạo email HTML phong phú và gửi thông báo đặt vé thành công, xác nhận tài khoản, và cập nhật trạng thái đơn hàng đến người dùng.
+
+\subsection{Docker và Containerization}
+
+Docker là nền tảng đóng gói ứng dụng vào các container độc lập, đảm bảo môi trường chạy nhất quán từ máy phát triển đến máy chủ sản xuất. EventTicketSystem sử dụng \texttt{docker-compose} để định nghĩa và khởi động đồng thời dịch vụ ứng dụng web (ASP.NET Core) và cơ sở dữ liệu (SQL Server), giúp đơn giản hóa quy trình triển khai và thu hẹp sự khác biệt giữa môi trường.
+
+\subsection{CI/CD với GitHub Actions và SonarQube}
+
+GitHub Actions là nền tảng tích hợp liên tục (CI) và triển khai liên tục (CD) tích hợp trực tiếp vào GitHub. Pipeline CI/CD của EventTicketSystem tự động: build ứng dụng, chạy phân tích tĩnh mã nguồn bằng SonarQube (phát hiện code smell, lỗ hổng bảo mật, độ phủ test), và đóng gói Docker image khi có thay đổi trên nhánh chính.
+
+SonarQube là công cụ phân tích chất lượng mã nguồn tĩnh hỗ trợ nhiều ngôn ngữ lập trình, cung cấp các chỉ số như: độ phức tạp vòng lặp (cyclomatic complexity), tỷ lệ trùng lặp mã (code duplication), và các lỗ hổng bảo mật theo chuẩn OWASP.
+
+% ============================================================
+\section{Các công trình hoặc hệ thống liên quan}
+% ============================================================
+
+\subsection{Ticketmaster}
+
+Ticketmaster là hệ thống bán vé trực tuyến lớn nhất thế giới, phục vụ hàng trăm triệu giao dịch mỗi năm. Hệ thống cung cấp tính năng chọn ghế theo sơ đồ 3D, tích hợp cổng thanh toán đa dạng, chống tấn công bot bằng hàng đợi ảo (virtual queue), và phân tích dữ liệu theo thời gian thực. Tuy nhiên, Ticketmaster là hệ thống thương mại đóng, chi phí tích hợp cao, và không phù hợp cho các ban tổ chức nhỏ tại Việt Nam do rào cản ngôn ngữ và thanh toán quốc tế.
+
+\subsection{Eventbrite}
+
+Eventbrite là nền tảng quản lý sự kiện và bán vé phổ biến trên toàn cầu, hỗ trợ cả sự kiện trả phí lẫn miễn phí. Điểm nổi bật của Eventbrite là giao diện đơn giản cho ban tổ chức, tích hợp email marketing, và khả năng nhúng widget bán vé vào website bên ngoài. Hạn chế chính là phí dịch vụ theo phần trăm giá vé, thiếu tính năng sơ đồ chỗ ngồi chi tiết, và chưa có tích hợp AI để tối ưu giá.
+
+\subsection{123phut.vn và Ticket Box (Việt Nam)}
+
+Tại Việt Nam, các nền tảng như 123phut.vn và Ticket Box đã được triển khai và có lượng người dùng nhất định. Các hệ thống này hỗ trợ thanh toán nội địa (VNPay, Momo), giao diện tiếng Việt và phù hợp với hành vi người dùng trong nước. Tuy nhiên, chúng không cung cấp tính năng AI định giá, chatbot hỗ trợ tự động, hay khả năng tùy biến cao cho các đơn vị muốn tự triển khai hệ thống riêng.
+
+\subsection{Nhận xét và Điểm khác biệt}
+
+So sánh với các hệ thống trên, EventTicketSystem có những điểm khác biệt và đóng góp như sau:
+
+\begin{itemize}
+    \item \textbf{Mã nguồn mở và tự triển khai}: Hệ thống được xây dựng hoàn toàn trên nền tảng mã nguồn mở (.NET, EF Core, ML.NET), cho phép tổ chức tự chủ hoàn toàn trong việc triển khai và tùy biến.
+    \item \textbf{Tích hợp AI định giá}: Khác với các hệ thống hiện tại, EventTicketSystem tích hợp module ML.NET để gợi ý giá vé dựa trên phân tích dữ liệu lịch sử, giúp tối ưu hóa doanh thu.
+    \item \textbf{Chatbot AI}: Tích hợp Groq API mang lại trải nghiệm hỗ trợ người dùng tự động, giảm tải cho nhân viên chăm sóc khách hàng.
+    \item \textbf{Containerization sẵn sàng}: Hệ thống được đóng gói Docker hoàn chỉnh, phù hợp triển khai trên mọi môi trường cloud (Azure, AWS, GCP) hoặc on-premise.
+    \item \textbf{Pipeline CI/CD tích hợp}: Quy trình phát triển và triển khai được tự động hóa hoàn toàn với GitHub Actions và SonarQube.
+\end{itemize}
+
+% ============================================================
+\section{Định hướng giải quyết}
+% ============================================================
+
+\subsection{Kiến trúc hệ thống}
+
+Hệ thống được thiết kế theo kiến trúc \textbf{Monolithic với phân lớp rõ ràng}, phù hợp với quy mô đề tài tốt nghiệp đồng thời đảm bảo khả năng mở rộng trong tương lai:
+
+\begin{itemize}
+    \item \textbf{Tầng trình bày (Presentation Layer)}: Razor Pages + JavaScript/AJAX, hiển thị giao diện người dùng và gửi yêu cầu đến tầng xử lý.
+    \item \textbf{Tầng xử lý nghiệp vụ (Business Logic Layer)}: Các lớp Service (\texttt{CartService}, \texttt{RefundService}, \texttt{TicketPredictionService}, \texttt{GroqService}, \texttt{EmailService}), Controllers API xử lý logic nghiệp vụ cốt lõi.
+    \item \textbf{Tầng truy cập dữ liệu (Data Access Layer)}: EF Core + \texttt{AppDbContext}, toàn bộ truy vấn và thao tác cơ sở dữ liệu đi qua tầng này.
+    \item \textbf{Tầng hạ tầng (Infrastructure Layer)}: SQL Server, Docker, GitHub Actions, SonarQube.
+\end{itemize}
+
+\subsection{Hướng giải quyết từng bài toán cụ thể}
+
+\subsubsection{Bài toán nhất quán khi đặt ghế đồng thời}
+
+Hệ thống áp dụng cơ chế \textit{optimistic session locking}: ghế được khóa tạm theo phiên ngay khi người dùng chọn, với thời gian giữ chỗ có hạn. Dịch vụ nền \texttt{SeatReservationCleanupService} tự động giải phóng ghế hết hạn. Cách tiếp cận này đảm bảo tính nhất quán dữ liệu mà không cần sử dụng distributed lock phức tạp, phù hợp với quy mô hệ thống hiện tại.
+
+\subsubsection{Bài toán tối ưu giá vé}
+
+Module AI định giá được xây dựng theo chu trình: thu thập dữ liệu lịch sử bán hàng → tiền xử lý (chuẩn hóa, giảm chiều PCA) → phân cụm KMeans → tính giá gợi ý theo cụm → ghi log kết quả. Admin có thể xem kết quả gợi ý qua trang \texttt{AISettings} và điều chỉnh cấu hình mô hình (\texttt{AIConfig}). Toàn bộ quá trình dự đoán và kết quả được lưu vào \texttt{PredictionLog} phục vụ theo dõi và cải thiện mô hình.
+
+\subsubsection{Bài toán hỗ trợ người dùng}
+
+Chatbot AI được triển khai thông qua \texttt{GroqService} kết nối Groq API. Lịch sử hội thoại được lưu vào bảng \texttt{ChatMessage} để duy trì ngữ cảnh giữa các lượt hỏi đáp. Giao diện chat được tích hợp trực tiếp vào trang sự kiện, giúp người dùng dễ dàng tra cứu thông tin mà không cần rời khỏi luồng mua vé.
+
+\subsubsection{Bài toán thông báo và trải nghiệm người dùng}
+
+Hệ thống sử dụng \texttt{EmailService} (MailKit) để gửi email xác nhận tự động sau khi đặt hàng thành công và khi trạng thái yêu cầu hoàn vé thay đổi. Trang \texttt{SelectSeats} với sơ đồ ghế trực quan (JavaScript + AJAX) giúp người dùng dễ dàng lựa chọn vị trí mong muốn. Hệ thống coupon cho phép ban tổ chức tạo mã giảm giá linh hoạt để thu hút khách hàng.
+
+\subsubsection{Bài toán vận hành và chất lượng phần mềm}
+
+Toàn bộ quy trình phát triển được hỗ trợ bởi pipeline CI/CD trên GitHub Actions: mỗi lần push code sẽ tự động build, phân tích tĩnh bằng SonarQube, và đóng gói Docker image. Cấu hình \texttt{docker-compose} đảm bảo môi trường nhất quán giữa máy phát triển và máy chủ. Cơ chế seed dữ liệu (\texttt{DbSeeder}) giúp khởi tạo dữ liệu mẫu nhanh chóng khi triển khai mới.
+
+\subsection{Tóm tắt hướng tiếp cận}
+
+Bảng~\ref{tab:approach} tóm tắt các bài toán chính và hướng giải quyết tương ứng trong hệ thống EventTicketSystem.
+
+\begin{table}[h!]
+\centering
+\caption{Tóm tắt bài toán và hướng giải quyết}
+\label{tab:approach}
+\begin{tabular}{|p{5cm}|p{9cm}|}
+\hline
+\textbf{Bài toán} & \textbf{Hướng giải quyết} \\
+\hline
+Đặt trùng ghế đồng thời & Session-based seat locking + cleanup service nền \\
+\hline
+Tối ưu giá vé & ML.NET: PCA + KMeans clustering trên dữ liệu lịch sử \\
+\hline
+Hỗ trợ người dùng tự động & Chatbot AI tích hợp Groq API, lưu lịch sử hội thoại \\
+\hline
+Thông báo sau giao dịch & Email tự động bằng MailKit/MimeKit \\
+\hline
+Quản lý giảm giá & Hệ thống coupon linh hoạt theo mã và điều kiện áp dụng \\
+\hline
+Hoàn vé & Quy trình yêu cầu và duyệt hoàn vé có quản lý trạng thái \\
+\hline
+Vận hành và chất lượng & Docker + GitHub Actions CI/CD + SonarQube \\
+\hline
+\end{tabular}
+\end{table}
+
+\end{document}
