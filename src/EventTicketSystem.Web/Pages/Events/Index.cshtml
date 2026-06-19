@@ -49,8 +49,9 @@
         @foreach (var evt in Model.Events)
         {
             var cheapest = evt.TicketTypes.Where(t => t.AvailableQuantity > 0).OrderBy(t => t.Price).FirstOrDefault();
+            var ticketsSold = evt.TicketTypes.Sum(t => t.SoldQuantity);
             <div class="col">
-                <div class="event-card position-relative" style="border-radius:12px; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,.15);">
+                <div class="event-card position-relative" style="border-radius:12px; overflow:hidden;">
                     @* 16:9 image area *@
                     <div class="position-relative" style="padding-top:56.25%;">
                         @if (!string.IsNullOrEmpty(evt.ImageUrl))
@@ -71,19 +72,6 @@
                         @* Gradient overlay *@
                         <div class="position-absolute top-0 start-0 w-100 h-100"
                              style="background:linear-gradient(transparent 30%, rgba(0,0,0,0.28) 55%, rgba(0,0,0,0.68) 100%);"></div>
-
-                        @* Top-left badges: HOT + Category + Inactive *@
-                        <div class="position-absolute top-0 start-0 p-2 d-flex gap-1 flex-wrap" style="position:relative; z-index:2;">
-                            @if (evt.IsHot)
-                            {
-                                <span class="badge fw-bold" style="background:#e91e63; font-size:.75rem; letter-spacing:.3px;">🔥 HOT</span>
-                            }
-                            <span class="badge bg-warning text-dark" style="font-size:.7rem;">@evt.Category</span>
-                            @if (!evt.IsActive)
-                            {
-                                <span class="badge bg-danger" style="font-size:.7rem;">Không Hoạt Động</span>
-                            }
-                        </div>
 
                         @* Top-right admin controls *@
                         @if (User.IsInRole("Admin"))
@@ -110,6 +98,22 @@
                                             style="font-size:.65rem; padding:2px 8px; position:relative; z-index:2;"
                                             title="Xóa sự kiện">🗑</button>
                                 </form>
+                            </div>
+                        }
+
+                        @* Admin: sold tickets + priority boost info *@
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <div class="position-absolute" style="bottom:60px; right:8px; z-index:2; display:flex; flex-direction:column; align-items:flex-end; gap:3px; pointer-events:none;">
+                                <span class="badge" style="background:rgba(0,0,0,.65); color:#69f0ae; font-size:.68rem; backdrop-filter:blur(4px);">
+                                    🎟 @ticketsSold vé
+                                </span>
+                                @if (evt.PriorityBoost != 0)
+                                {
+                                    <span class="badge" style="background:rgba(0,0,0,.65); color:@(evt.PriorityBoost > 0 ? "#ffb300" : "#ef5350"); font-size:.68rem; backdrop-filter:blur(4px);">
+                                        ⭐ @(evt.PriorityBoost > 0 ? "+" : "")@evt.PriorityBoost
+                                    </span>
+                                }
                             </div>
                         }
 

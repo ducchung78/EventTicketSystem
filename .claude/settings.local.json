@@ -135,7 +135,25 @@
       "Bash(taskkill /PID 14784 /F)",
       "PowerShell(cd C:\\\\Users\\\\ASUS\\\\EventTicketSystem; $result = dotnet ef migrations add AddPaymentMethods -p src/EventTicketSystem.Web 2>&1; $result; \"EXIT: $LASTEXITCODE\")",
       "PowerShell(cd C:\\\\Users\\\\ASUS\\\\EventTicketSystem; $env:DOTNET_ROLL_FORWARD = \"Major\"; $out = & dotnet ef migrations add AddPaymentMethods -p src/EventTicketSystem.Web; $err = $Error[0]; \"OUT: $out\"; \"ERR: $err\")",
-      "Skill(run)"
+      "Skill(run)",
+      "PowerShell(netstat *)",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:5173\" -TimeoutSec 5 -UseBasicParsing; Write-Host \"Status: $\\($r.StatusCode\\)\"; Write-Host \"Content \\(first 500 chars\\):\"; $r.Content.Substring\\(0, [Math]::Min\\(500, $r.Content.Length\\)\\) } catch { Write-Host \"Error: $_\" })",
+      "PowerShell(Start-Process -FilePath \"dotnet\" -ArgumentList \"run --project src/EventTicketSystem.Web/EventTicketSystem.Web.csproj --urls http://localhost:5050\" -WorkingDirectory \"C:\\\\Users\\\\ASUS\\\\EventTicketSystem\" -PassThru | Select-Object -ExpandProperty Id)",
+      "Bash(node -e ' *)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(grep -n \"SeedAsync\\\\|SeedExtra\\\\|SeedTicketbox\\\\|return\\\\|}\\\\s*$\" \"C:/Users/ASUS/EventTicketSystem/src/EventTicketSystem.Web/Data/DbSeeder.cs\")",
+      "Bash(Remove-Item \"C:\\\\Users\\\\ASUS\\\\EventTicketSystem\\\\src\\\\EventTicketSystem.Web\\\\Migrations\\\\20260617124848_FixPendingChanges.cs\" -Force)",
+      "Bash(Remove-Item \"C:\\\\Users\\\\ASUS\\\\EventTicketSystem\\\\src\\\\EventTicketSystem.Web\\\\Migrations\\\\20260617124848_FixPendingChanges.Designer.cs\" -Force)",
+      "Bash(Write-Host \"Deleted FixPendingChanges migration files\")",
+      "Bash(echo \"Started in background, PID=$!\")",
+      "Bash(findstr \"LISTEN\")",
+      "Bash(findstr -E \"5173|5174|5175|5176|4173\")",
+      "WebFetch(domain:localhost)",
+      "Bash(echo \"HTTP=$\\(curl -s -o /dev/null -w '%{http_code}' http://localhost:5200/\\)\")",
+      "WebSearch",
+      "WebFetch(domain:unsplash.com)",
+      "Bash(echo \"HTTP=$\\(curl -s -o /dev/null -w '%{http_code}' http://localhost:5300/\\)\")"
     ]
   }
 }

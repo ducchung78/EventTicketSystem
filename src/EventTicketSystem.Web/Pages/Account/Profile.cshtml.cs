@@ -10,7 +10,10 @@ using System.ComponentModel.DataAnnotations;
 namespace EventTicketSystem.Web.Pages.Account;
 
 [Authorize]
-public class ProfileModel(UserManager<ApplicationUser> userManager, AppDbContext db) : PageModel
+public class ProfileModel(
+    UserManager<ApplicationUser> userManager,
+    AppDbContext db,
+    IWebHostEnvironment env) : PageModel
 {
     public ApplicationUser? CurrentUser { get; set; }
     public int OrderCount { get; set; }
@@ -18,7 +21,14 @@ public class ProfileModel(UserManager<ApplicationUser> userManager, AppDbContext
     [BindProperty]
     public InputModel Input { get; set; } = new();
 
+    [BindProperty]
+    public IFormFile? AvatarFile { get; set; }
+
     public bool SavedOk { get; set; }
+
+    private static readonly HashSet<string> _allowedExt =
+        new(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png", ".webp" };
+    private const long MaxAvatarBytes = 5 * 1024 * 1024; // 5 MB
 
     public async Task<IActionResult> OnGetAsync()
     {
@@ -42,7 +52,41 @@ public class ProfileModel(UserManager<ApplicationUser> userManager, AppDbContext
 
         OrderCount = await db.Orders.CountAsync(o => o.ApplicationUserId == CurrentUser.Id);
 
+        // Validate avatar file if provided
+        if (AvatarFile != null)
+        {
+            var ext = Path.GetExtension(AvatarFile.FileName);
+            if (!_allowedExt.Contains(ext))
+                ModelState.AddModelError(nameof(AvatarFile), "Chỉ chấp nhận file ảnh: JPG, PNG, WEBP.");
+            if (AvatarFile.Length > MaxAvatarBytes)
+                ModelState.AddModelError(nameof(AvatarFile), "Ảnh tối đa 5MB.");
+        }
+
         if (!ModelState.IsValid) return Page();
+
+        // Save avatar
+        if (AvatarFile != null && AvatarFile.Length > 0)
+        {
+            var avatarsDir = Path.Combine(env.WebRootPath, "uploads", "avatars");
+            Directory.CreateDirectory(avatarsDir);
+
+            // Delete old avatar file
+            if (!string.IsNullOrEmpty(CurrentUser.AvatarUrl))
+            {
+                var oldPath = Path.Combine(env.WebRootPath, CurrentUser.AvatarUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                if (System.IO.File.Exists(oldPath))
+                    System.IO.File.Delete(oldPath);
+            }
+
+            var ext = Path.GetExtension(AvatarFile.FileName);
+            var fileName = $"{CurrentUser.Id}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}{ext}";
+            var filePath = Path.Combine(avatarsDir, fileName);
+
+            using (var fs = System.IO.File.Create(filePath))
+                await AvatarFile.CopyToAsync(fs);
+
+            CurrentUser.AvatarUrl = $"/uploads/avatars/{fileName}";
+        }
 
         CurrentUser.HoTen = Input.HoTen.Trim();
         CurrentUser.PhoneNumber = string.IsNullOrWhiteSpace(Input.PhoneNumber) ? null : Input.PhoneNumber.Trim();

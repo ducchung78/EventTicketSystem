@@ -17,9 +17,29 @@ public class IndexModel(AppDbContext db) : PageModel
     public List<Event> TourEvents { get; set; } = [];
     public List<Event> SportsEvents { get; set; } = [];
     public List<Event> TrendingEvents { get; set; } = [];
-    public List<VenueInfo> FeaturedVenues { get; set; } = [];
+    public record CityCard(string Name, string SearchTerm, string ImageUrl);
 
-    public record VenueInfo(string Name, int EventCount, string? ImageUrl);
+    public static readonly IReadOnlyList<CityCard> MainCities = new CityCard[]
+    {
+        new("Tp. Hồ Chí Minh", "Hồ Chí Minh",
+            "https://images.unsplash.com/photo-1593449227036-9de17c6316e2?w=800&q=80&fit=crop&auto=format"),
+        new("Hà Nội", "Hà Nội",
+            "https://images.unsplash.com/photo-1723665479556-147440fd9527?w=800&q=80&fit=crop&auto=format"),
+        new("Đà Lạt", "Đà Lạt",
+            "https://images.unsplash.com/photo-1552310065-aad9ebece999?w=800&q=80&fit=crop&auto=format"),
+    };
+
+    public static readonly IReadOnlyList<CityCard> MiniCities = new CityCard[]
+    {
+        new("Vịnh Hạ Long", "Hạ Long",
+            "https://images.unsplash.com/photo-1561461221-959c3f16234b?w=400&q=80&fit=crop&auto=format"),
+        new("Cầu Vàng Đà Nẵng", "Đà Nẵng",
+            "https://images.unsplash.com/photo-1741138327956-dfa75763b50d?w=400&q=80&fit=crop&auto=format"),
+        new("Hội An", "Hội An",
+            "https://images.unsplash.com/photo-1639458110591-17c4cede0c4b?w=400&q=80&fit=crop&auto=format"),
+        new("Ninh Bình", "Ninh Bình",
+            "https://images.unsplash.com/photo-1560079561-3086e6dbde25?w=400&q=80&fit=crop&auto=format"),
+    };
 
     public async Task OnGetAsync()
     {
@@ -65,19 +85,26 @@ public class IndexModel(AppDbContext db) : PageModel
         TourEvents     = await ByCategoryAsync("Tham quan", now);
         SportsEvents   = await ByCategoryAsync("Thể thao", now);
 
-        // Trending: xếp hạng theo số vé đã bán (SoldQuantity trên TicketType)
-        var trendingIds = await db.TicketTypes
-            .GroupBy(t => t.EventId)
-            .OrderByDescending(g => g.Sum(t => t.SoldQuantity))
-            .Take(8)
-            .Select(g => g.Key)
+        // Trending: RankScore = TicketsSold + PriorityBoost * factor
+        // 1 điểm PriorityBoost ~ 75 vé bán — đủ để admin đẩy nhẹ, không ghim tuyệt đối
+        const int PriorityBoostFactor = 75;
+
+        var trendingRanked = await db.Events
+            .Where(e => e.IsActive)
+            .Select(e => new {
+                EventId = e.Id,
+                RankScore = e.TicketTypes.Sum(t => t.SoldQuantity) + e.PriorityBoost * PriorityBoostFactor
+            })
+            .OrderByDescending(x => x.RankScore)
+            .Take(6)
             .ToListAsync();
 
-        if (trendingIds.Count > 0)
+        if (trendingRanked.Count > 0)
         {
+            var trendingIds = trendingRanked.Select(x => x.EventId).ToList();
             var eventsById = await db.Events
                 .Include(e => e.TicketTypes)
-                .Where(e => trendingIds.Contains(e.Id) && e.IsActive)
+                .Where(e => trendingIds.Contains(e.Id))
                 .ToDictionaryAsync(e => e.Id);
 
             TrendingEvents = trendingIds
@@ -86,17 +113,6 @@ public class IndexModel(AppDbContext db) : PageModel
                 .ToList();
         }
 
-        var rawVenues = await db.Events
-            .Where(e => e.IsActive && e.StartDate >= now)
-            .Select(e => new { e.Venue, e.ImageUrl })
-            .ToListAsync();
-
-        FeaturedVenues = rawVenues
-            .GroupBy(e => e.Venue)
-            .Select(g => new VenueInfo(g.Key, g.Count(), g.FirstOrDefault(x => x.ImageUrl != null)?.ImageUrl))
-            .OrderByDescending(v => v.EventCount)
-            .Take(8)
-            .ToList();
     }
 
     private Task<List<Event>> ByCategoryAsync(string category, DateTime from) =>

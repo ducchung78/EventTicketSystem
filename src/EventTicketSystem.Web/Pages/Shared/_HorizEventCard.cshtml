@@ -4,61 +4,33 @@
         .Where(t => t.AvailableQuantity > 0)
         .OrderBy(t => t.Price)
         .FirstOrDefault();
-
-    var catEmoji = Model.Category switch
-    {
-        "Âm nhạc"   => "🎵",
-        "Nghệ thuật" => "🎭",
-        "Thể thao"   => "🏆",
-        "Hội thảo"   => "💡",
-        "Tham quan"  => "🌿",
-        _            => "🎟"
-    };
-
     var dateStr = Model.StartDate.ToLocalTime().ToString("dd 'tháng' MM, yyyy");
 }
 
-<div class="tc-card">
-    <div class="tc-card-img-wrap">
+<a href="/Events/Details/@Model.Id" class="event-card ec-item">
+    <div class="event-card-thumb">
         @if (!string.IsNullOrEmpty(Model.ImageUrl))
         {
-            <img class="tc-card-img" src="@Model.ImageUrl" alt="@Model.Title" loading="lazy" />
+            <img src="@Model.ImageUrl" alt="@Model.Title" loading="lazy" />
         }
         else
         {
-            <div class="tc-card-img-placeholder">
-                <span style="font-size:2.5rem; opacity:.22;">🎟</span>
-            </div>
-        }
-
-        @if (!string.IsNullOrEmpty(Model.Category))
-        {
-            <div class="tc-card-badge">
-                <span class="tc-badge-icon">@catEmoji</span>
-                <span class="tc-badge-name">@Model.Category</span>
-            </div>
+            <div class="ph-icon">🎟</div>
         }
     </div>
-
-    <div class="tc-card-body">
-        <h3 class="tc-card-title">@Model.Title</h3>
-
+    <div class="event-card-body">
+        <div class="event-card-name">@Model.Title</div>
         @if (cheapest != null)
         {
-            <div class="tc-card-price">
-                <span class="tc-price-prefix">Từ </span>@cheapest.Price.ToString("N0")đ
-            </div>
+            <div class="event-card-price">Từ @cheapest.Price.ToString("N0")đ</div>
         }
         else
         {
-            <div class="tc-card-price" style="color:#666;">Hết vé</div>
+            <div class="event-card-price" style="color:#555;">Hết vé</div>
         }
-
-        <div class="tc-card-date">
-            <span class="tc-date-icon">📅</span>
-            <span>@dateStr</span>
+        <div class="event-card-date">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/></svg>
+            @dateStr
         </div>
     </div>
-
-    <a href="/Events/Details/@Model.Id" class="stretched-link" aria-label="@Model.Title"></a>
-</div>
+</a>

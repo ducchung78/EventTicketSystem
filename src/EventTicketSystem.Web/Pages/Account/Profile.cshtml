@@ -40,13 +40,30 @@
         border-radius: 50%;
     }
     .prof-avatar {
-        width: 72px; height: 72px;
+        width: 80px; height: 80px;
         border-radius: 50%;
         background: rgba(255,255,255,.2);
         border: 3px solid rgba(255,255,255,.45);
         display: flex; align-items: center; justify-content: center;
         font-size: 2rem; margin: 0 auto .85rem;
         position: relative; z-index: 1;
+        overflow: hidden; cursor: pointer;
+    }
+    .prof-avatar img {
+        width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .prof-avatar-overlay {
+        position: absolute; inset: 0; border-radius: 50%;
+        background: rgba(0,0,0,.5);
+        display: flex; align-items: center; justify-content: center;
+        opacity: 0; transition: opacity .18s;
+        font-size: .7rem; color: #fff; text-align: center;
+        flex-direction: column; gap: 2px; cursor: pointer;
+    }
+    .prof-avatar:hover .prof-avatar-overlay { opacity: 1; }
+    .prof-avatar-hint {
+        font-size: .72rem; color: rgba(255,255,255,.55);
+        margin-top: .3rem; margin-bottom: .5rem;
     }
     .prof-header-name {
         color: #fff; font-size: 1.3rem; font-weight: 800;
@@ -184,7 +201,21 @@
     <div class="prof-card">
 
         <div class="prof-header">
-            <div class="prof-avatar">👤</div>
+            <div class="prof-avatar" id="avatarCircle" onclick="document.getElementById('avatarFileInput').click()" title="Đổi ảnh đại diện">
+                @if (!string.IsNullOrEmpty(Model.CurrentUser?.AvatarUrl))
+                {
+                    <img src="@Model.CurrentUser.AvatarUrl" alt="Ảnh đại diện" />
+                }
+                else
+                {
+                    <span>👤</span>
+                }
+                <div class="prof-avatar-overlay">
+                    <span>📷</span>
+                    <span>Đổi ảnh</span>
+                </div>
+            </div>
+            <div class="prof-avatar-hint">Nhấn vào ảnh để thay đổi</div>
             <div class="prof-header-name">@(Model.CurrentUser?.HoTen ?? "Người dùng")</div>
             <div class="prof-header-email">@Model.CurrentUser?.Email</div>
         </div>
@@ -213,8 +244,13 @@
                 <div class="prof-alert-success">✅ Thông tin tài khoản đã được cập nhật thành công!</div>
             }
 
-            <form method="post">
+            <form method="post" enctype="multipart/form-data">
                 <div asp-validation-summary="ModelOnly" class="prof-alert-error"></div>
+                <span asp-validation-for="AvatarFile" class="prof-validation" style="display:block;margin-bottom:.75rem;"></span>
+
+                @* Hidden file input — triggered by clicking avatar circle *@
+                <input type="file" id="avatarFileInput" name="AvatarFile" accept=".jpg,.jpeg,.png,.webp"
+                       style="display:none;" onchange="this.form.submit()" />
 
                 <div class="prof-field">
                     <label class="prof-label">Họ Và Tên <span style="color:#ef5350;">*</span></label>

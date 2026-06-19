@@ -8,6 +8,7 @@ public class ApplicationUser : IdentityUser
     public string Ho { get; set; } = string.Empty;
     public string Ten { get; set; } = string.Empty;
     public DateTime NgayTao { get; set; } = DateTime.UtcNow;
+    public string? AvatarUrl { get; set; }
 
     // Backward-compatible computed property — not stored in DB
     [NotMapped]

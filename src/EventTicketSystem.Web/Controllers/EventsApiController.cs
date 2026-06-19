@@ -32,6 +32,7 @@ public class EventsApiController(AppDbContext db) : ControllerBase
                 e.EndDate,
                 e.Venue,
                 e.Category,
+                e.ImageUrl,
                 TicketTypes = e.TicketTypes.Select(t => new
                 {
                     t.Id,

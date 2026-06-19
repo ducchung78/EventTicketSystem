@@ -81,6 +81,24 @@
             </div>
         </div>
 
+        @* ── TRENDING RANKING ── *@
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Vé Đã Bán</label>
+                <div class="form-control" style="background:#1a1a1a; color:#69f0ae; font-weight:600; cursor:default;">
+                    @Model.TotalTicketsSold vé
+                </div>
+                <div class="form-text">Tổng số vé bán ra thực tế, dùng làm điểm cơ sở xếp hạng xu hướng.</div>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Input.PriorityBoost" class="form-label fw-bold">Điểm Ưu Tiên</label>
+                <input asp-for="Input.PriorityBoost" type="number" class="form-control" />
+                <div class="form-text text-warning">
+                    1 điểm ≈ 75 vé bán. Giá trị âm để hạ thứ hạng. Sự kiện bán vượt trội vẫn vượt lên.
+                </div>
+            </div>
+        </div>
+
         @* ── BANNER IMAGE ── *@
         <div class="mb-4">
             <label class="form-label fw-bold">Ảnh Banner</label>

@@ -12,6 +12,7 @@ namespace EventTicketSystem.Web.Pages.Events;
 public class EditEventModel(AppDbContext db, IWebHostEnvironment env) : PageModel
 {
     public Event? Event { get; set; }
+    public int TotalTicketsSold { get; set; }
     public List<EventImage> ExistingGalleryImages { get; set; } = [];
 
     [BindProperty] public EventEditInput Input { get; set; } = new();
@@ -27,14 +28,15 @@ public class EditEventModel(AppDbContext db, IWebHostEnvironment env) : PageMode
 
         Input = new EventEditInput
         {
-            Title       = Event.Title,
-            Description = Event.Description,
-            StartDate   = Event.StartDate.ToLocalTime(),
-            EndDate     = Event.EndDate?.ToLocalTime(),
-            Venue       = Event.Venue,
-            Category    = Event.Category,
-            IsActive    = Event.IsActive,
-            IsSpecial   = Event.IsSpecial
+            Title         = Event.Title,
+            Description   = Event.Description,
+            StartDate     = Event.StartDate.ToLocalTime(),
+            EndDate       = Event.EndDate?.ToLocalTime(),
+            Venue         = Event.Venue,
+            Category      = Event.Category,
+            IsActive      = Event.IsActive,
+            IsSpecial     = Event.IsSpecial,
+            PriorityBoost = Event.PriorityBoost
         };
 
         TicketTypes = Event.TicketTypes.Select(tt => new TicketTypeEditInput
@@ -77,14 +79,15 @@ public class EditEventModel(AppDbContext db, IWebHostEnvironment env) : PageMode
         }
 
         // Event fields
-        Event.Title       = Input.Title;
-        Event.Description = Input.Description ?? "";
-        Event.StartDate   = Input.StartDate.ToUniversalTime();
-        Event.EndDate     = Input.EndDate?.ToUniversalTime();
-        Event.Venue       = Input.Venue;
-        Event.Category    = Input.Category ?? "";
-        Event.IsActive    = Input.IsActive;
-        Event.IsSpecial   = Input.IsSpecial;
+        Event.Title         = Input.Title;
+        Event.Description   = Input.Description ?? "";
+        Event.StartDate     = Input.StartDate.ToUniversalTime();
+        Event.EndDate       = Input.EndDate?.ToUniversalTime();
+        Event.Venue         = Input.Venue;
+        Event.Category      = Input.Category ?? "";
+        Event.IsActive      = Input.IsActive;
+        Event.IsSpecial     = Input.IsSpecial;
+        Event.PriorityBoost = Input.PriorityBoost;
 
         // Ticket types ─────────────────────────────────────────────────────
         var deletedSet = TicketTypes.Where(t => t.IsDeleted && t.Id > 0).Select(t => t.Id).ToHashSet();
@@ -155,7 +158,10 @@ public class EditEventModel(AppDbContext db, IWebHostEnvironment env) : PageMode
             .FirstOrDefaultAsync(e => e.Id == id);
 
         if (Event != null)
+        {
             ExistingGalleryImages = [.. Event.Images.OrderBy(i => i.SortOrder)];
+            TotalTicketsSold = Event.TicketTypes.Sum(t => t.SoldQuantity);
+        }
     }
 
     private async Task<string> SaveFileAsync(IFormFile file, string subFolder)
@@ -199,6 +205,8 @@ public class EditEventModel(AppDbContext db, IWebHostEnvironment env) : PageMode
 
         public bool IsActive  { get; set; }
         public bool IsSpecial { get; set; }
+
+        public int PriorityBoost { get; set; } = 0;
 
         public IFormFile? BannerImage { get; set; }
         public bool RemoveImage { get; set; }

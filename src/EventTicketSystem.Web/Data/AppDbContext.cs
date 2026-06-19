@@ -20,6 +20,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<AIConfig>      AIConfigs        { get; set; }
     public DbSet<PredictionLog>    PredictionLogs    { get; set; }
     public DbSet<PaymentMethod>   PaymentMethods    { get; set; }
+    public DbSet<FooterSettings>  FooterSettings    { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -285,21 +286,21 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         );
 
         modelBuilder.Entity<TicketType>().HasData(
-            // Event 1 – Âm nhạc Rock
-            new TicketType { Id = 1,  EventId = 1,  Name = "Vé Phổ Thông",           Description = "Khu vực đứng tự do",                                 Price = 50_000m,    TotalQuantity = 500, SoldQuantity = 0 },
-            new TicketType { Id = 2,  EventId = 1,  Name = "Vé VIP",                  Description = "Ghế ngồi khu VIP + thẻ hậu trường",                  Price = 150_000m,   TotalQuantity = 100, SoldQuantity = 0 },
-            // Event 2 – Công nghệ
-            new TicketType { Id = 3,  EventId = 2,  Name = "Vé Tiêu Chuẩn",           Description = "Tham dự toàn bộ hội nghị",                           Price = 299_000m,   TotalQuantity = 300, SoldQuantity = 0 },
-            new TicketType { Id = 4,  EventId = 2,  Name = "Vé Workshop",             Description = "Hội nghị + tất cả buổi workshop thực hành",          Price = 499_000m,   TotalQuantity = 50,  SoldQuantity = 0 },
-            // Event 3 – Hài kịch
-            new TicketType { Id = 5,  EventId = 3,  Name = "Vé Thường",               Description = "Chỗ ngồi khu vực tiêu chuẩn",                        Price = 25_000m,    TotalQuantity = 200, SoldQuantity = 0 },
-            new TicketType { Id = 6,  EventId = 3,  Name = "Vé Cao Cấp",              Description = "Hàng ghế đầu + gặp gỡ nghệ sĩ",                     Price = 75_000m,    TotalQuantity = 30,  SoldQuantity = 0 },
-            // Event 4 – Nghệ thuật
-            new TicketType { Id = 7,  EventId = 4,  Name = "Vé Xem Triển Lãm",        Description = "Vào cửa tham quan triển lãm",                        Price = 10_000m,    TotalQuantity = 400, SoldQuantity = 0 },
-            new TicketType { Id = 8,  EventId = 4,  Name = "Vé Đặc Biệt",             Description = "Tham quan + workshop nghệ thuật với nghệ sĩ",        Price = 35_000m,    TotalQuantity = 60,  SoldQuantity = 0 },
-            // Event 5 – Thể thao
-            new TicketType { Id = 9,  EventId = 5,  Name = "Vé Khán Đài",   Description = "Khu vực khán đài thường",       Price = 15_000m, TotalQuantity = 800, SoldQuantity = 0 },
-            new TicketType { Id = 10, EventId = 5,  Name = "Vé VIP Sân Cỏ", Description = "Khu VIP có dịch vụ ăn uống",   Price = 50_000m, TotalQuantity = 80,  SoldQuantity = 0 }
+            // Event 1 – Âm nhạc Rock (total 345 sold)
+            new TicketType { Id = 1,  EventId = 1,  Name = "Vé Phổ Thông",           Description = "Khu vực đứng tự do",                                 Price = 50_000m,    TotalQuantity = 500, SoldQuantity = 280 },
+            new TicketType { Id = 2,  EventId = 1,  Name = "Vé VIP",                  Description = "Ghế ngồi khu VIP + thẻ hậu trường",                  Price = 150_000m,   TotalQuantity = 100, SoldQuantity = 65 },
+            // Event 2 – Công nghệ (total 228 sold)
+            new TicketType { Id = 3,  EventId = 2,  Name = "Vé Tiêu Chuẩn",           Description = "Tham dự toàn bộ hội nghị",                           Price = 299_000m,   TotalQuantity = 300, SoldQuantity = 190 },
+            new TicketType { Id = 4,  EventId = 2,  Name = "Vé Workshop",             Description = "Hội nghị + tất cả buổi workshop thực hành",          Price = 499_000m,   TotalQuantity = 50,  SoldQuantity = 38 },
+            // Event 3 – Hài kịch (total 117 sold)
+            new TicketType { Id = 5,  EventId = 3,  Name = "Vé Thường",               Description = "Chỗ ngồi khu vực tiêu chuẩn",                        Price = 25_000m,    TotalQuantity = 200, SoldQuantity = 95 },
+            new TicketType { Id = 6,  EventId = 3,  Name = "Vé Cao Cấp",              Description = "Hàng ghế đầu + gặp gỡ nghệ sĩ",                     Price = 75_000m,    TotalQuantity = 30,  SoldQuantity = 22 },
+            // Event 4 – Nghệ thuật (total 255 sold)
+            new TicketType { Id = 7,  EventId = 4,  Name = "Vé Xem Triển Lãm",        Description = "Vào cửa tham quan triển lãm",                        Price = 10_000m,    TotalQuantity = 400, SoldQuantity = 210 },
+            new TicketType { Id = 8,  EventId = 4,  Name = "Vé Đặc Biệt",             Description = "Tham quan + workshop nghệ thuật với nghệ sĩ",        Price = 35_000m,    TotalQuantity = 60,  SoldQuantity = 45 },
+            // Event 5 – Thể thao (total 580 sold — dẫn đầu tự nhiên)
+            new TicketType { Id = 9,  EventId = 5,  Name = "Vé Khán Đài",   Description = "Khu vực khán đài thường",       Price = 15_000m, TotalQuantity = 800, SoldQuantity = 520 },
+            new TicketType { Id = 10, EventId = 5,  Name = "Vé VIP Sân Cỏ", Description = "Khu VIP có dịch vụ ăn uống",   Price = 50_000m, TotalQuantity = 80,  SoldQuantity = 60 }
         );
 
         var expiry2027 = new DateTime(2027, 12, 31, 23, 59, 59, DateTimeKind.Utc);

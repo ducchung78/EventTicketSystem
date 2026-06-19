@@ -33,6 +33,8 @@ public class Event
 
     public bool HasSeatMap { get; set; } = false;
 
+    public int PriorityBoost { get; set; } = 0;
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<TicketType> TicketTypes { get; set; } = new List<TicketType>();

@@ -4,6 +4,7 @@ using EventTicketSystem.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EventTicketSystem.Web.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260617140501_AddAvatarUrl")]
+    partial class AddAvatarUrl
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -395,9 +398,6 @@ namespace EventTicketSystem.Web.Migrations
                     b.Property<bool>("IsSpecial")
                         .HasColumnType("bit");
 
-                    b.Property<int>("PriorityBoost")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
@@ -446,7 +446,6 @@ namespace EventTicketSystem.Web.Migrations
                             IsActive = true,
                             IsHot = true,
                             IsSpecial = false,
-                            PriorityBoost = 0,
                             StartDate = new DateTime(2026, 7, 15, 18, 0, 0, 0, DateTimeKind.Utc),
                             Title = "Lễ Hội Âm Nhạc Rock 2026",
                             Venue = "Nhà Thi Đấu Phú Thọ, TP. Hồ Chí Minh"
@@ -463,7 +462,6 @@ namespace EventTicketSystem.Web.Migrations
                             IsActive = true,
                             IsHot = true,
                             IsSpecial = true,
-                            PriorityBoost = 0,
                             StartDate = new DateTime(2026, 8, 20, 9, 0, 0, 0, DateTimeKind.Utc),
                             Title = "Hội Nghị Công Nghệ Việt Nam 2026",
                             Venue = "Trung Tâm Hội Nghị Quốc Gia, Hà Nội"
@@ -480,7 +478,6 @@ namespace EventTicketSystem.Web.Migrations
                             IsActive = true,
                             IsHot = false,
                             IsSpecial = false,
-                            PriorityBoost = 0,
                             StartDate = new DateTime(2026, 6, 10, 20, 0, 0, 0, DateTimeKind.Utc),
                             Title = "Đêm Hài Kịch Độc Thoại",
                             Venue = "Nhà Hát Bến Thành, TP. Hồ Chí Minh"
@@ -497,7 +494,6 @@ namespace EventTicketSystem.Web.Migrations
                             IsActive = true,
                             IsHot = false,
                             IsSpecial = true,
-                            PriorityBoost = 0,
                             StartDate = new DateTime(2026, 9, 5, 9, 0, 0, 0, DateTimeKind.Utc),
                             Title = "Triển Lãm Nghệ Thuật Đương Đại 2026",
                             Venue = "Bảo Tàng Mỹ Thuật TP. Hồ Chí Minh"
@@ -514,7 +510,6 @@ namespace EventTicketSystem.Web.Migrations
                             IsActive = true,
                             IsHot = true,
                             IsSpecial = false,
-                            PriorityBoost = 0,
                             StartDate = new DateTime(2026, 7, 25, 17, 0, 0, 0, DateTimeKind.Utc),
                             Title = "Giải Bóng Đá Giao Hữu Mùa Hè 2026",
                             Venue = "Sân Vận Động Thống Nhất, TP. Hồ Chí Minh"
@@ -955,7 +950,7 @@ namespace EventTicketSystem.Web.Migrations
                             EventId = 1,
                             Name = "Vé Phổ Thông",
                             Price = 50000m,
-                            SoldQuantity = 280,
+                            SoldQuantity = 0,
                             TotalQuantity = 500
                         },
                         new
@@ -965,7 +960,7 @@ namespace EventTicketSystem.Web.Migrations
                             EventId = 1,
                             Name = "Vé VIP",
                             Price = 150000m,
-                            SoldQuantity = 65,
+                            SoldQuantity = 0,
                             TotalQuantity = 100
                         },
                         new
@@ -975,7 +970,7 @@ namespace EventTicketSystem.Web.Migrations
                             EventId = 2,
                             Name = "Vé Tiêu Chuẩn",
                             Price = 299000m,
-                            SoldQuantity = 190,
+                            SoldQuantity = 0,
                             TotalQuantity = 300
                         },
                         new
@@ -985,7 +980,7 @@ namespace EventTicketSystem.Web.Migrations
                             EventId = 2,
                             Name = "Vé Workshop",
                             Price = 499000m,
-                            SoldQuantity = 38,
+                            SoldQuantity = 0,
                             TotalQuantity = 50
                         },
                         new
@@ -995,7 +990,7 @@ namespace EventTicketSystem.Web.Migrations
                             EventId = 3,
                             Name = "Vé Thường",
                             Price = 25000m,
-                            SoldQuantity = 95,
+                            SoldQuantity = 0,
                             TotalQuantity = 200
                         },
                         new
@@ -1005,7 +1000,7 @@ namespace EventTicketSystem.Web.Migrations
                             EventId = 3,
                             Name = "Vé Cao Cấp",
                             Price = 75000m,
-                            SoldQuantity = 22,
+                            SoldQuantity = 0,
                             TotalQuantity = 30
                         },
                         new
@@ -1015,7 +1010,7 @@ namespace EventTicketSystem.Web.Migrations
                             EventId = 4,
                             Name = "Vé Xem Triển Lãm",
                             Price = 10000m,
-                            SoldQuantity = 210,
+                            SoldQuantity = 0,
                             TotalQuantity = 400
                         },
                         new
@@ -1025,7 +1020,7 @@ namespace EventTicketSystem.Web.Migrations
                             EventId = 4,
                             Name = "Vé Đặc Biệt",
                             Price = 35000m,
-                            SoldQuantity = 45,
+                            SoldQuantity = 0,
                             TotalQuantity = 60
                         },
                         new
@@ -1035,7 +1030,7 @@ namespace EventTicketSystem.Web.Migrations
                             EventId = 5,
                             Name = "Vé Khán Đài",
                             Price = 15000m,
-                            SoldQuantity = 520,
+                            SoldQuantity = 0,
                             TotalQuantity = 800
                         },
                         new
@@ -1045,7 +1040,7 @@ namespace EventTicketSystem.Web.Migrations
                             EventId = 5,
                             Name = "Vé VIP Sân Cỏ",
                             Price = 50000m,
-                            SoldQuantity = 60,
+                            SoldQuantity = 0,
                             TotalQuantity = 80
                         });
                 });

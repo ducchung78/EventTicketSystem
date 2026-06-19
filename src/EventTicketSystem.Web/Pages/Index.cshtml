@@ -7,71 +7,59 @@
 }
 
 <style>
-    /* ===== Homepage – green theme overrides ===== */
+    /* ===== Homepage ===== */
     .horiz-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
-    .horiz-scroll::-webkit-scrollbar { height: 5px; }
-    .horiz-scroll::-webkit-scrollbar-track { background: rgba(0,200,83,.08); border-radius: 3px; }
-    .horiz-scroll::-webkit-scrollbar-thumb { background: rgba(0,200,83,.28); border-radius: 3px; }
+    .horiz-scroll::-webkit-scrollbar { height: 4px; }
+    .horiz-scroll::-webkit-scrollbar-track { background: #1a1a1a; }
+    .horiz-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
 
-    .section-title { color: #f0f0f0; font-size: 1.3rem; font-weight: 700; margin-bottom: 0; }
-    .section-emoji { font-size: 1.4rem; line-height: 1; }
-    .section-divider { border: none; border-top: 1px solid rgba(0,200,83,.14); margin: 0 0 2.5rem; }
+    .section-title { color: #ffffff; font-size: 1.2rem; font-weight: 600; margin-bottom: 0; }
+    .section-emoji { font-size: 1.3rem; line-height: 1; }
+    .section-divider { border: none; border-top: 1px solid #2a2a2a; margin: 0 0 2.5rem; }
 
-    /* Tab pills – green */
+    /* Tabs – underline style */
+    #calendarTab { border-bottom: none; gap: 0; }
     #calendarTab .nav-link {
-        color: rgba(200,230,200,.75) !important;
-        background: rgba(0,200,83,.1) !important;
-        border: 1px solid rgba(0,200,83,.22) !important;
-        border-radius: 20px !important;
-        font-size: .82rem;
-        padding: .28rem .9rem;
-        transition: all .2s;
-        text-shadow: none !important;
+        color: #666 !important;
+        background: transparent !important;
+        border: none !important;
+        border-bottom: 2px solid transparent !important;
+        border-radius: 0 !important;
+        font-size: .88rem;
+        font-weight: 500;
+        padding: .4rem 1rem .38rem;
+        transition: color .15s, border-color .15s;
     }
     #calendarTab .nav-link.active,
     #calendarTab .nav-link:hover {
-        background: rgba(0,200,83,.28) !important;
-        border-color: rgba(0,200,83,.55) !important;
-        color: #e0ffe8 !important;
-    }
-
-    /* Venue card – green accent */
-    .venue-card {
-        border-radius: 12px; overflow: hidden; min-height: 120px; position: relative; cursor: pointer;
-        background: linear-gradient(135deg, rgba(0,200,83,.14) 0%, rgba(0,130,55,.08) 100%);
-        border: 1px solid rgba(0,200,83,.2);
-        transition: transform .22s, box-shadow .22s;
-    }
-    .venue-card:hover { transform: translateY(-4px); box-shadow: 0 10px 32px rgba(0,200,83,.28); }
-
-    /* "Xem tất cả" buttons – green outline */
-    .btn-see-all {
-        border: 1px solid rgba(0,200,83,.4) !important;
-        color: rgba(150,255,180,.85) !important;
-        background: transparent !important;
-        border-radius: 20px;
-        font-size: .8rem;
-        padding: .25rem .85rem;
-        text-decoration: none;
-        transition: background .18s, border-color .18s;
-    }
-    .btn-see-all:hover {
-        background: rgba(0,200,83,.15) !important;
-        border-color: rgba(0,200,83,.7) !important;
         color: #fff !important;
+        background: transparent !important;
+        border-bottom-color: #00C853 !important;
     }
+
+    /* "Xem tất cả" link */
+    .btn-see-all {
+        color: #aaaaaa;
+        background: transparent;
+        border: none;
+        font-size: .82rem;
+        padding: 0;
+        text-decoration: none;
+        transition: color .15s;
+    }
+    .btn-see-all:hover { color: #00C853; }
 
     /* ===== HERO 2-PANEL ===== */
-    .h2-wrap { padding: 14px 16px 0; }
+    .h2-wrap { padding: 12px 16px 0; }
     .h2-slide { display: none; }
     .h2-slide.active { display: block; animation: h2FadeIn .35s ease; }
     @@keyframes h2FadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    .h2-panels { display: flex; gap: 12px; height: 420px; }
+    .h2-panels { display: flex; gap: 4px; height: 320px; }
 
     .h2-panel {
-        flex: 1; border-radius: 16px; overflow: hidden;
-        position: relative; background: #1a1a1a; cursor: pointer;
+        flex: 1; border-radius: 6px; overflow: hidden;
+        position: relative; background: #222; cursor: pointer;
     }
 
     .h2-img {
@@ -82,42 +70,58 @@
 
     .h2-overlay {
         position: absolute; inset: 0; pointer-events: none;
-        background: linear-gradient(transparent 38%, rgba(0,0,0,.55) 100%);
+        background: linear-gradient(transparent 40%, rgba(0,0,0,.60) 100%);
     }
 
     .h2-detail-btn {
-        position: absolute; bottom: 16px; left: 16px; z-index: 2;
-        background: rgba(255,255,255,.95); color: #111 !important;
-        font-weight: 600; border-radius: 8px; padding: 10px 20px;
-        text-decoration: none; font-size: .88rem;
-        transition: background .18s; display: inline-block;
+        position: absolute; bottom: 14px; left: 14px; z-index: 2;
+        background: rgba(255,255,255,.15); color: #fff !important;
+        font-weight: 500; border-radius: 4px; padding: 8px 18px;
+        text-decoration: none; font-size: .84rem;
+        border: 1px solid rgba(255,255,255,.5);
+        transition: background .18s, color .18s; display: inline-block;
     }
     .h2-detail-btn:hover { background: #fff; color: #000 !important; }
 
     .h2-arrow {
         position: absolute; top: 50%; transform: translateY(-50%);
-        background: rgba(0,0,0,.5); color: #fff; border: none;
-        width: 38px; height: 38px; border-radius: 50%;
-        font-size: 1.5rem; cursor: pointer; z-index: 3;
+        background: rgba(0,0,0,.55); color: #fff; border: none;
+        width: 36px; height: 36px; border-radius: 50%;
+        font-size: 1.4rem; cursor: pointer; z-index: 3;
         display: flex; align-items: center; justify-content: center;
         transition: background .18s; backdrop-filter: blur(4px);
         line-height: 1; padding: 0;
     }
-    .h2-arrow:hover { background: rgba(0,0,0,.78); }
-    .h2-arrow-prev { left: 12px; }
-    .h2-arrow-next { right: 12px; }
+    .h2-arrow:hover { background: rgba(0,0,0,.82); }
+    .h2-arrow-prev { left: 10px; }
+    .h2-arrow-next { right: 10px; }
 
     .h2-dots {
-        display: flex; justify-content: center; gap: 7px;
-        padding: 9px 0 13px; background: #111111;
+        display: flex; justify-content: center; gap: 6px;
+        padding: 8px 0 12px; background: #111111;
     }
     .h2-dot {
-        width: 8px; height: 8px; border-radius: 50%;
-        background: rgba(255,255,255,.4); cursor: pointer;
+        width: 7px; height: 7px; border-radius: 50%;
+        background: rgba(255,255,255,.3); cursor: pointer;
         border: none; padding: 0;
         transition: background .18s, transform .18s;
     }
-    .h2-dot.active { background: #fff; transform: scale(1.35); }
+    .h2-dot.active { background: #fff; transform: scale(1.4); }
+
+    /* ===== HOT EVENTS GRID ===== */
+    .hot-grid-card { position: relative; cursor: pointer; }
+    .hot-grid-img-wrap {
+        position: relative; border-radius: 6px; overflow: hidden;
+        aspect-ratio: 16 / 10; background: #222;
+    }
+    .hot-grid-img-wrap img {
+        width: 100%; height: 100%; object-fit: cover; display: block;
+        transition: transform .22s ease;
+    }
+    .hot-grid-card:hover .hot-grid-img-wrap img { transform: scale(1.02); }
+    .hot-grid-card:hover .hot-grid-img-wrap {
+        box-shadow: 0 8px 24px rgba(0,200,83,.15);
+    }
 
     /* ===== TRENDING SECTION ===== */
     .trend-scroll-wrap { position: relative; }
@@ -129,10 +133,10 @@
 
     .trend-card {
         position: relative; flex-shrink: 0;
-        width: 280px; height: 200px;
-        border-radius: 12px; overflow: hidden;
-        margin-right: 12px; cursor: pointer;
-        background: #1a1a1a; text-decoration: none;
+        width: 260px; height: 185px;
+        border-radius: 6px; overflow: hidden;
+        margin-right: 10px; cursor: pointer;
+        background: #222; text-decoration: none;
         transition: transform .2s;
         display: block;
     }
@@ -144,27 +148,82 @@
     }
     .trend-card-img-ph {
         width: 100%; height: 100%;
-        background: linear-gradient(135deg, #121a12, #0f1a0f);
+        background: #222;
         display: flex; align-items: center; justify-content: center;
     }
 
     .trend-rank {
-        position: absolute; bottom: -8px; left: 10px; z-index: 2;
-        font-size: 120px; font-weight: 900;
-        color: #00e676; opacity: .85; line-height: 1;
+        position: absolute; bottom: -12px; left: 10px; z-index: 2;
+        font-size: 110px; font-weight: 900;
+        color: #00C853; opacity: .9; line-height: 1;
         pointer-events: none; user-select: none;
-        text-shadow: 2px 3px 10px rgba(0,0,0,.65), -1px -1px 5px rgba(0,0,0,.4);
+        text-shadow: 2px 3px 12px rgba(0,0,0,.75);
     }
 
     .trend-scroll-btn {
-        position: absolute; right: -16px; top: 50%; transform: translateY(-50%);
-        background: rgba(0,0,0,.6); color: #fff; border: none;
-        width: 36px; height: 36px; border-radius: 50%;
-        font-size: 1.3rem; cursor: pointer; z-index: 5;
+        position: absolute; right: -14px; top: 50%; transform: translateY(-50%);
+        background: rgba(0,0,0,.65); color: #fff; border: none;
+        width: 34px; height: 34px; border-radius: 50%;
+        font-size: 1.2rem; cursor: pointer; z-index: 5;
         display: flex; align-items: center; justify-content: center;
         backdrop-filter: blur(4px); transition: background .18s;
     }
-    .trend-scroll-btn:hover { background: rgba(0,200,83,.75); }
+    .trend-scroll-btn:hover { background: #00C853; }
+
+    /* ===== CITY DESTINATION STRIP ===== */
+    .city-strip {
+        display: flex; gap: 4px;
+        height: 300px; border-radius: 10px; overflow: hidden;
+    }
+    .city-card-lg {
+        flex: 1; position: relative; overflow: hidden;
+        text-decoration: none; display: block; cursor: pointer;
+    }
+    .city-card-lg img {
+        width: 100%; height: 100%; object-fit: cover; display: block;
+        transition: transform .45s ease;
+    }
+    .city-card-lg:hover img { transform: scale(1.06); }
+    .city-card-grid {
+        flex: 1; display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 4px;
+    }
+    .city-mini {
+        position: relative; overflow: hidden;
+        text-decoration: none; display: block;
+    }
+    .city-mini img {
+        width: 100%; height: 100%; object-fit: cover; display: block;
+        transition: transform .45s ease;
+    }
+    .city-mini:hover img { transform: scale(1.1); }
+    /* gradient xanh lá phủ từ dưới lên */
+    .city-card-lg::after, .city-mini::after {
+        content: ''; position: absolute; inset: 0; pointer-events: none;
+        background: linear-gradient(to top,
+            rgba(0,50,25,.80) 0%,
+            rgba(0,120,60,.18) 50%,
+            transparent 100%);
+    }
+    .city-label {
+        position: absolute; bottom: 14px; left: 14px; right: 14px;
+        z-index: 2; color: #fff; font-size: .98rem; font-weight: 700;
+        text-shadow: 0 2px 10px rgba(0,0,0,.65);
+        line-height: 1.3;
+    }
+    .city-mini-label {
+        position: absolute; bottom: 7px; left: 8px; right: 8px;
+        z-index: 2; color: #fff; font-size: .68rem; font-weight: 600;
+        text-shadow: 0 1px 6px rgba(0,0,0,.8);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    @@media (max-width: 767px) {
+        .city-strip { flex-direction: column; height: auto; border-radius: 8px; }
+        .city-card-lg { height: 155px; }
+        .city-card-grid { height: 155px; }
+    }
 </style>
 
 @* ===== HERO 2-PANEL ===== *@
@@ -232,9 +291,9 @@
 @* ===== TRENDING: SỰ KIỆN XU HƯỚNG ===== *@
 @if (Model.TrendingEvents.Any())
 {
-    <div class="mx-n4" style="background:#111111; padding: 4px 16px 20px;">
+    <div class="mx-n4 section-wave-bg" style="padding-left:16px; padding-right:16px;">
         <div class="d-flex align-items-center mb-3 pt-3">
-            <h2 style="color:#fff; font-size:22px; font-weight:700; margin:0;">🔥 Sự kiện xu hướng</h2>
+            <h2 style="color:#fff; font-size:1.2rem; font-weight:600; margin:0;">⭐ Sự kiện xu hướng</h2>
         </div>
         <div class="trend-scroll-wrap">
             <div class="trend-list" id="trendList">
@@ -271,72 +330,43 @@
     {
         <div class="mb-5">
             <div class="d-flex align-items-center gap-2 mb-4">
-                <span class="section-emoji">🔥</span>
-                <h2 class="fw-bold mb-0" style="color:#f0f0f0;" data-i18n="hot-events">Sự Kiện Nổi Bật</h2>
-                <span class="badge ms-1 align-self-center"
-                      style="background:linear-gradient(90deg,#e91e63,#f44336); font-size:.75rem; letter-spacing:.5px;">HOT</span>
+                <h2 class="section-title" data-i18n="hot-events">Sự Kiện Nổi Bật</h2>
                 <a href="/Events" class="btn-see-all ms-auto" data-i18n="see-all">Xem tất cả →</a>
             </div>
 
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            <div class="row row-cols-2 row-cols-md-4 g-3">
                 @foreach (var evt in Model.HotEvents)
                 {
                     var cheapest = evt.TicketTypes.Where(t => t.AvailableQuantity > 0).OrderBy(t => t.Price).FirstOrDefault();
+                    var dateStr = evt.StartDate.ToLocalTime().ToString("dd 'tháng' MM, yyyy");
                     <div class="col">
-                        <div class="event-card position-relative" style="border-radius:12px; overflow:hidden; box-shadow:0 4px 20px rgba(233,30,99,.18);">
-                            <div class="position-relative" style="padding-top:56.25%;">
+                        <a href="/Events/Details/@evt.Id" class="event-card">
+                            <div class="event-card-thumb">
                                 @if (!string.IsNullOrEmpty(evt.ImageUrl))
                                 {
-                                    <img src="@evt.ImageUrl" alt="@evt.Title"
-                                         class="position-absolute top-0 start-0 w-100 h-100"
-                                         style="object-fit:cover;" />
+                                    <img src="@evt.ImageUrl" alt="@evt.Title" loading="lazy" />
                                 }
                                 else
                                 {
-                                    <div class="position-absolute top-0 start-0 w-100 h-100"
-                                         style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);"></div>
-                                    <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
-                                        <span style="font-size:3rem; opacity:.3;">🎟</span>
-                                    </div>
+                                    <div class="ph-icon">🎟</div>
                                 }
-                                <div class="position-absolute top-0 start-0 w-100 h-100"
-                                     style="background:linear-gradient(transparent 30%, rgba(0,0,0,.28) 55%, rgba(0,0,0,.68) 100%);"></div>
-                                <div class="position-absolute top-0 start-0 p-2 d-flex gap-1" style="z-index:2;">
-                                    <span class="badge fw-bold" style="background:#e91e63; font-size:.75rem; letter-spacing:.3px;">🔥 HOT</span>
-                                    <span class="badge bg-warning text-dark" style="font-size:.7rem;">@evt.Category</span>
-                                </div>
-                                <div class="position-absolute bottom-0 start-0 w-100 p-3">
-                                    <h6 class="text-white fw-bold mb-2 lh-sm"
-                                        style="text-shadow:0 1px 6px rgba(0,0,0,.8); font-size:.95rem;">@evt.Title</h6>
-                                    <div class="d-flex justify-content-between align-items-end gap-2">
-                                        <div style="min-width:0;">
-                                            <div class="small mb-1" style="color:#69f0ae; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                                <span style="font-size:1.2rem; vertical-align:middle;">📅</span>
-                                                <span style="vertical-align:middle;"> @evt.StartDate.ToLocalTime().ToString("dd/MM/yyyy · HH:mm")</span>
-                                            </div>
-                                            <div class="small" style="color:#69f0ae; opacity:.85; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                                <span style="font-size:1.2rem; vertical-align:middle;">📍</span>
-                                                <span style="vertical-align:middle;"> @evt.Venue</span>
-                                            </div>
-                                        </div>
-                                        <div class="flex-shrink-0">
-                                            @if (cheapest != null)
-                                            {
-                                                <span class="badge rounded-pill fw-semibold px-2 py-1"
-                                                      style="background:rgba(233,30,99,.9); font-size:.75rem; white-space:nowrap;">
-                                                    Từ @cheapest.Price.ToString("N0")đ
-                                                </span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-secondary rounded-pill" style="font-size:.75rem;">Hết Vé</span>
-                                            }
-                                        </div>
-                                    </div>
+                            </div>
+                            <div class="event-card-body">
+                                <div class="event-card-name">@evt.Title</div>
+                                @if (cheapest != null)
+                                {
+                                    <div class="event-card-price">Từ @cheapest.Price.ToString("N0")đ</div>
+                                }
+                                else
+                                {
+                                    <div class="event-card-price" style="color:#555;">Hết vé</div>
+                                }
+                                <div class="event-card-date">
+                                    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/></svg>
+                                    @dateStr
                                 </div>
                             </div>
-                            <a href="/Events/Details/@evt.Id" class="stretched-link" aria-label="@evt.Title"></a>
-                        </div>
+                        </a>
                     </div>
                 }
             </div>
@@ -347,7 +377,7 @@
     @* ===== 2. SỰ KIỆN ĐẶC BIỆT ===== *@
     @if (Model.SpecialEvents.Any())
     {
-        <div class="mb-5">
+        <div class="mb-5 section-wave-bg" style="border-radius:8px;">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div class="d-flex align-items-center gap-2">
                     <span class="section-emoji">⭐</span>
@@ -408,7 +438,7 @@
                     }
                     else
                     {
-                        <p class="py-3 ps-1" style="color:rgba(200,230,200,.45);">Không có sự kiện cuối tuần này.</p>
+                        <p class="py-3 ps-1" style="color:#555;">Không có sự kiện cuối tuần này.</p>
                     }
                 </div>
                 <div class="tab-pane fade" id="monthPane" role="tabpanel">
@@ -425,7 +455,7 @@
                     }
                     else
                     {
-                        <p class="py-3 ps-1" style="color:rgba(200,230,200,.45);">Không có sự kiện trong tháng này.</p>
+                        <p class="py-3 ps-1" style="color:#555;">Không có sự kiện trong tháng này.</p>
                     }
                 </div>
             </div>
@@ -549,49 +579,40 @@
     }
 
     @* ===== 9. ĐIỂM ĐẾN THÚ VỊ ===== *@
-    @if (Model.FeaturedVenues.Any())
-    {
-        <div class="mb-5">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="section-emoji">📍</span>
-                    <h2 class="section-title" data-i18n="venues-section">Điểm Đến Thú Vị</h2>
-                </div>
-                <a href="/Events" class="btn-see-all" data-i18n="see-all">Xem tất cả →</a>
+    <div class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex align-items-center gap-2">
+                <span class="section-emoji">📍</span>
+                <h2 class="section-title" data-i18n="venues-section">Điểm Đến Thú Vị</h2>
             </div>
-            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
-                @foreach (var venue in Model.FeaturedVenues)
+            <a href="/Events" class="btn-see-all" data-i18n="see-all">Xem tất cả →</a>
+        </div>
+        <div class="city-strip">
+            @* 3 thẻ thành phố lớn *@
+            @foreach (var city in IndexModel.MainCities)
+            {
+                <a asp-page="/Events/Index" asp-route-search="@city.SearchTerm" class="city-card-lg">
+                    <img src="@city.ImageUrl" alt="@city.Name" loading="lazy" />
+                    <span class="city-label">@city.Name</span>
+                </a>
+            }
+            @* Thẻ thứ 4: lưới 2×2 *@
+            <div class="city-card-grid">
+                @foreach (var city in IndexModel.MiniCities)
                 {
-                    <div class="col">
-                        <a asp-page="/Events/Index" asp-route-search="@venue.Name"
-                           class="text-decoration-none d-block h-100">
-                            <div class="venue-card d-flex flex-column justify-content-end p-3">
-                                @if (!string.IsNullOrEmpty(venue.ImageUrl))
-                                {
-                                    <img src="@venue.ImageUrl" alt="@venue.Name"
-                                         class="position-absolute top-0 start-0 w-100 h-100"
-                                         style="object-fit:cover; opacity:.15; border-radius:12px;" />
-                                }
-                                <div class="position-relative" style="z-index:1;">
-                                    <div style="font-size:1.5rem; margin-bottom:4px;">📍</div>
-                                    <div class="fw-bold lh-sm"
-                                         style="color:#e8ffe8; font-size:.875rem; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">@venue.Name</div>
-                                    <div class="mt-1" style="color:rgba(180,255,200,.55); font-size:.75rem;">
-                                        @venue.EventCount sự kiện
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
+                    <a asp-page="/Events/Index" asp-route-search="@city.SearchTerm" class="city-mini">
+                        <img src="@city.ImageUrl" alt="@city.Name" loading="lazy" />
+                        <span class="city-mini-label">@city.Name</span>
+                    </a>
                 }
             </div>
         </div>
-    }
+    </div>
 
     @if (!Model.HotEvents.Any() && !Model.SpecialEvents.Any() && !Model.MusicEvents.Any())
     {
         <div class="text-center py-5">
-            <p style="color:rgba(200,230,200,.45);">Hiện chưa có sự kiện nào. Hãy quay lại sau!</p>
+            <p style="color:#555;">Hiện chưa có sự kiện nào. Hãy quay lại sau!</p>
         </div>
     }
 
