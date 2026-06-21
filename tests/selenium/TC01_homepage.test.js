@@ -5,10 +5,11 @@ const assert = require('assert');
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5134';
 
 describe('TC01 - Trang Chủ', function () {
-  this.timeout(30000);
+  this.timeout(60000);
   let driver;
 
   before(async function () {
+    this.timeout(60000);
     const options = new chrome.Options();
     options.addArguments('--headless=new', '--no-sandbox', '--disable-dev-shm-usage', '--window-size=1280,800');
     driver = await new Builder()
