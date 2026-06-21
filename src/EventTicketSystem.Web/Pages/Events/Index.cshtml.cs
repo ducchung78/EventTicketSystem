@@ -40,9 +40,11 @@ public class EventsIndexModel(AppDbContext db, IWebHostEnvironment env) : PageMo
             .ToListAsync();
     }
 
-    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> OnPostToggleHotAsync(int id)
     {
+        if (!User.IsInRole("Admin") && !User.IsInRole("SuperAdmin"))
+            return Forbid();
+
         var evt = await db.Events.FindAsync(id);
         if (evt == null) return NotFound();
 
@@ -52,9 +54,11 @@ public class EventsIndexModel(AppDbContext db, IWebHostEnvironment env) : PageMo
         return RedirectToPage(new { search = Request.Form["search"].ToString(), category = Request.Form["category"].ToString() });
     }
 
-    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> OnPostDeleteAsync(int id)
     {
+        if (!User.IsInRole("Admin") && !User.IsInRole("SuperAdmin"))
+            return Forbid();
+
         var evt = await db.Events
             .Include(e => e.TicketTypes)
             .Include(e => e.Images)
@@ -62,7 +66,6 @@ public class EventsIndexModel(AppDbContext db, IWebHostEnvironment env) : PageMo
 
         if (evt == null) return RedirectToPage();
 
-        // Remove order items referencing this event's ticket types
         var ttIds = evt.TicketTypes.Select(t => t.Id).ToList();
         if (ttIds.Any())
         {
@@ -70,17 +73,15 @@ public class EventsIndexModel(AppDbContext db, IWebHostEnvironment env) : PageMo
             db.OrderItems.RemoveRange(items);
         }
 
-        // Delete uploaded gallery files
         foreach (var img in evt.Images)
             DeletePhysical(img.ImagePath);
 
-        // Delete uploaded banner file
         DeletePhysical(evt.ImageUrl);
 
         db.Events.Remove(evt);
         await db.SaveChangesAsync();
 
-        TempData["Success"] = $"Đã xóa sự kiện \"{evt.Title}\".";
+        TempData["Success"] = "Da xoa su kien.";
         return RedirectToPage();
     }
 
