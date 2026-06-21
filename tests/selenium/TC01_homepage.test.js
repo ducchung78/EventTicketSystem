@@ -25,8 +25,7 @@ describe('TC01 - Trang Chủ', function () {
   it('Trang chủ load thành công, title không rỗng', async function () {
     await driver.get(BASE_URL);
     const title = await driver.getTitle();
-    assert.ok(title && title.length > 0, `Title không được rỗng, nhận được: "${title}"`);
-  });
+      assert.strictEqual(title, 'THIS_WILL_FAIL', 'Intentional fail to test Jira integration');  });
 
   it('Trang chủ hiển thị navbar', async function () {
     await driver.get(BASE_URL);
