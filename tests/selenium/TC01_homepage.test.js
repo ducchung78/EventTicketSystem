@@ -5,7 +5,7 @@ const assert = require('assert');
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5134';
 
 describe('TC01 - Trang Chủ', function () {
-  this.timeout(60000);
+  this.timeout(60000);h
   let driver;
 
   before(async function () {
