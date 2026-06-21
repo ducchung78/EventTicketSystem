@@ -66,8 +66,7 @@ async function createIssue(summary, errorMessage, fullTitle, testcaseId, priorit
         ],
       },
       issuetype: { name: 'Bug' },
-      labels: ['automated-test', testcaseId],
-      priority: { name: priority },
+labels: ['automated-test', testcaseId],
     },
   };
   const res = await axios.post(url, body, { headers: buildHeaders() });
