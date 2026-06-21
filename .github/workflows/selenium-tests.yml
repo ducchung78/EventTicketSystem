@@ -28,7 +28,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 10
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -62,12 +61,11 @@ jobs:
               echo "SQL Server ready!"
               exit 0
             fi
-            echo "  Attempt $i/40, retrying in 3s..."
+            echo " Attempt $i/40, retrying in 3s..."
             sleep 3
           done
           echo "ERROR: SQL Server did not start"
           exit 1
-
       - name: Install EF Core tools
         run: dotnet tool install --global dotnet-ef
         continue-on-error: true
@@ -78,14 +76,12 @@ jobs:
             --project src/EventTicketSystem.Web/ \
             --startup-project src/EventTicketSystem.Web/ \
             --connection "Server=localhost,1433;Database=EventTicketSystemDb;User Id=sa;Password=TestPassword@123;TrustServerCertificate=True"
-
       - name: Start app in background
         run: |
           dotnet run --project src/EventTicketSystem.Web/ --no-build --configuration Release \
             > /tmp/app.log 2>&1 &
           echo $! > /tmp/app.pid
           echo "App started (PID: $(cat /tmp/app.pid))"
-
       - name: Wait for app to be ready
         run: |
           echo "Waiting for app..."
@@ -94,19 +90,40 @@ jobs:
               echo "App ready after $((i * 3))s"
               exit 0
             fi
-            echo "  Attempt $i/30, retrying in 3s..."
+            echo " Attempt $i/30, retrying in 3s..."
             sleep 3
           done
           echo "ERROR: App did not start"
           cat /tmp/app.log || true
           exit 1
-
       - name: Create test-results directory
         run: mkdir -p test-results/logs
 
       - name: Run tests
         run: npm test
         continue-on-error: true
+
+      - name: Print test results
+        if: always()
+        run: |
+          if [ -f test-results/results.json ]; then
+            node -e "
+              const r = require('./test-results/results.json');
+              console.log('=== TEST RESULTS ===');
+              console.log('Passes:', r.stats.passes);
+              console.log('Failures:', r.stats.failures);
+              console.log('Pending:', r.stats.pending);
+              if (r.failures && r.failures.length > 0) {
+                console.log('\n=== FAILED TESTS ===');
+                r.failures.forEach(f => {
+                  console.log('FAIL:', f.fullTitle);
+                  if (f.err) console.log('Error:', f.err.message || f.err);
+                });
+              }
+            "
+          else
+            echo "No test results file found"
+          fi
 
       - name: Create Jira issues for failed tests
         if: always()
@@ -117,11 +134,3 @@ jobs:
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
           JIRA_PROJECT_KEY: ${{ secrets.JIRA_PROJECT_KEY }}
         continue-on-error: true
-
-      - name: Upload logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: test-results/
-          retention-days: 30
